@@ -14,6 +14,7 @@ const data = [
 function App() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [currentExercise, setCurrentExercise] = useState<string | null>(null);
+  const [weight, setWeight] = useState<number>(0);
 
   const handleLog = (e: any) => {
     e.preventDefault();
@@ -40,6 +41,12 @@ function App() {
         />
       </div>
       <button onClick={handleLog}>{currentExercise ? currentExercise : "Choose Exercise" }</button>
+      <input
+        type="number"
+        value={weight}
+        onChange={(e) => setWeight(parseInt(e.target.value))}
+      />
+      <div>{weight}</div>
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
