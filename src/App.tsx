@@ -12,14 +12,21 @@ const data = [
 ];
 
 function App() {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [currentExercise, setCurrentExercise] = useState<string | null>(null);
 
   const handleLog = (e: any) => {
     e.preventDefault();
     setShowModal(true);
   }
 
-  const handleOverlayClick = () => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setShowModal(false);
+  }
+
+  const handleSelectExercise = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentExercise(e.target.value);
     setShowModal(false);
   }
 
@@ -32,11 +39,11 @@ function App() {
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
-      <button onClick={handleLog}>Choose Exercise</button>
+      <button onClick={handleLog}>{currentExercise ? currentExercise : "Choose Exercise" }</button>
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
-          <div className="bg-white p-4 rounded-md">
-            <select>
+          <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
+            <select onChange={handleSelectExercise}>
               <option>Exercise 1</option>
               <option>Exercise 2</option>
             </select>
