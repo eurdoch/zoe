@@ -1,5 +1,6 @@
 import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
+import { useState } from "react";
 
 const data = [
   { x: 100, y: 200, id: 1 },
@@ -11,9 +12,13 @@ const data = [
 ];
 
 function App() {
+  const [showModal, setShowModal] = useState(false);
+
   const handleLog = (e: any) => {
     e.preventDefault();
+    setShowModal(true);
   }
+
   return (
     <div className="flex flex-col items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
@@ -24,6 +29,17 @@ function App() {
         />
       </div>
       <button onClick={handleLog}>Log set</button>
+      {showModal && (
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-md">
+            <select>
+              <option>Exercise 1</option>
+              <option>Exercise 2</option>
+            </select>
+            <input type="text" placeholder="Enter reps/weight" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
