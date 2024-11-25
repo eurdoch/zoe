@@ -19,6 +19,10 @@ function App() {
     setShowModal(true);
   }
 
+  const handleOverlayClick = () => {
+    setShowModal(false);
+  }
+
   return (
     <div className="flex flex-col items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
@@ -30,7 +34,7 @@ function App() {
       </div>
       <button onClick={handleLog}>Choose Exercise</button>
       {showModal && (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md">
             <select>
               <option>Exercise 1</option>
