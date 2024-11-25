@@ -12,11 +12,12 @@ const data = [
 
 function App() {
   return (
-    <div className="flex flex-col justify-center items-center p-4 w-screen h-screen">
-      <div className="w-full h-1/2">
+    <div className="flex flex-col items-center p-4 w-screen h-screen">
+      <div className="w-full h-1/3">
         <ScatterChart
           series={[{ data }]}
-          xAxis={[{ min: 0 }]}
+          xAxis={[{ min: 0, label: 'Date' }]}
+          yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
     </div>
