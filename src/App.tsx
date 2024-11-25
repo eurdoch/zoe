@@ -11,6 +11,9 @@ const data = [
 ];
 
 function App() {
+  const handleLog = (e: any) => {
+    e.preventDefault();
+  }
   return (
     <div className="flex flex-col items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
@@ -20,6 +23,7 @@ function App() {
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
+      <button onClick={handleLog}>Log set</button>
     </div>
   );
 }
