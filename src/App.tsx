@@ -15,6 +15,7 @@ function App() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [currentExercise, setCurrentExercise] = useState<string | null>(null);
   const [weight, setWeight] = useState<number>(0);
+  const [reps, setReps] = useState<number>(0);
 
   const handleLog = (e: any) => {
     e.preventDefault();
@@ -32,7 +33,7 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col items-center p-4 w-screen h-screen">
+    <div className="flex flex-col gap-2 items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
         <ScatterChart
           series={[{ data }]}
@@ -46,7 +47,11 @@ function App() {
         value={weight}
         onChange={(e) => setWeight(parseInt(e.target.value))}
       />
-      <div>{weight}</div>
+      <input
+        type="number"
+        value={reps}
+        onChange={(e) => setReps(parseInt(e.target.value))}
+      />
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
