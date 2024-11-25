@@ -8,13 +8,12 @@ interface DataPoint {
   id: number,
 }
 
-let data: DataPoint[] = [];
-
 function App() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [currentExercise, setCurrentExercise] = useState<string | null>(null);
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
+  const [data, setData] = useState<DataPoint[]>([]);
 
   const handleLog = (e: any) => {
     e.preventDefault();
@@ -31,19 +30,24 @@ function App() {
     setShowModal(false);
   }
 
+  const handleEnterData = () => {
+    if (currentExercise && weight && reps) {
+      setData([...data, {
+        x: new Date(),
+        y: weight / reps,
+        id: data.length,
+      }]);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-2 items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
         <ScatterChart
-          series={ data.map((dataPoint) => ({
-            x: dataPoint.x.toString(),
-            y: dataPoint.y,
-            id: dataPoint.id,
-          }))}
+          series={data.map((dataPoint) => ({ x: dataPoint.x, y: dataPoint.y, id: dataPoint.id }))}
           xAxis={[{ label: 'Date' }]}
           yAxis={[{ label: 'Reps / lb' }]}
         />
-
       </div>
       <button onClick={handleLog}>{currentExercise ? currentExercise : "Choose Exercise" }</button>
       <div className="flex items-center gap-2">
@@ -64,6 +68,7 @@ function App() {
           onChange={(e) => setReps(parseInt(e.target.value))}
         />
       </div>
+      <button onClick={handleEnterData}>Enter Data</button>
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
