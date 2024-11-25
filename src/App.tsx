@@ -3,7 +3,7 @@ import "./App.css";
 import { useState } from "react";
 
 interface DataPoint {
-  x: Date,
+  x: number,
   y: number,
   id: number,
 }
@@ -32,8 +32,9 @@ function App() {
 
   const handleEnterData = () => {
     if (currentExercise && weight && reps) {
+      const today = new Date();
       setData([...data, {
-        x: new Date(),
+        x: today.getTime(),
         y: weight / reps,
         id: data.length,
       }]);
@@ -44,7 +45,11 @@ function App() {
     <div className="flex flex-col gap-2 items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
         <ScatterChart
-          series={data.map((dataPoint) => ({ x: dataPoint.x, y: dataPoint.y, id: dataPoint.id }))}
+          series={[
+            {
+              data: data,
+            }
+          ]}
           xAxis={[{ label: 'Date' }]}
           yAxis={[{ label: 'Reps / lb' }]}
         />
