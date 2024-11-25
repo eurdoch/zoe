@@ -28,7 +28,7 @@ function App() {
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
-      <button onClick={handleLog}>Log set</button>
+      <button onClick={handleLog}>Choose Exercise</button>
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-4 rounded-md">
@@ -36,7 +36,6 @@ function App() {
               <option>Exercise 1</option>
               <option>Exercise 2</option>
             </select>
-            <input type="text" placeholder="Enter reps/weight" />
           </div>
         </div>
       )}
