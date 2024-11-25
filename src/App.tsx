@@ -42,16 +42,24 @@ function App() {
         />
       </div>
       <button onClick={handleLog}>{currentExercise ? currentExercise : "Choose Exercise" }</button>
-      <input
-        type="number"
-        value={weight}
-        onChange={(e) => setWeight(parseInt(e.target.value))}
-      />
-      <input
-        type="number"
-        value={reps}
-        onChange={(e) => setReps(parseInt(e.target.value))}
-      />
+      <div className="flex items-center gap-2">
+        <label htmlFor="weight">Weight:</label>
+        <input
+          id="weight"
+          type="number"
+          value={weight}
+          onChange={(e) => setWeight(parseInt(e.target.value))}
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <label htmlFor="reps">Reps:</label>
+        <input
+          id="reps"
+          type="number"
+          value={reps}
+          onChange={(e) => setReps(parseInt(e.target.value))}
+        />
+      </div>
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
