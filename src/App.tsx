@@ -1,6 +1,7 @@
 import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
 import { useState } from "react";
+import { formatTime, getCurrentDayUnixTime } from "./utils.ts";
 
 interface DataPoint {
   x: number,
@@ -32,9 +33,8 @@ function App() {
 
   const handleEnterData = () => {
     if (currentExercise && weight && reps) {
-      const today = new Date();
       setData([...data, {
-        x: today.getTime(),
+        x: getCurrentDayUnixTime(),
         y: weight / reps,
         id: data.length,
       }]);
@@ -50,7 +50,7 @@ function App() {
               data: data,
             }
           ]}
-          xAxis={[{ label: 'Date' }]}
+          xAxis={[{ label: 'Date', valueFormatter: (v) => (formatTime(v)) }]}
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
