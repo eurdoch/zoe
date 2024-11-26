@@ -19,6 +19,30 @@ async function connectToDatabase() {
       res.send('Ping a da pong');
     });
 
+    app.get('/exercise/names', async (req, res) => {
+      try {
+        exerciseIds.map(exerciseId => {
+        const exerciseIds = await exerciseCollection.distinct('exercise_id');
+          // fill in
+        });
+        res.json(exerciseData);
+      } catch (err) {
+        res.status(500).json({ error: `Error fetching exercise names: ${err}` });
+      }
+    });
+
+    app.get('/exercise', async (req, res) => {
+      const name = req.query.name;
+      const query = name ? { name } : {};
+      try {
+        const exercises = await exerciseCollection.find(query).toArray();
+        console.log(exercises);
+        res.json(exercises);
+      } catch (err) {
+        res.status(500).json({ error: `Error fetching exercises: ${err}` });
+      }
+    });
+
     app.post('/exercise', async (req, res) => {
       const { name, reps, weight } = req.body;
       const exercise = { name, reps, weight, createdAt: new Date() };
@@ -30,6 +54,7 @@ async function connectToDatabase() {
         res.status(500).json({ error: `Error saving exercise data: ${err}` });
       }
     });
+
 
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
