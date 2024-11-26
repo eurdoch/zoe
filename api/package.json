@@ -1,0 +1,13 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Vitale api",
+  "main": "index.js",
+  "author": "George Balch",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
