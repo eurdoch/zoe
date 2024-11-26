@@ -1,7 +1,7 @@
 import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
 import { useState } from "react";
-import { formatTime, getCurrentDayUnixTime } from "./utils.ts";
+import { convertToDatabaseFormat, formatTime, getCurrentDayUnixTime } from "./utils.ts";
 import { postExercise } from "./exercises/network.ts";
 
 interface DataPoint {
@@ -36,13 +36,12 @@ function App() {
 
   const handleEnterData = async (_e: any) => {
     if (currentExercise && weight && reps) {
-      const newExercise = {
-        name: currentExercise,
+      const body = {
+        name: convertToDatabaseFormat(currentExercise),
         weight: weight,
         reps: reps,
       };
-      const insertedData = await postExercise(newExercise);
-      console.log(insertedData);
+      const insertedData = await postExercise(body);
       setData([...data, {
         x: getCurrentDayUnixTime(),
         y: weight / reps,

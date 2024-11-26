@@ -22,7 +22,7 @@ async function connectToDatabase() {
     app.get('/exercise/names', async (req, res) => {
       try {
         exerciseIds.map(exerciseId => {
-        const exerciseIds = await exerciseCollection.distinct('exercise_id');
+        //const exerciseIds = await exerciseCollection.distinct('exercise_id');
           // fill in
         });
         res.json(exerciseData);
@@ -44,7 +44,9 @@ async function connectToDatabase() {
     });
 
     app.post('/exercise', async (req, res) => {
+      console.log('exercise');
       const { name, reps, weight } = req.body;
+      console.log(name, reps, weight);
       const exercise = { name, reps, weight, createdAt: new Date() };
       try {
         const result = await exerciseCollection.insertOne(exercise);
@@ -56,7 +58,7 @@ async function connectToDatabase() {
     });
 
 
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
     });
   } catch (err) {
