@@ -1,5 +1,5 @@
 import express from 'express';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 const app = express();
 const port = 3000;
@@ -19,14 +19,16 @@ async function connectToDatabase() {
       res.send('Ping a da pong');
     });
 
-    app.post('/exercise', (req, res) => {
+    app.post('/exercise', async (req, res) => {
       const { name, reps, weight } = req.body;
       const exercise = { name, reps, weight, createdAt: new Date() };
-      exerciseCollection.insertOne(exercise)
-        .then(() => res.status(201).json({ message: 'Exercise data received' }))
-        .catch((err) => {
-          res.status(500).json({ error: `Error saving exercise data: ${err}` });
-        });
+      try {
+        const result = await exerciseCollection.insertOne(exercise);
+        const insertedExercise = await exerciseCollection.findOne({ _id: result.insertedId });
+        res.status(201).json(insertedExercise);
+      } catch (err) {
+        res.status(500).json({ error: `Error saving exercise data: ${err}` });
+      }
     });
 
     app.listen(port, () => {
