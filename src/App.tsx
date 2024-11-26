@@ -2,6 +2,7 @@ import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
 import { useState } from "react";
 import { formatTime, getCurrentDayUnixTime } from "./utils.ts";
+import { postExercise } from "./exercises/network.ts";
 
 interface DataPoint {
   x: number,
@@ -31,8 +32,15 @@ function App() {
     setShowModal(false);
   }
 
-  const handleEnterData = () => {
+  const handleEnterData = async (_e: any) => {
     if (currentExercise && weight && reps) {
+      const newExercise = {
+        name: currentExercise,
+        weight: weight,
+        reps: reps,
+      };
+      const insertedData = await postExercise(newExercise);
+      console.log(insertedData);
       setData([...data, {
         x: getCurrentDayUnixTime(),
         y: weight / reps,

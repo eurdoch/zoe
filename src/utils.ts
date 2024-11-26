@@ -15,4 +15,12 @@ export const getCurrentDayUnixTime = (): number => {
   return Math.floor(midnight.getTime() / 1000);
 }
 
+export const formatStringWithSpaces = (str: string): string => {
+  return str.replace(/_/g, ' ').toLowerCase();
+};
+
+export const formatStringWithUnderscores = (str: string): string => {
+  return str.replace(/ /g, '_').toLowerCase();
+};
+
 
