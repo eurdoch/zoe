@@ -16,6 +16,8 @@ function App() {
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
   const [data, setData] = useState<DataPoint[]>([]);
+  const [exercises, setExercises] = useState<string[]>(["Exercise 1", "Exercise 2"]);
+  const [newExercise, setNewExercise] = useState<string>("");
 
   const handleLog = (e: any) => {
     e.preventDefault();
@@ -46,6 +48,13 @@ function App() {
         y: weight / reps,
         id: data.length,
       }]);
+    }
+  }
+
+  const handleAddExercise = () => {
+    if (newExercise.trim() !== "") {
+      setExercises([...exercises, newExercise.trim()]);
+      setNewExercise("");
     }
   }
 
@@ -86,9 +95,19 @@ function App() {
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
             <select onChange={handleSelectExercise}>
-              <option>Exercise 1</option>
-              <option>Exercise 2</option>
+              {exercises.map((exercise) => (
+                <option key={exercise} value={exercise}>{exercise}</option>
+              ))}
             </select>
+            <div className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={newExercise}
+                onChange={(e) => setNewExercise(e.target.value)}
+                placeholder="Add new exercise"
+              />
+              <button onClick={handleAddExercise}>Add</button>
+            </div>
           </div>
         </div>
       )}
