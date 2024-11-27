@@ -76,7 +76,7 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center p-4 w-screen h-screen">
+    <div className="flex flex-col gap-4 items-center p-4 w-screen h-screen">
       <div className="w-full h-1/3">
         <ScatterChart
           series={[
@@ -88,7 +88,7 @@ function App() {
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
-      <div className="flex">
+      <div className="flex gap-2">
         <select onChange={handleSelectExercise}>
           {exercises.map((exercise) => (
             <option key={exercise} value={exercise}>{exercise}</option>
@@ -117,7 +117,7 @@ function App() {
       </div>
       <button onClick={handleEnterData}>Enter Data</button>
       {showModal && (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
+        <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
             <input
               type="text"
@@ -134,6 +134,7 @@ function App() {
 
       <div id="debug">{debug}</div>
     </div>
+
   );
 }
 
