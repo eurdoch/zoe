@@ -6,7 +6,7 @@ import { getExerciseDataByName, getExerciseNames, postExercise } from "./exercis
 
 function App() {
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [currentExercise, setCurrentExercise] = useState<string | null>(null);
+  const [currentExercise, setCurrentExercise] = useState<string>("");
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
   const [data, setData] = useState<DataPoint[]>([]);
@@ -21,17 +21,13 @@ function App() {
     });
   });
 
-  const handleLog = (e: any) => {
-    e.preventDefault();
-    setShowModal(true);
-  }
-
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     setShowModal(false);
   }
 
   const handleSelectExercise = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentExercise(e.target.value);
     const exerciseData = await getExerciseDataByName(e.target.value);
     const datapoints = exerciseData.map((entry, i) => {
       return {
@@ -41,7 +37,6 @@ function App() {
       }
     });
     setData(datapoints);
-    setCurrentExercise(e.target.value);
     setShowModal(false);
   }
 
@@ -69,9 +64,12 @@ function App() {
   }
 
   const handleAddExercise = () => {
-    if (newExercise.trim() !== "") {
+    if (newExercise.trim() !== "" && !exercises.includes(newExercise.trim())) {
       setExercises([...exercises, newExercise.trim()]);
       setNewExercise("");
+      setShowModal(false);
+      setData([]);
+      setCurrentExercise(newExercise);
     }
   }
 
@@ -89,7 +87,11 @@ function App() {
         />
       </div>
       <div className="flex gap-2">
-        <select onChange={handleSelectExercise}>
+        <select 
+          value={currentExercise}
+          onChange={handleSelectExercise}
+        >
+          <option value="" disabled hidden>Select Exercise</option>
           {exercises.map((exercise) => (
             <option key={exercise} value={exercise}>{exercise}</option>
           ))}
@@ -132,7 +134,7 @@ function App() {
       )}
 
 
-      <div id="debug">{debug}</div>
+      { debug && <div id="debug">{debug}</div> }
     </div>
 
   );
