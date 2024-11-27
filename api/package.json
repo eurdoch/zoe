@@ -1,0 +1,12 @@
+{
+  "name": "api",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "George Balch",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.1",
+    "mongodb": "^6.11.0"
+  }
+}
