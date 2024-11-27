@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type {PropsWithChildren} from 'react';
 import {
-    Dimensions,
+  Dimensions,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -12,24 +12,13 @@ import {
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import { getExerciseNames } from './exercises/network';
-import { DataPoint, convertFromDatabaseFormat } from './utils';
+import { getExerciseDataByName, getExerciseNames } from './exercises/network';
+import { convertFromDatabaseFormat, mapEntriesToDataPoint } from './utils';
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+import DataPoint from './types/DataPoint';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [data, setData] = useState<DataPoint[]>([]);
 
@@ -45,18 +34,16 @@ function App(): React.JSX.Element {
       .catch(console.log);
   }, []);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  const handleSelect = async (item: DropdownItem) => {
+    const exerciseData = await getExerciseDataByName(item.value);
+    const dataPoints = mapEntriesToDataPoint(exerciseData);
+    setData(dataPoints);
+  }
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
+    <SafeAreaView>
       {data && <ScatterPlot data={data} /> }
-      { exercises && <ExerciseSelect items={exercises} />}
+      { exercises && <ExerciseSelect handleSelect={handleSelect} items={exercises} />}
     </SafeAreaView>
   );
 }

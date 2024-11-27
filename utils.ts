@@ -1,10 +1,5 @@
 import { ExerciseEntry } from "./exercises/types";
-
-export interface DataPoint {
-  x: number,
-  y: number,
-  id: number,
-}
+import DataPoint from "./types/DataPoint";
 
 export const formatTime = (unixTime: number): string => {
     const date = new Date(unixTime * 1000);
@@ -48,7 +43,7 @@ export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => 
     return {
       x: extractUnixTimeFromISOString(entry.createdAt),
       y: entry.weight / entry.reps,
-      id: i,
+      label: i.toString(),
     }
   });
 }

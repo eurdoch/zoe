@@ -8,13 +8,7 @@ import Svg, {
 } from 'react-native-svg';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
-
-// Define interfaces for type safety
-interface DataPoint {
-  x: number;
-  y: number;
-  label?: string;
-}
+import { DataPoint } from './utils';
 
 interface ScatterPlotProps {
   data: DataPoint[];

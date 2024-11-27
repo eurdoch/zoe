@@ -5,9 +5,10 @@ import DropdownItem from './types/DropdownItem';
 
 interface Props {
   items: DropdownItem[];
+  handleSelect: (item: DropdownItem) => void;
 }
 
-const ExerciseSelect = ({ items }: Props) => {
+const ExerciseSelect = ({ items, handleSelect }: Props) => {
   const [value, setValue] = useState<string | null>(null);
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
@@ -37,6 +38,7 @@ const ExerciseSelect = ({ items }: Props) => {
       onChange={(item: DropdownItem) => {
         setValue(item.value);
         setIsFocus(false);
+        handleSelect(item);
       }}
       renderItem={renderLabel}
     />
