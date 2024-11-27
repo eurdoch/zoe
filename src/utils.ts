@@ -23,4 +23,12 @@ export const convertToDatabaseFormat = (str: string): string => {
   return str.replace(/ /g, '_').toLowerCase();
 };
 
+export const extractUnixTimeFromISOString = (isoString: string): number => {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  const midnight = new Date(year, month, day);
+  return Math.floor(midnight.getTime() / 1000);
+};
 

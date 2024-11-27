@@ -1,8 +1,8 @@
 import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
 import { useEffect, useState } from "react";
-import { convertToDatabaseFormat, formatTime, getCurrentDayUnixTime } from "./utils.ts";
-import { getExerciseNames, postExercise } from "./exercises/network.ts";
+import { convertToDatabaseFormat, extractUnixTimeFromISOString, formatTime, getCurrentDayUnixTime } from "./utils.ts";
+import { getExerciseDataByName, getExerciseNames, postExercise } from "./exercises/network.ts";
 
 interface DataPoint {
   x: number,
@@ -37,7 +37,16 @@ function App() {
     setShowModal(false);
   }
 
-  const handleSelectExercise = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectExercise = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const exerciseData = await getExerciseDataByName(e.target.value);
+    const datapoints = exerciseData.map((entry, i) => {
+      return {
+        x: extractUnixTimeFromISOString(entry.createdAt),
+        y: entry.weight / entry.reps,
+        id: i,
+      }
+    });
+    setData(datapoints);
     setCurrentExercise(e.target.value);
     setShowModal(false);
   }

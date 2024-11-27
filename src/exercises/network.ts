@@ -1,9 +1,9 @@
-import { Exercise } from "./types";
+import { Exercise, ExerciseEntry } from "./types";
 import { fetch } from "@tauri-apps/plugin-http";
 
 const VITALE_BOX_URL = "https://directto.link";
 
-export async function postExercise(exercise: Exercise) {
+export async function postExercise(exercise: Exercise): Promise<ExerciseEntry> {
   const response = await fetch(`${VITALE_BOX_URL}/exercise`, {
     method: 'POST',
     headers: {
@@ -14,17 +14,19 @@ export async function postExercise(exercise: Exercise) {
   return response.json();
 }
 
-export async function getExerciseNames() {
+export async function getExerciseNames(): Promise<string[]> {
   const response = await fetch(`${VITALE_BOX_URL}/exercise/names`, {
     method: 'GET',
   });
   return response.json();
 }
 
-export async function getExerciseDataByName(name: string) {
+
+export async function getExerciseDataByName(name: string): Promise<ExerciseEntry[]> {
   const response = await fetch(`${VITALE_BOX_URL}/exercise/${name}`, {
     method: 'GET',
   });
   return response.json();
 }
+
 
