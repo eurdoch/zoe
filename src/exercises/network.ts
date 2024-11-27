@@ -1,9 +1,10 @@
 import { Exercise } from "./types";
+import { fetch } from "@tauri-apps/plugin-http";
 
-const VITALE_BOX_URL = "18.237.137.224"
+const VITALE_BOX_URL = "https://directto.link";
 
 export async function postExercise(exercise: Exercise) {
-  const response = await fetch(`http://${VITALE_BOX_URL}/exercise`, {
+  const response = await fetch(`${VITALE_BOX_URL}/exercise`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

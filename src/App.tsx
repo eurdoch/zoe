@@ -18,6 +18,7 @@ function App() {
   const [data, setData] = useState<DataPoint[]>([]);
   const [exercises, setExercises] = useState<string[]>(["Exercise 1", "Exercise 2"]);
   const [newExercise, setNewExercise] = useState<string>("");
+  const [debug, setDebug] = useState<string>("");
 
   const handleLog = (e: any) => {
     e.preventDefault();
@@ -36,17 +37,21 @@ function App() {
 
   const handleEnterData = async (_e: any) => {
     if (currentExercise && weight && reps) {
-      const body = {
-        name: convertToDatabaseFormat(currentExercise),
-        weight: weight,
-        reps: reps,
-      };
-      const insertedData = await postExercise(body);
       setData([...data, {
         x: getCurrentDayUnixTime(),
         y: weight / reps,
         id: data.length,
       }]);
+      const body = {
+        name: convertToDatabaseFormat(currentExercise),
+        weight: weight,
+        reps: reps,
+      };
+      try {
+        const insertedData = await postExercise(body);
+      } catch (err: any) {
+        // fill in
+      }
     }
   }
 
@@ -110,6 +115,7 @@ function App() {
           </div>
         </div>
       )}
+      <div id="debug">{debug}</div>
     </div>
   );
 }
