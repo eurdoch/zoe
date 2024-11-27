@@ -9,6 +9,7 @@ import Svg, {
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import DataPoint from './types/DataPoint';
+import { formatTime } from './utils';
 
 interface ScatterPlotProps {
   data: DataPoint[];
@@ -28,7 +29,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   width = Dimensions.get('window').width - 40,
   height = 300,
   title = 'Scatter Plot',
-  margins = { top: 20, right: 20, bottom: 50, left: 50 }
+  margins = { top: 20, right: 20, bottom: 50, left: 50 },
 }) => {
   // Memoize the chart creation to optimize performance
   const chartDetails = useMemo(() => {
@@ -71,7 +72,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       xExtent,
       yExtent
     };
-  }, [data, width, height, margins]);
+  }, [data, width, height, margins, formatTime]);
 
   // Generate x-axis ticks
   const xTicks = useMemo(() => 
@@ -79,7 +80,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       value: tick,
       x: chartDetails.xScale(tick)
     })), 
-  [chartDetails]
+  [chartDetails, formatTime]
   );
 
   // Generate y-axis ticks
@@ -88,7 +89,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       value: tick,
       y: chartDetails.yScale(tick)
     })), 
-  [chartDetails]
+  [chartDetails, formatTime]
   );
 
   return (
@@ -147,7 +148,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 fill="#000"
                 textAnchor="middle"
               >
-                {tick.value}
+                {formatTime(tick.value)}
               </SvgText>
             </G>
           ))}
@@ -171,7 +172,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 textAnchor="end"
                 alignmentBaseline="middle"
               >
-                {tick.value}
+                {formatTime(tick.value)}
               </SvgText>
             </G>
           ))}
@@ -191,3 +192,4 @@ const styles = StyleSheet.create({
 
 
 export default ScatterPlot;
+
