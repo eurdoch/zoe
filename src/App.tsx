@@ -88,7 +88,8 @@ function App() {
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
-      <button onClick={handleLog}>{currentExercise ? currentExercise : "Choose Exercise" }</button>
+      <button onClick={handleLog}>Choose Exercise</button>
+      <button onClick={handleAddExercise}>Add Exercise</button>
       <div className="flex items-center gap-2">
         <label htmlFor="weight">Weight:</label>
         <input
@@ -116,15 +117,6 @@ function App() {
                 <option key={exercise} value={exercise}>{exercise}</option>
               ))}
             </select>
-            <div className="flex gap-2 mt-2">
-              <input
-                type="text"
-                value={newExercise}
-                onChange={(e) => setNewExercise(e.target.value)}
-                placeholder="Add new exercise"
-              />
-              <button onClick={handleAddExercise}>Add</button>
-            </div>
           </div>
         </div>
       )}
