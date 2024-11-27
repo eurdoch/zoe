@@ -89,8 +89,12 @@ function App() {
         />
       </div>
       <div className="flex">
-        <button onClick={handleLog}>Choose Exercise</button>
-        <button onClick={handleAddExercise}>+</button>
+        <select onChange={handleSelectExercise}>
+          {exercises.map((exercise) => (
+            <option key={exercise} value={exercise}>{exercise}</option>
+          ))}
+        </select>
+        <button onClick={() => setShowModal(true)}>+</button>
       </div>
 
       <div className="flex items-center gap-2">
@@ -115,14 +119,19 @@ function App() {
       {showModal && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50" onClick={handleOverlayClick}>
           <div className="bg-white p-4 rounded-md" onClick={(e) => e.stopPropagation()}>
-            <select onChange={handleSelectExercise}>
-              {exercises.map((exercise) => (
-                <option key={exercise} value={exercise}>{exercise}</option>
-              ))}
-            </select>
+            <input
+              type="text"
+              value={newExercise}
+              onChange={(e) => setNewExercise(e.target.value)}
+              placeholder="Enter new exercise"
+              className="border border-gray-300 p-2 rounded"
+            />
+            <button onClick={handleAddExercise} className="bg-blue-500 text-white p-2 rounded mt-2">Add Exercise</button>
           </div>
         </div>
       )}
+
+
       <div id="debug">{debug}</div>
     </div>
   );
