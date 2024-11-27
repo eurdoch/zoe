@@ -1,14 +1,8 @@
 import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
 import { useEffect, useState } from "react";
-import { convertToDatabaseFormat, extractUnixTimeFromISOString, formatTime, getCurrentDayUnixTime } from "./utils.ts";
+import { convertToDatabaseFormat, DataPoint, extractUnixTimeFromISOString, formatTime, getCurrentDayUnixTime, mapEntriesToDataPoint } from "./utils.ts";
 import { getExerciseDataByName, getExerciseNames, postExercise } from "./exercises/network.ts";
-
-interface DataPoint {
-  x: number,
-  y: number,
-  id: number,
-}
 
 function App() {
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -65,6 +59,9 @@ function App() {
       };
       try {
         const insertedData = await postExercise(body);
+        const updatedEntries = await getExerciseDataByName(insertedData.name);
+        const datapoints = mapEntriesToDataPoint(updatedEntries);
+        setData(datapoints);
       } catch (err: any) {
         // TODO figure out error logging in Tauri android!
       }

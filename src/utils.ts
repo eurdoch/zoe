@@ -1,3 +1,11 @@
+import { ExerciseEntry } from "./exercises/types";
+
+export interface DataPoint {
+  x: number,
+  y: number,
+  id: number,
+}
+
 export const formatTime = (unixTime: number): string => {
     const date = new Date(unixTime * 1000);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -31,4 +39,14 @@ export const extractUnixTimeFromISOString = (isoString: string): number => {
   const midnight = new Date(year, month, day);
   return Math.floor(midnight.getTime() / 1000);
 };
+
+export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => {
+  return entries.map((entry, i) => {
+    return {
+      x: extractUnixTimeFromISOString(entry.createdAt),
+      y: entry.weight / entry.reps,
+      id: i,
+    }
+  });
+}
 
