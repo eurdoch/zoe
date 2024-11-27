@@ -21,11 +21,8 @@ async function connectToDatabase() {
 
     app.get('/exercise/names', async (req, res) => {
       try {
-        exerciseIds.map(exerciseId => {
-        //const exerciseIds = await exerciseCollection.distinct('exercise_id');
-          // fill in
-        });
-        res.json(exerciseData);
+        const exerciseNames = await exerciseCollection.distinct('name');
+        res.json(exerciseNames);
       } catch (err) {
         res.status(500).json({ error: `Error fetching exercise names: ${err}` });
       }
