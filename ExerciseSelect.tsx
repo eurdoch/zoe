@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from './types/DropdownItem';
+import Exercise from './types/Exercise';
 
 interface Props {
   items: DropdownItem[];
   handleSelect: (item: DropdownItem) => void;
+  setCurrentExercise: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const ExerciseSelect = ({ items, handleSelect }: Props) => {
+const ExerciseSelect = ({ items, handleSelect, setCurrentExercise }: Props) => {
   const [value, setValue] = useState<string | null>(null);
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
@@ -36,8 +38,8 @@ const ExerciseSelect = ({ items, handleSelect }: Props) => {
       onFocus={() => setIsFocus(true)}
       onBlur={() => setIsFocus(false)}
       onChange={(item: DropdownItem) => {
-        setValue(item.value);
         setIsFocus(false);
+        setCurrentExercise(item.value);
         handleSelect(item);
       }}
       renderItem={renderLabel}

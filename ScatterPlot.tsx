@@ -8,7 +8,7 @@ import Svg, {
 } from 'react-native-svg';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
-import { DataPoint } from './utils';
+import DataPoint from './types/DataPoint';
 
 interface ScatterPlotProps {
   data: DataPoint[];

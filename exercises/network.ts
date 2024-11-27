@@ -1,4 +1,5 @@
-import { Exercise, ExerciseEntry } from "./types";
+import Exercise from "../types/Exercise";
+import ExerciseEntry from "../types/ExerciseEntry";
 
 const VITALE_BOX_URL = "https://directto.link";
 
