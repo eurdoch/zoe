@@ -1,8 +1,8 @@
 import { ScatterChart } from "@mui/x-charts";
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { convertToDatabaseFormat, formatTime, getCurrentDayUnixTime } from "./utils.ts";
-import { postExercise } from "./exercises/network.ts";
+import { getExerciseNames, postExercise } from "./exercises/network.ts";
 
 interface DataPoint {
   x: number,
@@ -16,9 +16,16 @@ function App() {
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
   const [data, setData] = useState<DataPoint[]>([]);
-  const [exercises, setExercises] = useState<string[]>(["Exercise 1", "Exercise 2"]);
+  const [exercises, setExercises] = useState<string[]>([]);
   const [newExercise, setNewExercise] = useState<string>("");
   const [debug, setDebug] = useState<string>("");
+
+  // TODO load spinner during startup
+  useEffect(() => {
+    getExerciseNames().then(names => {
+      setExercises(names);
+    });
+  });
 
   const handleLog = (e: any) => {
     e.preventDefault();
@@ -50,7 +57,7 @@ function App() {
       try {
         const insertedData = await postExercise(body);
       } catch (err: any) {
-        // fill in
+        // TODO figure out error logging in Tauri android!
       }
     }
   }

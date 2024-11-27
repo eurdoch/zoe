@@ -14,3 +14,10 @@ export async function postExercise(exercise: Exercise) {
   return response.json();
 }
 
+export async function getExerciseNames() {
+  const response = await fetch(`${VITALE_BOX_URL}/exercise/names`, {
+    method: 'GET',
+  });
+  return response.json();
+}
+
