@@ -1,5 +1,5 @@
 import express from 'express';
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 const app = express();
 const port = 3000;
@@ -34,6 +34,16 @@ async function connectToDatabase() {
       try {
         const exercises = await exerciseCollection.find(query).toArray();
         console.log(exercises);
+        res.json(exercises);
+      } catch (err) {
+        res.status(500).json({ error: `Error fetching exercises: ${err}` });
+      }
+    });
+
+    app.get('/exercise/:name', async (req, res) => {
+      const name = req.params.name;
+      try {
+        const exercises = await exerciseCollection.find({ name }).toArray();
         res.json(exercises);
       } catch (err) {
         res.status(500).json({ error: `Error fetching exercises: ${err}` });

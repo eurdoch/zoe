@@ -21,3 +21,10 @@ export async function getExerciseNames() {
   return response.json();
 }
 
+export async function getExerciseDataByName(name: string) {
+  const response = await fetch(`${VITALE_BOX_URL}/exercise/${name}`, {
+    method: 'GET',
+  });
+  return response.json();
+}
+
