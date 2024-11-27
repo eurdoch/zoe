@@ -88,8 +88,11 @@ function App() {
           yAxis={[{ label: 'Reps / lb' }]}
         />
       </div>
-      <button onClick={handleLog}>Choose Exercise</button>
-      <button onClick={handleAddExercise}>Add Exercise</button>
+      <div className="flex">
+        <button onClick={handleLog}>Choose Exercise</button>
+        <button onClick={handleAddExercise}>+</button>
+      </div>
+
       <div className="flex items-center gap-2">
         <label htmlFor="weight">Weight:</label>
         <input
