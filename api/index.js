@@ -1,5 +1,5 @@
 import express from 'express';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 const app = express();
 const port = 3000;
@@ -60,9 +60,9 @@ async function connectToDatabase() {
     });
 
     app.delete('/exercise/:id', async (req, res) => {
-      const id = new ObjectId(req.params.id);
-      const query = { _id: id };
       try {
+        const id = new ObjectId(req.params.id);
+        const query = { _id: id };
         const result = await exerciseCollection.deleteOne(query);
         res.json({ deletedCount: result.deletedCount });
       } catch (err) {
