@@ -9,7 +9,7 @@ interface Props {
   selectedItem: DropdownItem | undefined;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  setModalKey: React.Dispatch<React.SetStateAction<string>>;
+  setModalKey: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const ExerciseSelect = ({
