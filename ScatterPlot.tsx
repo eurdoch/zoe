@@ -1,3 +1,94 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useMemo } from 'react';
 import { View, Text, Dimensions, StyleSheet } from 'react-native';
 import Svg, { 
@@ -72,7 +163,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       xExtent,
       yExtent
     };
-  }, [data, width, height, margins, formatTime]);
+  }, [data, width, height, margins]);
 
   // Generate x-axis ticks
   const xTicks = useMemo(() => 
@@ -80,7 +171,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       value: tick,
       x: chartDetails.xScale(tick)
     })), 
-  [chartDetails, formatTime]
+  [chartDetails]
   );
 
   // Generate y-axis ticks
@@ -89,7 +180,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       value: tick,
       y: chartDetails.yScale(tick)
     })), 
-  [chartDetails, formatTime]
+  [chartDetails]
   );
 
   return (
@@ -172,7 +263,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 textAnchor="end"
                 alignmentBaseline="middle"
               >
-                {formatTime(tick.value)}
+                {tick.value}
               </SvgText>
             </G>
           ))}
