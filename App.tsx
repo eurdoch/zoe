@@ -7,7 +7,8 @@ import {
   StyleSheet,
   Modal,
   Alert,
-  Dimensions
+  Dimensions,
+  TouchableOpacity
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
@@ -119,8 +120,13 @@ function App(): React.JSX.Element {
         visible={modalVisible}
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
+        animationType="fade"
       >
-        <View style={styles.modalContainer}>
+        <TouchableOpacity
+          style={styles.modalContainer}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
           <View style={styles.modalContent}>
             <TextInput
               placeholder="Enter new exercise name"
@@ -130,8 +136,9 @@ function App(): React.JSX.Element {
             />
             <Button title="Add" onPress={handleAddNewExerciseOption} />
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
+
       <Toast />
     </SafeAreaView>
   );
