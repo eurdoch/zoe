@@ -129,21 +129,23 @@ function App(): React.JSX.Element {
       { data && selectedItem && <ScatterPlot data={data} title={selectedItem.label} /> }
       <ExerciseSelect setModalKey={setModalKey} setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
       { selectedItem && (
-        <View>
+        <View style={styles.inputContainer}>
           <TextInput
             placeholder="Weight"
             value={weight.toString()}
             onChangeText={(text) => setWeight(text)}
+            style={styles.input}
           />
           <TextInput
             placeholder="Reps"
             value={reps.toString()}
             onChangeText={(text) => setReps(text)}
+            style={styles.input}
           />
-          <TouchableOpacity onPress={showDatePicker}>
-            <Text>{date.toString()}</Text>
+          <TouchableOpacity onPress={showDatePicker} style={styles.dateContainer}>
+            <Text style={styles.dateText}>{date.toDateString()}</Text>
           </TouchableOpacity>
-          <Button title="Add" onPress={handleAddDataPoint} />
+          <Button title="Add" onPress={handleAddDataPoint} color="#007AFF" />
         </View>
       )}
       { modalKey &&
@@ -175,6 +177,7 @@ const styles = StyleSheet.create({
     padding: 16,
     height: Dimensions.get("window").height,
     width: Dimensions.get("window").width,
+    backgroundColor: '#F5F5F5',
   },
   selectMenu: {
     flexGrow: 1,
@@ -200,7 +203,39 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     padding: 10,
     marginBottom: 10
-  }
+  },
+  inputContainer: {
+    marginTop: 20,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#D3D3D3',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  dateContainer: {
+    backgroundColor: '#F5F5F5',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
 });
 
 export default App;
