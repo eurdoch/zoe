@@ -50,12 +50,8 @@ async function connectToDatabase() {
     });
 
     app.post('/exercise', async (req, res) => {
-      console.log('exercise');
-      const { name, reps, weight } = req.body;
-      console.log(name, reps, weight);
-      const exercise = { name, reps, weight, createdAt: new Date() };
       try {
-        const result = await exerciseCollection.insertOne(exercise);
+        const result = await exerciseCollection.insertOne(req.body);
         const insertedExercise = await exerciseCollection.findOne({ _id: result.insertedId });
         res.status(201).json(insertedExercise);
       } catch (err) {
