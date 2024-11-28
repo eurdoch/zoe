@@ -22,11 +22,12 @@ async function connectToDatabase() {
     app.get('/exercise/names', async (req, res) => {
       try {
         const exerciseNames = await exerciseCollection.distinct('name');
-        res.json(exerciseNames);
+        res.json(exerciseNames.sort());
       } catch (err) {
         res.status(500).json({ error: `Error fetching exercise names: ${err}` });
       }
     });
+
 
     app.get('/exercise', async (req, res) => {
       const name = req.query.name;
