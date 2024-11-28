@@ -59,6 +59,16 @@ async function connectToDatabase() {
       }
     });
 
+    app.delete('/exercise', async (req, res) => {
+      const id = req.query.id;
+      const query = id ? { _id: id } : {};
+      try {
+        const result = await exerciseCollection.deleteOne(query);
+        res.json({ deletedCount: result.deletedCount });
+      } catch (err) {
+        res.status(500).json({ error: `Error deleting exercises: ${err}` });
+      }
+    });
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
