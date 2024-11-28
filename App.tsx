@@ -16,13 +16,14 @@ import { convertFromDatabaseFormat, convertToDatabaseFormat, getExercisesByNameA
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
+import Toast from 'react-native-toast-message'
 
 function App(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
-  const [weight, setWeight] = useState<number>(0);
-  const [reps, setReps] = useState<number>(0);
+  const [weight, setWeight] = useState<string>("");
+  const [reps, setReps] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
 
@@ -63,22 +64,36 @@ function App(): React.JSX.Element {
   }
 
   const handleAddDataPoint = async (e: any) => {
-    if (selectedItem) {
-      const newExercise = {
-        name: selectedItem.value,
-        weight,
-        reps
+    try {
+      if (selectedItem) {
+        const parsedWeight = parseFloat(weight);
+        const parsedReps = parseFloat(reps);
+        if (isNaN(parsedReps) || isNaN(parsedWeight)) {
+          Toast.show({
+            type: 'error',
+            text1: 'Reps or weights must be numbers.'
+          });
+        } else {
+          const newExercise = {
+            name: selectedItem.value,
+            weight: parsedWeight,
+            reps: parsedReps,
+          }
+          const insertedEntry = await postExercise(newExercise);
+          if (insertedEntry._id) {
+            setData(await getExercisesByNameAndConvertToDataPoint(insertedEntry.name));
+            setReps("");
+            setWeight("");
+          } else {
+            // TODO handle failure, alert user
+          }
+        }
       }
-      const insertedEntry = await postExercise(newExercise);
-      if (insertedEntry._id) {
-        setData(await getExercisesByNameAndConvertToDataPoint(insertedEntry.name));
-        setReps(0);
-        setWeight(0);
-      } else {
-        // TODO handle failure, alert user
-      }
+    } catch (err) {
+      console.log(err);
     }
   }
+
 
   return (
     <SafeAreaView>
@@ -89,12 +104,12 @@ function App(): React.JSX.Element {
           <TextInput
             placeholder="Weight"
             value={weight.toString()}
-            onChangeText={(text) => setWeight(parseFloat(text))}
+            onChangeText={(text) => setWeight(text)}
           />
           <TextInput
             placeholder="Reps"
             value={reps.toString()}
-            onChangeText={(text) => setReps(parseInt(text, 10))}
+            onChangeText={(text) => setReps(text)}
           />
           <Button title="Add" onPress={handleAddDataPoint} />
         </View>
@@ -116,6 +131,7 @@ function App(): React.JSX.Element {
           </View>
         </View>
       </Modal>
+      <Toast />
     </SafeAreaView>
   );
 }
