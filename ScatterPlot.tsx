@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Dimensions, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, GestureResponderEvent } from 'react-native';
+import { ReactNativeZoomableView, ZoomableViewEvent } from '@openspacelabs/react-native-zoomable-view';
 import Svg, { 
   Circle, 
   Line, 
@@ -55,11 +56,10 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       ])
       .range([innerHeight, 0]);
 
-    const points = data.map((d, index) => ({
+    const points = data.map(d => ({
       x: xScale(d.x),
       y: yScale(d.y),
-      originalData: d,
-      key: `point-${index}`
+      originalData: d
     }));
 
     return { 
@@ -74,114 +74,158 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   }, [data, width, height, margins]);
 
   const xTicks = useMemo(() => 
-    chartDetails.xScale.ticks(5).map((tick, index) => ({
+    chartDetails.xScale.ticks(5).map(tick => ({
       value: tick,
-      x: chartDetails.xScale(tick),
-      key: `x-tick-${index}`
+      x: chartDetails.xScale(tick)
     })), 
   [chartDetails]
   );
 
   const yTicks = useMemo(() => 
-    chartDetails.yScale.ticks(5).map((tick, index) => ({
+    chartDetails.yScale.ticks(5).map(tick => ({
       value: tick,
-      y: chartDetails.yScale(tick),
-      key: `y-tick-${index}`
+      y: chartDetails.yScale(tick)
     })), 
   [chartDetails]
   );
 
+  const handleSingleTap = (event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
+    const { locationX, locationY } = event.nativeEvent;
+    const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
+    const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
+
+    const radius = 20 / zoomableViewEvent.zoomLevel;
+    const closestPoint = chartDetails.points.find(point => {
+      const dx = point.x - adjustedX;
+      const dy = point.y - adjustedY;
+      return Math.sqrt(dx * dx + dy * dy) <= radius;
+    });
+
+    if (closestPoint) {
+      setSelectedPoint(closestPoint.originalData);
+      onDataPointClick?.(closestPoint.originalData);
+    } else {
+      setSelectedPoint(null);
+    }
+  };
+
   return (
-    <View>
-      <Svg width={width} height={height}>
-        <G x={margins.left} y={margins.top}>
-          {chartDetails.points.map((point) => (
-            <Circle
-              key={point.key}
-              cx={point.x}
-              cy={point.y}
-              r={5}
-              fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
-              stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
-              strokeWidth={2}
-            />
-          ))}
+    <View style={styles.container}>
+      <Text style={styles.titleText}>{title}</Text>
+      <View style={[styles.chartContainer, { width, height }]}>
+        <ReactNativeZoomableView
+          maxZoom={10}
+          minZoom={0.5}
+          zoomStep={0.5}
+          initialZoom={1}
+          bindToBorders={true}
+          onSingleTap={handleSingleTap}
+          style={styles.zoomableView}
+        >
+          <Svg width={width} height={height}>
+            <G x={margins.left} y={margins.top}>
+              {/* Data Points */}
+              {chartDetails.points.map((point, index) => (
+                <Circle
+                  key={index}
+                  cx={point.x}
+                  cy={point.y}
+                  r={5}
+                  fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
+                  stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
+                  strokeWidth={2}
+                />
+              ))}
 
-          {/* X-axis */}
-          <Line
-            x1={0}
-            y1={chartDetails.innerHeight}
-            x2={chartDetails.innerWidth}
-            y2={chartDetails.innerHeight}
-            stroke="#000"
-            strokeWidth={2}
-          />
-
-          {/* Y-axis */}
-          <Line
-            x1={0}
-            y1={0}
-            x2={0}
-            y2={chartDetails.innerHeight}
-            stroke="#000"
-            strokeWidth={2}
-          />
-
-          {xTicks.map((tick) => (
-            <G key={tick.key}>
-              <Line
-                x1={tick.x}
-                y1={chartDetails.innerHeight}
-                x2={tick.x}
-                y2={chartDetails.innerHeight + 6}
-                stroke="#000"
-                strokeWidth={2}
-              />
-              <SvgText
-                x={tick.x}
-                y={chartDetails.innerHeight + 15}
-                fontSize={12}
-                fill="#000"
-                textAnchor="middle"
-              >
-                {formatTime(tick.value)}
-              </SvgText>
-            </G>
-          ))}
-
-          {yTicks.map((tick) => (
-            <G key={tick.key}>
+              {/* X-axis */}
               <Line
                 x1={0}
-                y1={tick.y}
-                x2={-6}
-                y2={tick.y}
+                y1={chartDetails.innerHeight}
+                x2={chartDetails.innerWidth}
+                y2={chartDetails.innerHeight}
                 stroke="#000"
                 strokeWidth={2}
               />
-              <SvgText
-                x={-15}
-                y={tick.y}
-                fontSize={12}
-                fill="#000"
-                textAnchor="end"
-                alignmentBaseline="middle"
-              >
-                {tick.value}
-              </SvgText>
+
+              {/* Y-axis */}
+              <Line
+                x1={0}
+                y1={0}
+                x2={0}
+                y2={chartDetails.innerHeight}
+                stroke="#000"
+                strokeWidth={2}
+              />
+
+              {/* X-axis ticks */}
+              {xTicks.map((tick, i) => (
+                <G key={`x-tick-${i}`}>
+                  <Line
+                    x1={tick.x}
+                    y1={chartDetails.innerHeight}
+                    x2={tick.x}
+                    y2={chartDetails.innerHeight + 6}
+                    stroke="#000"
+                    strokeWidth={2}
+                  />
+                  <SvgText
+                    x={tick.x}
+                    y={chartDetails.innerHeight + 15}
+                    fontSize={12}
+                    fill="#000"
+                    textAnchor="middle"
+                  >
+                    {formatTime(tick.value)}
+                  </SvgText>
+                </G>
+              ))}
+
+              {/* Y-axis ticks */}
+              {yTicks.map((tick, i) => (
+                <G key={`y-tick-${i}`}>
+                  <Line
+                    x1={0}
+                    y1={tick.y}
+                    x2={-6}
+                    y2={tick.y}
+                    stroke="#000"
+                    strokeWidth={2}
+                  />
+                  <SvgText
+                    x={-15}
+                    y={tick.y}
+                    fontSize={12}
+                    fill="#000"
+                    textAnchor="end"
+                    alignmentBaseline="middle"
+                  >
+                    {tick.value}
+                  </SvgText>
+                </G>
+              ))}
             </G>
-          ))}
-        </G>
-      </Svg>
+          </Svg>
+        </ReactNativeZoomableView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   titleText: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10
+  },
+  chartContainer: {
+    position: 'relative',
+  },
+  zoomableView: {
+    width: '100%',
+    height: '100%',
   }
 });
 
