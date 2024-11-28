@@ -4,21 +4,27 @@ import {
   View,
   TextInput,
   Button,
+  StyleSheet,
+  Modal,
+  Alert,
+  Dimensions
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
-import { getExerciseDataByName, getExerciseNames, postExercise } from './exercises/network';
-import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, mapEntriesToDataPoint } from './utils';
+import { getExerciseNames, postExercise } from './exercises/network';
+import { convertFromDatabaseFormat, convertToDatabaseFormat, getExercisesByNameAndConvertToDataPoint } from './utils';
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
 
 function App(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
-  const [selectedItem, setSelectedItem] = useState<DropdownItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
   const [weight, setWeight] = useState<number>(0);
   const [reps, setReps] = useState<number>(0);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [newExerciseName, setNewExerciseName] = useState<string>('');
 
   useEffect(() => {
     getExerciseNames()
@@ -35,6 +41,25 @@ function App(): React.JSX.Element {
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
+  }
+
+  const handleAddExerciseOption = () => {
+    setModalVisible(true);
+  }
+
+  const handleAddNewExerciseOption = () => {
+    if (newExerciseName.trim().length > 0) {
+      const newExerciseOption = {
+        label: newExerciseName,
+        value: convertToDatabaseFormat(newExerciseName),
+      };
+      setExercises([...exercises, newExerciseOption]);
+      setSelectedItem(newExerciseOption);
+      setNewExerciseName('');
+      setModalVisible(false);
+    } else {
+      Alert.alert('Error', 'Please enter a valid exercise name');
+    }
   }
 
   const handleAddDataPoint = async (e: any) => {
@@ -58,7 +83,7 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView>
       { data && selectedItem && <ScatterPlot data={data} title={selectedItem.label} /> }
-      { exercises && <ExerciseSelect selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />}
+      <ExerciseSelect setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
       { selectedItem && (
         <View>
           <TextInput
@@ -74,9 +99,54 @@ function App(): React.JSX.Element {
           <Button title="Add" onPress={handleAddDataPoint} />
         </View>
       )}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TextInput
+              placeholder="Enter new exercise name"
+              value={newExerciseName}
+              onChangeText={setNewExerciseName}
+              style={styles.modalInput}
+            />
+            <Button title="Add" onPress={handleAddNewExerciseOption} />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  selectMenu: {
+    flexGrow: 1,
+  },
+  selectContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: Dimensions.get("window").width,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    padding: 10,
+    marginBottom: 10
+  }
+});
 
 export default App;
 

@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from './types/DropdownItem';
-import Exercise from './types/Exercise';
 
 interface Props {
   items: DropdownItem[];
   handleSelect: (item: DropdownItem) => void;
-  selectedItem: DropdownItem | null;
-  setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | null>>;
+  selectedItem: DropdownItem | undefined;
+  setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ExerciseSelect = ({ items, handleSelect, selectedItem, setSelectedItem }: Props) => {
+const ExerciseSelect = ({
+  items,
+  handleSelect,
+  selectedItem,
+  setSelectedItem,
+  setModalVisible
+}: Props) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const renderLabel = (item: DropdownItem) => (
@@ -20,6 +26,9 @@ const ExerciseSelect = ({ items, handleSelect, selectedItem, setSelectedItem }: 
     </View>
   );
 
+  const newExerciseItem = { value: 'new_exercise', label: 'Add New Exercise' };
+  const dropdownItems = [newExerciseItem, ...items];
+
   return (
     <Dropdown
       style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
@@ -27,20 +36,24 @@ const ExerciseSelect = ({ items, handleSelect, selectedItem, setSelectedItem }: 
       selectedTextStyle={styles.selectedTextStyle}
       inputSearchStyle={styles.inputSearchStyle}
       iconStyle={styles.iconStyle}
-      data={items}
+      data={dropdownItems}
       search
       maxHeight={300}
       labelField="label"
       valueField="value"
       placeholder={!isFocus ? 'Select Exercise' : '...'}
       searchPlaceholder="Search..."
-      value={selectedItem ? selectedItem.value : ""}
+      value={selectedItem ? selectedItem.value : undefined}
       onFocus={() => setIsFocus(true)}
       onBlur={() => setIsFocus(false)}
       onChange={(item: DropdownItem) => {
         setIsFocus(false);
-        setSelectedItem(item);
-        handleSelect(item);
+        if (item.value === "new_exercise") {
+          setModalVisible(true);
+        } else {
+          setSelectedItem(item);
+          handleSelect(item);
+        }
       }}
       renderItem={renderLabel}
     />
