@@ -63,7 +63,7 @@ function App(): React.JSX.Element {
     }
   }
 
-  const handleAddDataPoint = async (e: any) => {
+  const handleAddDataPoint = async (_e: any) => {
     try {
       if (selectedItem) {
         const parsedWeight = parseFloat(weight);
@@ -71,7 +71,8 @@ function App(): React.JSX.Element {
         if (isNaN(parsedReps) || isNaN(parsedWeight)) {
           Toast.show({
             type: 'error',
-            text1: 'Reps or weights must be numbers.'
+            text1: 'Whoops!',
+            text2: 'Reps or weights must be numbers.'
           });
         } else {
           const newExercise = {
@@ -96,7 +97,7 @@ function App(): React.JSX.Element {
 
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       { data && selectedItem && <ScatterPlot data={data} title={selectedItem.label} /> }
       <ExerciseSelect setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
       { selectedItem && (
@@ -137,6 +138,10 @@ function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
   selectMenu: {
     flexGrow: 1,
   },
