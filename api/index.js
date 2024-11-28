@@ -60,7 +60,7 @@ async function connectToDatabase() {
     });
 
     app.delete('/exercise/:id', async (req, res) => {
-      const id = req.params.id;
+      const id = new ObjectId(req.params.id);
       const query = { _id: id };
       try {
         const result = await exerciseCollection.deleteOne(query);
