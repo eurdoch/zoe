@@ -135,17 +135,19 @@ function App(): React.JSX.Element {
             value={weight.toString()}
             onChangeText={(text) => setWeight(text)}
             style={styles.input}
+            placeholderTextColor="#aaa"
           />
           <TextInput
             placeholder="Reps"
             value={reps.toString()}
             onChangeText={(text) => setReps(text)}
             style={styles.input}
+            placeholderTextColor="#aaa"
           />
           <TouchableOpacity onPress={showDatePicker} style={styles.dateContainer}>
             <Text style={styles.dateText}>{date.toDateString()}</Text>
           </TouchableOpacity>
-          <Button title="Add" onPress={handleAddDataPoint} color="#007AFF" />
+          <Button title="Add" onPress={handleAddDataPoint} color="#4CAF50" />
         </View>
       )}
       { modalKey &&
@@ -196,13 +198,23 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 10
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   modalInput: {
     borderWidth: 1,
     borderColor: 'gray',
     padding: 10,
-    marginBottom: 10
+    marginBottom: 10,
+    borderRadius: 5,
+    fontSize: 16,
   },
   inputContainer: {
     marginTop: 20,
@@ -224,12 +236,15 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderRadius: 5,
+    fontSize: 16,
   },
   dateContainer: {
     backgroundColor: '#F5F5F5',
     padding: 10,
     borderRadius: 5,
     marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dateText: {
     fontSize: 16,
