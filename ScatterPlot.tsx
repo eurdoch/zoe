@@ -55,10 +55,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       ])
       .range([innerHeight, 0]);
 
-    const points = data.map(d => ({
+    const points = data.map((d, index) => ({
       x: xScale(d.x),
       y: yScale(d.y),
-      originalData: d
+      originalData: d,
+      key: `point-${index}`
     }));
 
     return { 
@@ -73,45 +74,37 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   }, [data, width, height, margins]);
 
   const xTicks = useMemo(() => 
-    chartDetails.xScale.ticks(5).map(tick => ({
+    chartDetails.xScale.ticks(5).map((tick, index) => ({
       value: tick,
-      x: chartDetails.xScale(tick)
+      x: chartDetails.xScale(tick),
+      key: `x-tick-${index}`
     })), 
   [chartDetails]
   );
 
   const yTicks = useMemo(() => 
-    chartDetails.yScale.ticks(5).map(tick => ({
+    chartDetails.yScale.ticks(5).map((tick, index) => ({
       value: tick,
-      y: chartDetails.yScale(tick)
+      y: chartDetails.yScale(tick),
+      key: `y-tick-${index}`
     })), 
   [chartDetails]
   );
 
-  const handleDataPointClick = (point: DataPoint) => {
-    setSelectedPoint(point);
-    onDataPointClick?.(point);
-  };
-
   return (
     <View>
-      <Text style={styles.titleText}>{title}</Text>
       <Svg width={width} height={height}>
         <G x={margins.left} y={margins.top}>
-          {chartDetails.points.map((point, index) => (
-            <TouchableWithoutFeedback
-              key={index}
-              onPress={() => handleDataPointClick(point.originalData)}
-            >
-              <Circle
-                cx={point.x}
-                cy={point.y}
-                r={5}
-                fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
-                stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
-                strokeWidth={2}
-              />
-            </TouchableWithoutFeedback>
+          {chartDetails.points.map((point) => (
+            <Circle
+              key={point.key}
+              cx={point.x}
+              cy={point.y}
+              r={5}
+              fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
+              stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
+              strokeWidth={2}
+            />
           ))}
 
           {/* X-axis */}
@@ -134,8 +127,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             strokeWidth={2}
           />
 
-          {xTicks.map((tick, i) => (
-            <G key={`x-tick-${i}`}>
+          {xTicks.map((tick) => (
+            <G key={tick.key}>
               <Line
                 x1={tick.x}
                 y1={chartDetails.innerHeight}
@@ -156,8 +149,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             </G>
           ))}
 
-          {yTicks.map((tick, i) => (
-            <G key={`y-tick-${i}`}>
+          {yTicks.map((tick) => (
+            <G key={tick.key}>
               <Line
                 x1={0}
                 y1={tick.y}
@@ -193,4 +186,3 @@ const styles = StyleSheet.create({
 });
 
 export default ScatterPlot;
-
