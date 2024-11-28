@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   View,
+  Text,
   TextInput,
   Button,
   StyleSheet,
   Modal,
   Alert,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
@@ -18,6 +19,7 @@ import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
 import Toast from 'react-native-toast-message'
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 
 function App(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
@@ -28,6 +30,22 @@ function App(): React.JSX.Element {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
   const [modalKey, setModalKey] = useState<string | null>(null);
+  const [date, setDate] = useState(new Date());
+
+  const onChange = (_event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || date;
+    setDate(currentDate);
+  };
+
+  const showDatePicker = () => {
+    DateTimePickerAndroid.open({
+      value: date,
+      onChange,
+      mode: 'date',
+      is24Hour: true,
+      display: 'default'
+    });
+  };
 
   useEffect(() => {
     getExerciseNames()
@@ -122,6 +140,9 @@ function App(): React.JSX.Element {
             value={reps.toString()}
             onChangeText={(text) => setReps(text)}
           />
+          <TouchableOpacity onPress={showDatePicker}>
+            <Text>{date.toString()}</Text>
+          </TouchableOpacity>
           <Button title="Add" onPress={handleAddDataPoint} />
         </View>
       )}
@@ -152,6 +173,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    height: Dimensions.get("window").height,
+    width: Dimensions.get("window").width,
   },
   selectMenu: {
     flexGrow: 1,
