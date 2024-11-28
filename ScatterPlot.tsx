@@ -23,14 +23,13 @@ interface ScatterPlotProps {
     bottom: number;
     left: number;
   };
-  onDataPointClick?: (point: DataPoint) => void;
+  onDataPointClick: (point: DataPoint) => void;
 }
 
 const ScatterPlot: React.FC<ScatterPlotProps> = ({
   data,
   width = Dimensions.get('window').width - 40,
   height = 300,
-  title = 'Scatter Plot',
   margins = { top: 20, right: 20, bottom: 50, left: 50 },
   onDataPointClick,
 }) => {
@@ -110,12 +109,10 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   };
 
   const handleDataPointClick = (point: DataPoint) => {
-    console.log('Clicked data point:', point);
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titleText}>{title}</Text>
       <View style={[styles.chartContainer, { width, height }]}>
         <ReactNativeZoomableView
           maxZoom={10}

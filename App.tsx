@@ -25,6 +25,7 @@ function App(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
+  const [currentDataPoint, setCurrentDataPoint] = useState<DataPoint | null>(null);
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -114,6 +115,12 @@ function App(): React.JSX.Element {
     }
   }
 
+  const handleDataPointClick = (point: DataPoint) => {
+    setCurrentDataPoint(point);
+    setModalKey('datapoint');
+    setModalVisible(true);
+  }
+
   const modals: { [key: string]: React.ReactNode } = {
     'new_exercise': <View>
       <TextInput
@@ -123,13 +130,31 @@ function App(): React.JSX.Element {
         style={[styles.modalInput, { width: Dimensions.get("window").width * 0.8 }]}
       />
       <Button title="Add" onPress={handleAddNewExerciseOption} />
-    </View>
+    </View>,
+    'datapoint': <View>
+      <Text>{currentDataPoint?.x}</Text>
+      <Text>{currentDataPoint?.y}</Text>
+      <Text>{currentDataPoint?.label}</Text>
+    </View>,
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      { data && selectedItem && <ScatterPlot onDataPointClick={(point) => console.log(point)} data={data} title={selectedItem.label} /> }
-      <ExerciseSelect setModalKey={setModalKey} setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
+    { data && selectedItem && (
+        <ScatterPlot
+          onDataPointClick={handleDataPointClick}
+          data={data}
+          title={selectedItem.label}
+        />
+      )}
+      <ExerciseSelect 
+        setModalKey={setModalKey} 
+        setModalVisible={setModalVisible} 
+        selectedItem={selectedItem} 
+        setSelectedItem={setSelectedItem} 
+        handleSelect={handleSelect} 
+        items={exercises} 
+      />
       { selectedItem && (
         <View style={styles.inputContainer}>
           <TextInput
