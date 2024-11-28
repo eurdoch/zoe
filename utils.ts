@@ -43,7 +43,7 @@ export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => 
   return entries.map((entry, i) => {
     return {
       x: extractUnixTimeFromISOString(entry.createdAt),
-      y: entry.weight / entry.reps,
+      y: Number((entry.weight / entry.reps).toFixed(2)),
       label: i.toString(),
     }
   });

@@ -84,7 +84,7 @@ function App(): React.JSX.Element {
     try {
       if (selectedItem) {
         const parsedWeight = parseFloat(weight);
-        const parsedReps = parseFloat(reps);
+        const parsedReps = parseInt(reps);
         if (isNaN(parsedReps) || isNaN(parsedWeight)) {
           Toast.show({
             type: 'error',
@@ -96,12 +96,14 @@ function App(): React.JSX.Element {
             name: selectedItem.value,
             weight: parsedWeight,
             reps: parsedReps,
+            createdAt: date.toString(),
           }
           const insertedEntry = await postExercise(newExercise);
           if (insertedEntry._id) {
             setData(await getExercisesByNameAndConvertToDataPoint(insertedEntry.name));
             setReps("");
             setWeight("");
+            setDate(new Date());
           } else {
             // TODO handle failure, alert user
           }
