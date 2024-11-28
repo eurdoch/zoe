@@ -120,7 +120,7 @@ function App(): React.JSX.Element {
         placeholder="Enter new exercise name"
         value={newExerciseName}
         onChangeText={setNewExerciseName}
-        style={styles.modalInput}
+        style={[styles.modalInput, { width: Dimensions.get("window").width * 0.8 }]}
       />
       <Button title="Add" onPress={handleAddNewExerciseOption} />
     </View>
