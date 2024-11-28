@@ -9,6 +9,7 @@ interface Props {
   selectedItem: DropdownItem | undefined;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  setModalKey: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ExerciseSelect = ({
@@ -16,7 +17,8 @@ const ExerciseSelect = ({
   handleSelect,
   selectedItem,
   setSelectedItem,
-  setModalVisible
+  setModalVisible,
+  setModalKey,
 }: Props) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
@@ -49,6 +51,7 @@ const ExerciseSelect = ({
       onChange={(item: DropdownItem) => {
         setIsFocus(false);
         if (item.value === "new_exercise") {
+          setModalKey('new_exercise');
           setModalVisible(true);
         } else {
           setSelectedItem(item);

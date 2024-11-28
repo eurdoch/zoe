@@ -27,6 +27,7 @@ function App(): React.JSX.Element {
   const [reps, setReps] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
+  const [modalKey, setModalKey] = useState<string | null>(null);
 
   useEffect(() => {
     getExerciseNames()
@@ -43,10 +44,6 @@ function App(): React.JSX.Element {
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
-  }
-
-  const handleAddExerciseOption = () => {
-    setModalVisible(true);
   }
 
   const handleAddNewExerciseOption = () => {
@@ -96,11 +93,22 @@ function App(): React.JSX.Element {
     }
   }
 
+  const modals: { [key: string]: React.ReactNode } = {
+    'new_exercise': <View>
+      <TextInput
+        placeholder="Enter new exercise name"
+        value={newExerciseName}
+        onChangeText={setNewExerciseName}
+        style={styles.modalInput}
+      />
+      <Button title="Add" onPress={handleAddNewExerciseOption} />
+    </View>
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       { data && selectedItem && <ScatterPlot data={data} title={selectedItem.label} /> }
-      <ExerciseSelect setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
+      <ExerciseSelect setModalKey={setModalKey} setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
       { selectedItem && (
         <View>
           <TextInput
@@ -116,29 +124,24 @@ function App(): React.JSX.Element {
           <Button title="Add" onPress={handleAddDataPoint} />
         </View>
       )}
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-        animationType="fade"
-      >
-        <TouchableOpacity
-          style={styles.modalContainer}
-          activeOpacity={1}
-          onPressOut={() => setModalVisible(false)}
+      { modalKey &&
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+          animationType="fade"
         >
-          <View style={styles.modalContent}>
-            <TextInput
-              placeholder="Enter new exercise name"
-              value={newExerciseName}
-              onChangeText={setNewExerciseName}
-              style={styles.modalInput}
-            />
-            <Button title="Add" onPress={handleAddNewExerciseOption} />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
+          <TouchableOpacity
+            style={styles.modalContainer}
+            activeOpacity={1}
+            onPressOut={() => setModalVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              {modals[modalKey]}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      }
       <Toast />
     </SafeAreaView>
   );
