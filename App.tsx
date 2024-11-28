@@ -32,7 +32,7 @@ function App(): React.JSX.Element {
   useEffect(() => {
     getExerciseNames()
       .then(names => {
-        const sortedNames = names.sort();
+        const sortedNames = names.sort((a, b) => a.localeCompare(b));
         const items = sortedNames.map(name => ({
           label: convertFromDatabaseFormat(name),
           value: name,
@@ -41,7 +41,6 @@ function App(): React.JSX.Element {
       })
       .catch(console.log);
   }, []);
-
 
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
