@@ -30,7 +30,8 @@ async function connectToDatabase() {
 
     app.get('/exercise', async (req, res) => {
       const name = req.query.name;
-      const query = name ? { name } : {};
+      const id = req.query.id;
+      const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
       try {
         const exercises = await exerciseCollection.find(query).toArray();
         res.json(exercises);
@@ -39,6 +40,7 @@ async function connectToDatabase() {
       }
     });
 
+    // TODO this could potentially conflict with /exercise/names
     app.get('/exercise/:name', async (req, res) => {
       const name = req.params.name;
       try {
