@@ -22,19 +22,17 @@ async function connectToDatabase() {
     app.get('/exercise/names', async (req, res) => {
       try {
         const exerciseNames = await exerciseCollection.distinct('name');
-        res.json(exerciseNames.sort());
+        res.json(exerciseNames);
       } catch (err) {
         res.status(500).json({ error: `Error fetching exercise names: ${err}` });
       }
     });
-
 
     app.get('/exercise', async (req, res) => {
       const name = req.query.name;
       const query = name ? { name } : {};
       try {
         const exercises = await exerciseCollection.find(query).toArray();
-        console.log(exercises);
         res.json(exercises);
       } catch (err) {
         res.status(500).json({ error: `Error fetching exercises: ${err}` });
