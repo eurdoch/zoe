@@ -109,6 +109,10 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     }
   };
 
+  const handleDataPointClick = (point: DataPoint) => {
+    console.log('Clicked data point:', point);
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>{title}</Text>
@@ -134,6 +138,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                   fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
                   stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
                   strokeWidth={2}
+                  onPress={() => handleDataPointClick(point.originalData)}
                 />
               ))}
 
