@@ -7,11 +7,11 @@ import Exercise from './types/Exercise';
 interface Props {
   items: DropdownItem[];
   handleSelect: (item: DropdownItem) => void;
-  setCurrentExercise: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedItem: DropdownItem | null;
+  setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | null>>;
 }
 
-const ExerciseSelect = ({ items, handleSelect, setCurrentExercise }: Props) => {
-  const [value, setValue] = useState<string | null>(null);
+const ExerciseSelect = ({ items, handleSelect, selectedItem, setSelectedItem }: Props) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
   const renderLabel = (item: DropdownItem) => (
@@ -34,12 +34,12 @@ const ExerciseSelect = ({ items, handleSelect, setCurrentExercise }: Props) => {
       valueField="value"
       placeholder={!isFocus ? 'Select Exercise' : '...'}
       searchPlaceholder="Search..."
-      value={value}
+      value={selectedItem ? selectedItem.value : ""}
       onFocus={() => setIsFocus(true)}
       onBlur={() => setIsFocus(false)}
       onChange={(item: DropdownItem) => {
         setIsFocus(false);
-        setCurrentExercise(item.value);
+        setSelectedItem(item);
         handleSelect(item);
       }}
       renderItem={renderLabel}

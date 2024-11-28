@@ -1,3 +1,4 @@
+import { getExerciseDataByName } from "./exercises/network";
 import { ExerciseEntry } from "./exercises/types";
 import DataPoint from "./types/DataPoint";
 
@@ -48,3 +49,7 @@ export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => 
   });
 }
 
+export const getExercisesByNameAndConvertToDataPoint = async (name: string): Promise<DataPoint[]> => {
+  const exerciseData = await getExerciseDataByName(name);
+  return mapEntriesToDataPoint(exerciseData);
+}
