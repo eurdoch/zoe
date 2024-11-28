@@ -40,11 +40,11 @@ export const extractUnixTimeFromISOString = (isoString: string): number => {
 };
 
 export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => {
-  return entries.map((entry, i) => {
+  return entries.map((entry, _i) => {
     return {
       x: extractUnixTimeFromISOString(entry.createdAt),
       y: Number((entry.weight / entry.reps).toFixed(2)),
-      label: i.toString(),
+      label: entry._id,
     }
   });
 }

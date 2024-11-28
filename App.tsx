@@ -128,7 +128,7 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.container}>
-      { data && selectedItem && <ScatterPlot data={data} title={selectedItem.label} /> }
+      { data && selectedItem && <ScatterPlot onDataPointClick={(point) => console.log(point)} data={data} title={selectedItem.label} /> }
       <ExerciseSelect setModalKey={setModalKey} setModalVisible={setModalVisible} selectedItem={selectedItem} setSelectedItem={setSelectedItem} handleSelect={handleSelect} items={exercises} />
       { selectedItem && (
         <View style={styles.inputContainer}>

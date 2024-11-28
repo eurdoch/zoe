@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, Dimensions, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, Dimensions, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import Svg, { 
   Circle, 
   Line, 
@@ -22,6 +22,7 @@ interface ScatterPlotProps {
     bottom: number;
     left: number;
   };
+  onDataPointClick?: (point: DataPoint) => void;
 }
 
 const ScatterPlot: React.FC<ScatterPlotProps> = ({
@@ -30,25 +31,23 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   height = 300,
   title = 'Scatter Plot',
   margins = { top: 20, right: 20, bottom: 50, left: 50 },
+  onDataPointClick,
 }) => {
-  // Memoize the chart creation to optimize performance
+  const [selectedPoint, setSelectedPoint] = useState<DataPoint | null>(null);
+
   const chartDetails = useMemo(() => {
-    // Calculate the inner dimensions of the chart
     const innerWidth = width - margins.left - margins.right;
     const innerHeight = height - margins.top - margins.bottom;
 
-    // Determine the ranges for x and y axes
     const xExtent = d3Array.extent(data, d => d.x) as [number, number];
     const yExtent = d3Array.extent(data, d => d.y) as [number, number];
 
-    // Create scales with a bit of padding
     const xScale = d3Scale.scaleLinear()
       .domain([
         xExtent[0] - (xExtent[1] - xExtent[0]) * 0.1, 
         xExtent[1] + (xExtent[1] - xExtent[0]) * 0.1
       ])
       .range([0, innerWidth]);
-
     const yScale = d3Scale.scaleLinear()
       .domain([
         yExtent[0] - (yExtent[1] - yExtent[0]) * 0.1, 
@@ -56,7 +55,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       ])
       .range([innerHeight, 0]);
 
-    // Generate points
     const points = data.map(d => ({
       x: xScale(d.x),
       y: yScale(d.y),
@@ -74,7 +72,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     };
   }, [data, width, height, margins]);
 
-  // Generate x-axis ticks
   const xTicks = useMemo(() => 
     chartDetails.xScale.ticks(5).map(tick => ({
       value: tick,
@@ -83,7 +80,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   [chartDetails]
   );
 
-  // Generate y-axis ticks
   const yTicks = useMemo(() => 
     chartDetails.yScale.ticks(5).map(tick => ({
       value: tick,
@@ -92,22 +88,30 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   [chartDetails]
   );
 
+  const handleDataPointClick = (point: DataPoint) => {
+    setSelectedPoint(point);
+    onDataPointClick?.(point);
+  };
+
   return (
     <View>
       <Text style={styles.titleText}>{title}</Text>
       <Svg width={width} height={height}>
         <G x={margins.left} y={margins.top}>
-          {/* Data points */}
           {chartDetails.points.map((point, index) => (
-            <Circle
+            <TouchableWithoutFeedback
               key={index}
-              cx={point.x}
-              cy={point.y}
-              r={5}
-              fill="#007bff"
-              stroke="#007bff"
-              strokeWidth={2}
-            />
+              onPress={() => handleDataPointClick(point.originalData)}
+            >
+              <Circle
+                cx={point.x}
+                cy={point.y}
+                r={5}
+                fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
+                stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
+                strokeWidth={2}
+              />
+            </TouchableWithoutFeedback>
           ))}
 
           {/* X-axis */}
@@ -130,7 +134,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             strokeWidth={2}
           />
 
-          {/* X-axis ticks and labels */}
           {xTicks.map((tick, i) => (
             <G key={`x-tick-${i}`}>
               <Line
@@ -153,7 +156,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             </G>
           ))}
 
-          {/* Y-axis ticks and labels */}
           {yTicks.map((tick, i) => (
             <G key={`y-tick-${i}`}>
               <Line
@@ -189,7 +191,6 @@ const styles = StyleSheet.create({
     marginBottom: 10
   }
 });
-
 
 export default ScatterPlot;
 
