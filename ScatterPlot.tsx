@@ -116,7 +116,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text>{title}</Text>
+      <Text style={styles.titleText}>{title}</Text>
       <View style={[styles.chartContainer, { width, height }]}>
         <ReactNativeZoomableView
           maxZoom={10}
@@ -221,7 +221,9 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleText: {
     fontSize: 18,
