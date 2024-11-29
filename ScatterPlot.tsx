@@ -31,6 +31,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   width = Dimensions.get('window').width - 40,
   height = 300,
   margins = { top: 20, right: 20, bottom: 50, left: 50 },
+  title,
   onDataPointClick,
 }) => {
   const [selectedPoint, setSelectedPoint] = useState<DataPoint | null>(null);
@@ -113,6 +114,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
   return (
     <View style={styles.container}>
+      <Text>{title}</Text>
       <View style={[styles.chartContainer, { width, height }]}>
         <ReactNativeZoomableView
           maxZoom={10}
