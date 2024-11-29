@@ -13,19 +13,21 @@ import {
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
-import { getExerciseNames, postExercise } from './exercises/network';
-import { convertFromDatabaseFormat, convertToDatabaseFormat, getExercisesByNameAndConvertToDataPoint } from './utils';
+import { getExerciseById, getExerciseNames, postExercise } from './exercises/network';
+import { convertFromDatabaseFormat, convertToDatabaseFormat, extractUnixTimeFromISOString, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
 import Toast from 'react-native-toast-message'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import Exercise from './types/Exercise';
 
 function App(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
   const [currentDataPoint, setCurrentDataPoint] = useState<DataPoint | null>(null);
+  const [modalExercise, setModalExercise] = useState<Exercise | null>(null);
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -97,7 +99,7 @@ function App(): React.JSX.Element {
             name: selectedItem.value,
             weight: parsedWeight,
             reps: parsedReps,
-            createdAt: date.toString(),
+            createdAt: date.toISOString(),
           }
           const insertedEntry = await postExercise(newExercise);
           if (insertedEntry._id) {
@@ -116,9 +118,11 @@ function App(): React.JSX.Element {
   }
 
   const handleDataPointClick = (point: DataPoint) => {
-    setCurrentDataPoint(point);
-    setModalKey('datapoint');
-    setModalVisible(true);
+    getExerciseById(point.label!).then(m => {
+      setModalExercise(m);
+      setModalKey('datapoint');
+      setModalVisible(true);
+    });
   }
 
   const modals: { [key: string]: React.ReactNode } = {
@@ -132,9 +136,13 @@ function App(): React.JSX.Element {
       <Button title="Add" onPress={handleAddNewExerciseOption} />
     </View>,
     'datapoint': <View>
-      <Text>{currentDataPoint?.x}</Text>
-      <Text>{currentDataPoint?.y}</Text>
-      <Text>{currentDataPoint?.label}</Text>
+      {modalExercise && (
+        <>
+          <Text style={styles.modalInput}>{modalExercise.weight.toString()}</Text>
+          <Text>Reps: {modalExercise.reps.toString()}</Text>
+          <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExercise.createdAt))}</Text>
+        </>
+      )}
     </View>,
   };
 

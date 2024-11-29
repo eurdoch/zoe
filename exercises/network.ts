@@ -29,3 +29,9 @@ export async function getExerciseDataByName(name: string): Promise<ExerciseEntry
   return response.json();
 }
 
+export async function getExerciseById(id: string): Promise<ExerciseEntry> {
+  const response = await fetch(`${VITALE_BOX_URL}/exercise?id=${id}`, {
+    method: 'GET',
+  });
+  return response.json();
+}
