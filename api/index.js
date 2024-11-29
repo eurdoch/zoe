@@ -33,8 +33,8 @@ async function connectToDatabase() {
       const id = req.query.id;
       const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
       try {
-        const exercises = await exerciseCollection.find(query).toArray();
-        res.json(exercises);
+        const exercise = await exerciseCollection.findOne(query);
+        res.json(exercise);
       } catch (err) {
         res.status(500).json({ error: `Error fetching exercises: ${err}` });
       }
