@@ -151,7 +151,7 @@ function App(): React.JSX.Element {
     'datapoint': <View>
       {modalExerciseEntry && (
         <>
-          <Text style={styles.modalInput}>{modalExerciseEntry.weight.toString()}</Text>
+          <Text>Weight: {modalExerciseEntry.weight.toString()} lbs</Text>
           <Text>Reps: {modalExerciseEntry.reps.toString()}</Text>
           <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExerciseEntry.createdAt))}</Text>
           <Button title="Delete" onPress={handleDeleteExercise} />
