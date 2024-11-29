@@ -35,3 +35,10 @@ export async function getExerciseById(id: string): Promise<ExerciseEntry> {
   });
   return response.json();
 }
+
+export async function deleteExerciseById(id: string): Promise<void> {
+  const response = await fetch(`${VITALE_BOX_URL}/exercise/${id}`, {
+    method: 'DELETE',
+  });
+  return response.json();
+}

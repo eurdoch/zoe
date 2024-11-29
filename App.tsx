@@ -13,21 +13,20 @@ import {
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
-import { getExerciseById, getExerciseNames, postExercise } from './exercises/network';
+import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './exercises/network';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, extractUnixTimeFromISOString, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
 import Toast from 'react-native-toast-message'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import Exercise from './types/Exercise';
+import ExerciseEntry from './types/ExerciseEntry';
 
 function App(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
-  const [currentDataPoint, setCurrentDataPoint] = useState<DataPoint | null>(null);
-  const [modalExercise, setModalExercise] = useState<Exercise | null>(null);
+  const [modalExerciseEntry, setModalExerciseEntry] = useState<ExerciseEntry | null>(null);
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -83,6 +82,13 @@ function App(): React.JSX.Element {
     }
   }
 
+  const reloadData = async (name: string) => {
+    setData(await getExercisesByNameAndConvertToDataPoint(name)); 
+    setReps(""); 
+    setWeight("");
+    setDate(new Date());
+  }
+
   const handleAddDataPoint = async (_e: any) => {
     try {
       if (selectedItem) {
@@ -103,10 +109,7 @@ function App(): React.JSX.Element {
           }
           const insertedEntry = await postExercise(newExercise);
           if (insertedEntry._id) {
-            setData(await getExercisesByNameAndConvertToDataPoint(insertedEntry.name));
-            setReps("");
-            setWeight("");
-            setDate(new Date());
+            reloadData(insertedEntry.name);
           } else {
             // TODO handle failure, alert user
           }
@@ -119,10 +122,19 @@ function App(): React.JSX.Element {
 
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
-      setModalExercise(m);
+      setModalExerciseEntry(m);
       setModalKey('datapoint');
       setModalVisible(true);
     });
+  }
+
+  const handleDeleteExercise = (_e: any) => {
+    if (modalExerciseEntry) {
+      deleteExerciseById(modalExerciseEntry._id).then(() => {
+        reloadData(modalExerciseEntry.name);
+        setModalVisible(false);
+      });
+    }
   }
 
   const modals: { [key: string]: React.ReactNode } = {
@@ -136,11 +148,12 @@ function App(): React.JSX.Element {
       <Button title="Add" onPress={handleAddNewExerciseOption} />
     </View>,
     'datapoint': <View>
-      {modalExercise && (
+      {modalExerciseEntry && (
         <>
-          <Text style={styles.modalInput}>{modalExercise.weight.toString()}</Text>
-          <Text>Reps: {modalExercise.reps.toString()}</Text>
-          <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExercise.createdAt))}</Text>
+          <Text style={styles.modalInput}>{modalExerciseEntry.weight.toString()}</Text>
+          <Text>Reps: {modalExerciseEntry.reps.toString()}</Text>
+          <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExerciseEntry.createdAt))}</Text>
+          <Button title="Delete" onPress={handleDeleteExercise} />
         </>
       )}
     </View>,
