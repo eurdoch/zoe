@@ -33,6 +33,9 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+android/app/src/main/assets/
+android/app/src/main/res/drawable-mdpi/
+
 
 # node.js
 #
