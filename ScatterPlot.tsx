@@ -24,6 +24,7 @@ interface ScatterPlotProps {
     left: number;
   };
   onDataPointClick: (point: DataPoint) => void;
+  zoomAndPanEnabled?: boolean;
 }
 
 const ScatterPlot: React.FC<ScatterPlotProps> = ({
@@ -33,6 +34,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   margins = { top: 20, right: 20, bottom: 50, left: 50 },
   title,
   onDataPointClick,
+  zoomAndPanEnabled = true,
 }) => {
   const [selectedPoint, setSelectedPoint] = useState<DataPoint | null>(null);
 
@@ -124,6 +126,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           bindToBorders={true}
           onSingleTap={handleSingleTap}
           style={styles.zoomableView}
+          zoomEnabled={zoomAndPanEnabled}
+          panEnabled={zoomAndPanEnabled}
         >
           <Svg width={width} height={height}>
             <G x={margins.left} y={margins.top}>

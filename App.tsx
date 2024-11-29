@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ExerciseLogScreen from './ExerciseLogScreen';
 import HomeScreen from './HomeScreen';
 import ExerciseListScreen from './ExerciseListScreen';
+import ExerciseScreen from './ExerciseScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +26,11 @@ const App = () => {
           name="ExerciseList"
           component={ExerciseListScreen}
           options={{title: "List"}}
+        />
+        <Stack.Screen
+          name="Exercise"
+          component={ExerciseScreen}
+          options={{title: "Exercise"}}
         />
       </Stack.Navigator>
     </NavigationContainer>
