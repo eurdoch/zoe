@@ -1,36 +1,52 @@
-import * as React from 'react';
+import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ExerciseLogScreen from './ExerciseLogScreen';
 import HomeScreen from './HomeScreen';
 import ExerciseListScreen from './ExerciseListScreen';
 import ExerciseScreen from './ExerciseScreen';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-const Stack = createNativeStackNavigator();
+type RootStackParamList = {
+  Home: undefined;
+  ExerciseLog: undefined;
+  ExerciseList: undefined;
+  Exercise: { title: string };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen 
+        <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{title: "Home"}}
+          options={{
+            title: "Home"
+          }}
         />
         <Stack.Screen
           name="ExerciseLog"
           component={ExerciseLogScreen}
-          options={{title: "Log"}}
+          options={{
+            title: "Log"
+          }}
         />
         <Stack.Screen
           name="ExerciseList"
           component={ExerciseListScreen}
-          options={{title: "List"}}
+          options={{
+            title: "List"
+          }}
         />
         <Stack.Screen
           name="Exercise"
           component={ExerciseScreen}
-          options={{title: "Exercise"}}
+          options={({ route }: NativeStackScreenProps<RootStackParamList, 'Exercise'>) => ({
+            title: route.params.title,
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>

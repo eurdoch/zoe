@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Button } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { getExerciseDataByName, getExerciseNames } from './exercises/network';
 import { convertFromDatabaseFormat, mapEntriesToDataPoint } from './utils';
 import { NavigationProp } from '@react-navigation/native';
@@ -31,13 +31,17 @@ const ExerciseListScreen = ({ navigation }: ExerciseListScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
         { names &&
-          names.map((name, index) => <Button
-            key={index} 
-            title={convertFromDatabaseFormat(name)}
-            onPress={() => handleExerciseSelect(name)}
-          />)
+          names.map((name, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.buttonContainer}
+              onPress={() => handleExerciseSelect(name)}
+            >
+              <Text style={styles.buttonText}>{convertFromDatabaseFormat(name)}</Text>
+            </TouchableOpacity>
+          ))
         }
       </ScrollView>
     </View>
@@ -48,8 +52,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+  },
+  scrollViewContainer: {
+    paddingVertical: 20,
+  },
+  buttonContainer: {
+    marginHorizontal: 20,
+    marginVertical: 10,
+    elevation: 2,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
 
