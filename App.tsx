@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   TouchableOpacity,
+  KeyboardAvoidingView,
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 
@@ -177,7 +178,7 @@ function App(): React.JSX.Element {
         items={exercises} 
       />
       { selectedItem && (
-        <View style={styles.inputContainer}>
+        <KeyboardAvoidingView style={styles.inputContainer}>
           <TextInput
             placeholder="Weight"
             value={weight.toString()}
@@ -196,7 +197,7 @@ function App(): React.JSX.Element {
             <Text style={styles.dateText}>{date.toDateString()}</Text>
           </TouchableOpacity>
           <Button title="Add" onPress={handleAddDataPoint} color="#4CAF50" />
-        </View>
+        </KeyboardAvoidingView>
       )}
       { modalKey &&
         <Modal
