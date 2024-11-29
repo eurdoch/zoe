@@ -169,14 +169,6 @@ function App(): React.JSX.Element {
           title={selectedItem.label}
         />
       )}
-      <ExerciseSelect 
-        setModalKey={setModalKey} 
-        setModalVisible={setModalVisible} 
-        selectedItem={selectedItem} 
-        setSelectedItem={setSelectedItem} 
-        handleSelect={handleSelect} 
-        items={exercises} 
-      />
       { selectedItem && (
         <KeyboardAvoidingView style={styles.inputContainer}>
           <TextInput
@@ -199,6 +191,14 @@ function App(): React.JSX.Element {
           <Button title="Add" onPress={handleAddDataPoint} color="#4CAF50" />
         </KeyboardAvoidingView>
       )}
+      <ExerciseSelect 
+        setModalKey={setModalKey} 
+        setModalVisible={setModalVisible} 
+        selectedItem={selectedItem} 
+        setSelectedItem={setSelectedItem} 
+        handleSelect={handleSelect} 
+        items={exercises} 
+      />
       { modalKey &&
         <Modal
           visible={modalVisible}
