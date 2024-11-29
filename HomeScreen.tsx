@@ -1,29 +1,26 @@
 import React from 'react';
 import { NavigationProp } from '@react-navigation/native';
-import { Button, SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
 };
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const handlePress = (screen: string) => {
+    navigation.navigate(screen);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>
-        <Button
-          title="Log"
-          onPress={() => {
-            navigation.navigate("ExerciseLog");
-          }}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="List"
-          onPress={() => {
-            navigation.navigate("ExerciseList");
-          }}
-        />
+        <TouchableOpacity style={styles.button} onPress={() => handlePress('ExerciseLog')}>
+          <Text style={styles.buttonText}>Log</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => handlePress('ExerciseList')}>
+          <Text style={styles.buttonText}>Exercises</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -38,6 +35,17 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginHorizontal: 16,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
