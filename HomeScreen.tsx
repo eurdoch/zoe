@@ -15,11 +15,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => handlePress('ExerciseLog')}>
-          <Text style={styles.buttonText}>Log</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => handlePress('ExerciseList')}>
-          <Text style={styles.buttonText}>Exercises</Text>
+        <TouchableOpacity style={styles.button} onPress={() => handlePress('Exercise')}>
+          <Text style={styles.buttonText}>Exercise</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => handlePress('Diet')}>
           <Text style={styles.buttonText}>Diet</Text>

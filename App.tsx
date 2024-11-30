@@ -56,9 +56,9 @@ const App = () => {
           <Stack.Screen
             name="Exercise"
             component={ExerciseScreen}
-            options={({ route }: NativeStackScreenProps<RootStackParamList, 'Exercise'>) => ({
-              title: route.params.title,
-            })}
+            options={{
+              title: "Exercise",
+            }}
           />
         </Stack.Navigator>
         <GlobalModal />
