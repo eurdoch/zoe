@@ -111,9 +111,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     }
   };
 
-  const handleDataPointClick = (point: DataPoint) => {
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>{title}</Text>
