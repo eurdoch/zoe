@@ -6,12 +6,14 @@ import HomeScreen from './HomeScreen';
 import ExerciseListScreen from './ExerciseListScreen';
 import ExerciseScreen from './ExerciseScreen';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import BarcodeScanner from './BarcodeScanner';
 
 type RootStackParamList = {
   Home: undefined;
   ExerciseLog: undefined;
   ExerciseList: undefined;
   Exercise: { title: string };
+  Diet: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,6 +41,13 @@ const App = () => {
           component={ExerciseListScreen}
           options={{
             title: "List"
+          }}
+        />
+        <Stack.Screen
+          name="Diet"
+          component={BarcodeScanner}
+          options={{
+            title: "Diet"
           }}
         />
         <Stack.Screen
