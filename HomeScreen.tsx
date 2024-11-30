@@ -2,14 +2,12 @@ import React from 'react';
 import { NavigationProp } from '@react-navigation/native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Config from 'react-native-config';
 
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
 };
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  console.log(Config.NUTRITIONIX_API_KEY);
   const handlePress = (screen: string) => {
     navigation.navigate(screen);
   };

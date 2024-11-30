@@ -5,12 +5,14 @@ import {
   useCameraDevices,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { lookupBarcode } from './nutrition';
+import { getNutritionInfo, lookupBarcode } from './nutrition';
+import FoodItem from './types/FoodItem';
 
 const BarcodeScanner = () => {
   const camera = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(false);
+  const [currentFoodItem, setCurrentFoodItem] = useState<any>({});
 
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
@@ -21,7 +23,7 @@ const BarcodeScanner = () => {
       setIsActive(false);
       const upc = codes[0].value;
       if (upc) {
-        lookupBarcode(upc).then(info => console.log(info));
+        getNutritionInfo(upc).then(info => setCurrentFoodItem(info));
       }
     }
   });
@@ -74,6 +76,7 @@ const BarcodeScanner = () => {
         /> :
         <View>
           <Button title="Scan Bar" onPress={handleCapture} />
+          { currentFoodItem && <Text style={{fontSize: 20}}>{JSON.stringify(currentFoodItem, null, 2)}</Text>}
         </View>
       }
     </View>
