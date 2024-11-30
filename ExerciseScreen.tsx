@@ -5,6 +5,7 @@ import { deleteExerciseById, getExerciseById } from './exercises/network';
 import ScatterPlot from './ScatterPlot';
 import DataPoint from './types/DataPoint';
 import { extractUnixTimeFromISOString, formatTime } from './utils';
+import { useModal } from './ModalContext';
 
 type ExerciseScreenProps = {
   route: any;
@@ -13,21 +14,35 @@ type ExerciseScreenProps = {
 const ExerciseScreen = ({ route }: ExerciseScreenProps) => {
   const [modalExerciseEntry, setModalExerciseEntry] = useState<ExerciseEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-
-  const handleDataPointClick = (point: DataPoint) => {
-    getExerciseById(point.label!).then(m => {
-      setModalExerciseEntry(m);
-      setModalVisible(true);
-    });
-  }
+  const { showModal, hideModal } = useModal();
 
   const handleDeleteExercise = (_e: any) => {
     if (modalExerciseEntry) {
       deleteExerciseById(modalExerciseEntry._id).then(() => {
         // TODO reload data
         setModalVisible(false);
+        hideModal();
       });
     }
+  }
+
+  const modalContent = 
+    <View style={styles.modalContent}>
+      {modalExerciseEntry && (
+        <>
+          <Text>Weight: {modalExerciseEntry.weight.toString()} lbs</Text>
+          <Text>Reps: {modalExerciseEntry.reps.toString()}</Text>
+          <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExerciseEntry.createdAt))}</Text>
+          <Button title="Delete" onPress={handleDeleteExercise} />
+        </>
+      )}
+    </View>
+
+  const handleDataPointClick = (point: DataPoint) => {
+    getExerciseById(point.label!).then(m => {
+      setModalExerciseEntry(m);
+      showModal(modalContent);
+    });
   }
 
   return (
@@ -37,29 +52,6 @@ const ExerciseScreen = ({ route }: ExerciseScreenProps) => {
         title={route.params.title}
         onDataPointClick={handleDataPointClick}
       />
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-        animationType="fade"
-      >
-        <TouchableOpacity
-          style={styles.modalContainer}
-          activeOpacity={1}
-          onPressOut={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContent}>
-            {modalExerciseEntry && (
-              <>
-                <Text>Weight: {modalExerciseEntry.weight.toString()} lbs</Text>
-                <Text>Reps: {modalExerciseEntry.reps.toString()}</Text>
-                <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExerciseEntry.createdAt))}</Text>
-                <Button title="Delete" onPress={handleDeleteExercise} />
-              </>
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 };

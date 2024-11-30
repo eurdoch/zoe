@@ -7,6 +7,8 @@ import ExerciseListScreen from './ExerciseListScreen';
 import ExerciseScreen from './ExerciseScreen';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import DietScreen from './DietScreen';
+import { ModalProvider } from './ModalContext';
+import GlobalModal from './GlobalModal';
 
 type RootStackParamList = {
   Home: undefined;
@@ -20,45 +22,48 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: "Home"
-          }}
-        />
-        <Stack.Screen
-          name="ExerciseLog"
-          component={ExerciseLogScreen}
-          options={{
-            title: "Log"
-          }}
-        />
-        <Stack.Screen
-          name="ExerciseList"
-          component={ExerciseListScreen}
-          options={{
-            title: "List"
-          }}
-        />
-        <Stack.Screen
-          name="Diet"
-          component={DietScreen}
-          options={{
-            title: "Diet"
-          }}
-        />
-        <Stack.Screen
-          name="Exercise"
-          component={ExerciseScreen}
-          options={({ route }: NativeStackScreenProps<RootStackParamList, 'Exercise'>) => ({
-            title: route.params.title,
-          })}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ModalProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: "Home"
+            }}
+          />
+          <Stack.Screen
+            name="ExerciseLog"
+            component={ExerciseLogScreen}
+            options={{
+              title: "Log"
+            }}
+          />
+          <Stack.Screen
+            name="ExerciseList"
+            component={ExerciseListScreen}
+            options={{
+              title: "List"
+            }}
+          />
+          <Stack.Screen
+            name="Diet"
+            component={DietScreen}
+            options={{
+              title: "Diet"
+            }}
+          />
+          <Stack.Screen
+            name="Exercise"
+            component={ExerciseScreen}
+            options={({ route }: NativeStackScreenProps<RootStackParamList, 'Exercise'>) => ({
+              title: route.params.title,
+            })}
+          />
+        </Stack.Navigator>
+        <GlobalModal />
+      </NavigationContainer>
+    </ModalProvider>
   );
 };
 
