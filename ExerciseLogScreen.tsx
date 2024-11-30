@@ -168,6 +168,7 @@ function ExerciseLogScreen(): React.JSX.Element {
         handleSelect={handleSelect} 
         exercises={exercises} 
         setExercises={setExercises}
+        setData={setData}
       />
       <Toast />
     </SafeAreaView>

@@ -4,14 +4,16 @@ import { convertToDatabaseFormat } from "./utils";
 import { useModal } from "./ModalContext";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import DropdownItem from "./types/DropdownItem";
+import DataPoint from "./types/DataPoint";
 
 interface NewExerciseModalContentProps {
   exercises: DropdownItem[];
   setExercises: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
+  setData: React.Dispatch<React.SetStateAction<DataPoint[] | undefined>>;
 }
 
-const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem }: NewExerciseModalContentProps) => {
+const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, setData }: NewExerciseModalContentProps) => {
   const [value, setValue] = useState<string>('');
   const { hideModal } = useModal();
 
@@ -24,6 +26,7 @@ const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem }: N
       setExercises([...exercises, newExerciseOption]);
       setSelectedItem(newExerciseOption);
       setValue('');
+      setData([]);
       hideModal();
     } else {
       Toast.show({ type: 'error', text1: 'Whoops!', text2: 'Please enter a valid exercise name.'});

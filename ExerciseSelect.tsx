@@ -4,11 +4,13 @@ import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from './types/DropdownItem';
 import { useModal } from './ModalContext';
 import NewExerciseModalContent from './NewExerciseModalContent';
+import DataPoint from './types/DataPoint';
 
 interface Props {
   exercises: DropdownItem[];
   setExercises: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
+  setData: React.Dispatch<React.SetStateAction<DataPoint[] | undefined>>;
   handleSelect: (item: DropdownItem) => void;
   selectedItem: DropdownItem | undefined;
 }
@@ -19,6 +21,7 @@ const ExerciseSelect = ({
   handleSelect,
   selectedItem,
   setSelectedItem,
+  setData,
 }: Props) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
   const { showModal } = useModal();
@@ -51,7 +54,7 @@ const ExerciseSelect = ({
       onChange={(item: DropdownItem) => {
         setIsFocus(false);
         if (item.value === "new_exercise") {
-          showModal(<NewExerciseModalContent setExercises={setExercises} exercises={exercises} setSelectedItem={setSelectedItem} />);
+          showModal(<NewExerciseModalContent setData={setData} setExercises={setExercises} exercises={exercises} setSelectedItem={setSelectedItem} />);
         } else {
           setSelectedItem(item);
           handleSelect(item);
