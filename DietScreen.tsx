@@ -1,18 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, Text, Button } from 'react-native';
+import { View, StyleSheet, Text, Button, TextInput } from 'react-native';
 import {
   Camera,
   useCameraDevices,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { getNutritionInfo, lookupBarcode } from './nutrition';
-import FoodItem from './types/FoodItem';
+import { getNutritionInfo, searchFoodNatural } from './nutrition';
 
-const BarcodeScanner = () => {
+const DietScreen = () => {
   const camera = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [currentFoodItem, setCurrentFoodItem] = useState<any>({});
+  const [searchText, setSearchText] = useState('');
 
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
@@ -40,6 +40,11 @@ const BarcodeScanner = () => {
 
     checkPermission();
   }, []);
+
+  const handleSearch = async () => {
+    const searchResult = await searchFoodNatural(searchText);
+    console.log(searchResult);
+  }
 
   // Handle no permissions
   if (!hasPermission) {
@@ -77,6 +82,13 @@ const BarcodeScanner = () => {
         <View>
           <Button title="Scan Bar" onPress={handleCapture} />
           { currentFoodItem && <Text style={{fontSize: 20}}>{JSON.stringify(currentFoodItem, null, 2)}</Text>}
+          <TextInput
+            style={styles.input}
+            onChangeText={setSearchText}
+            value={searchText}
+            placeholder="Search for food"
+          />
+          <Button title="Search" onPress={handleSearch} />
         </View>
       }
     </View>
@@ -117,6 +129,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  input: {
+    height: 40,
+    borderWidth: 1,
+    padding: 10,
+    marginVertical: 10,
+  },
 });
 
-export default BarcodeScanner;
+export default DietScreen;

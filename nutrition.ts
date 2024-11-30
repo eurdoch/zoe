@@ -4,43 +4,21 @@ const headers = {
   'x-app-id': Config.NUTRITIONIX_APP_ID,
   'x-app-key': Config.NUTRITIONIX_API_KEY,
   'x-remote-user-id': '0',  // Use 0 for development
-  'Content-Type': 'application/x-www-form-urlencoded'
+  "Content-Type": "application/json",
 };
 
 interface NutritionixResponse<T> {
   data: T;
 }
 
-async function searchFoodNatural(query: string): Promise<NutritionixResponse<any>> {
+export async function searchFoodNatural(query: string): Promise<NutritionixResponse<any>> {
   try {
     const response = await fetch('https://trackapi.nutritionix.com/v2/natural/nutrients', {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
         query: query,
-        // Optional parameters
-        timezone: "US/Eastern",
-        locale: "en_US"
       })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error:', error);
-    throw error;
-  }
-}
-
-export const lookupBarcode = async (upc: string): Promise<NutritionixResponse<any>> => {
-  try {
-    const response = await fetch(`https://trackapi.nutritionix.com/v2/search/item?upc=${upc}`, {
-      method: 'GET',
-      headers: headers
     });
 
     if (!response.ok) {
@@ -59,11 +37,7 @@ export const getNutritionInfo = async (upc: string) => {
   try {
     const response = await fetch(`https://trackapi.nutritionix.com/v2/search/item?upc=${upc}`, {
       method: 'GET',
-      headers: {
-        'x-app-id': Config.NUTRITIONIX_APP_ID,
-        'x-app-key': Config.NUTRITIONIX_API_KEY,
-        'x-remote-user-id': '0'
-      }
+      headers: headers,
     });
 
     if (!response.ok) {
@@ -121,23 +95,6 @@ const calculateCalories = (nutritionInfo, numberOfServings) => {
     }
   };
 };
-
-// Example usage:
-async function example() {
-  try {
-    // Example UPC for a Coca-Cola
-    const upc = '049000006436';
-    const nutritionInfo = await getNutritionInfo(upc);
-    console.log('Basic nutrition info:', nutritionInfo);
-
-    // Calculate calories for 2.5 servings
-    const caloriesFor2_5Servings = calculateCalories(nutritionInfo, 2.5);
-    console.log('Calories for 2.5 servings:', caloriesFor2_5Servings);
-    
-  } catch (error) {
-    console.error('Error in example:', error);
-  }
-}
 
 // Example 3: Brand Item Search
 //function searchBrandedItems(query: string, limit = 10): Promise<NutritionixResponse<any>> {
