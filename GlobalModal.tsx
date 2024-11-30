@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Button, StyleSheet } from 'react-native';
+import { Modal, View, Button, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useModal } from './ModalContext';
 
 function GlobalModal() {
@@ -12,12 +12,14 @@ function GlobalModal() {
       animationType="fade"
       onRequestClose={hideModal}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          {modalContent}
-          <Button title="Close" onPress={hideModal} />
+      <TouchableWithoutFeedback onPress={hideModal}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {modalContent}
+            <Button title="Close" onPress={hideModal} />
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
