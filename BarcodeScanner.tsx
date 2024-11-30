@@ -1,27 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Button } from 'react-native';
 import {
   Camera,
   useCameraDevices,
   useCodeScanner,
 } from 'react-native-vision-camera';
+import { lookupBarcode } from './nutrition';
 
 const BarcodeScanner = () => {
-  const [hasPermission, setHasPermission] = useState(false);
-  const [isActive, setIsActive] = useState(true);
-  const [isFrontCamera, setIsFrontCamera] = useState(false);
   const camera = useRef(null);
+  const [hasPermission, setHasPermission] = useState(false);
+  const [isActive, setIsActive] = useState(false);
 
-  // Get available camera devices
   const devices = useCameraDevices();
-  const device = isFrontCamera ? 
-    Object.values(devices).find(d => d.position === 'front') :
-    Object.values(devices).find(d => d.position === 'back');
+  const device = Object.values(devices).find(d => d.position === 'back');
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr', 'ean-13'],
     onCodeScanned: (codes) => {
-      // TODO get information from bar code scanner
+      setIsActive(false);
+      const upc = codes[0].value;
+      if (upc) {
+        lookupBarcode(upc).then(info => console.log(info));
+      }
     }
   });
 
@@ -37,11 +38,6 @@ const BarcodeScanner = () => {
 
     checkPermission();
   }, []);
-
-  // Toggle camera function
-  const toggleCamera = () => {
-    setIsFrontCamera(!isFrontCamera);
-  };
 
   // Handle no permissions
   if (!hasPermission) {
@@ -61,16 +57,25 @@ const BarcodeScanner = () => {
     );
   }
 
+  const handleCapture = (_e: any) => {
+    setIsActive(true);
+  }
+
   return (
     <View style={styles.container}>
-      <Camera
-        ref={camera}
-        style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={isActive}
-        photo={true}
-        codeScanner={codeScanner}
-      />
+      { isActive ?
+        <Camera
+          ref={camera}
+          style={StyleSheet.absoluteFill}
+          device={device}
+          isActive={isActive}
+          photo={true}
+          codeScanner={codeScanner}
+        /> :
+        <View>
+          <Button title="Scan Bar" onPress={handleCapture} />
+        </View>
+      }
     </View>
   );
 };
@@ -78,7 +83,6 @@ const BarcodeScanner = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
   },
   text: {
     color: 'white',
