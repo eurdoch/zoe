@@ -21,7 +21,7 @@ const BarcodeScanner = () => {
   const codeScanner = useCodeScanner({
     codeTypes: ['qr', 'ean-13'],
     onCodeScanned: (codes) => {
-      console.log(`Scanned ${codes.length} codes!`)
+      // TODO get information from bar code scanner
     }
   });
 
@@ -29,7 +29,6 @@ const BarcodeScanner = () => {
   useEffect(() => {
     const checkPermission = async () => {
       const cameraPermission = await Camera.requestCameraPermission();
-      const microphonePermission = await Camera.requestMicrophonePermission();
       
       setHasPermission(
         cameraPermission === 'granted'
