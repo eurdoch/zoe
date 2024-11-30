@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal, TouchableOpacity, Button, Text } from 'react-native';
+import { View, StyleSheet, Button, Text } from 'react-native';
 import ExerciseEntry from './types/ExerciseEntry';
-import { deleteExerciseById, getExerciseById } from './exercises/network';
+import { deleteExerciseById, getExerciseById } from './network/exercise';
 import ScatterPlot from './ScatterPlot';
 import DataPoint from './types/DataPoint';
 import { extractUnixTimeFromISOString, formatTime } from './utils';
@@ -24,6 +24,7 @@ const ExerciseScreen = ({ route }: ExerciseScreenProps) => {
     }
   }
 
+  //TODO refactor to separate component
   const modalContent = 
     <View style={styles.modalContent}>
       {modalExerciseEntry && (

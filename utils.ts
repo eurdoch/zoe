@@ -1,5 +1,5 @@
-import { getExerciseDataByName } from "./exercises/network";
-import { ExerciseEntry } from "./exercises/types";
+import { getExerciseDataByName } from "./network/exercise";
+import ExerciseEntry from "./types/ExerciseEntry";
 import DataPoint from "./types/DataPoint";
 
 export const formatTime = (unixTime: number): string => {

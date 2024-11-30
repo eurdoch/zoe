@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { getExerciseDataByName, getExerciseNames } from './exercises/network';
+import { getExerciseDataByName, getExerciseNames } from './network/exercise';
 import { convertFromDatabaseFormat, mapEntriesToDataPoint } from './utils';
 import { NavigationProp } from '@react-navigation/native';
 
