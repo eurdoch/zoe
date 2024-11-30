@@ -1,18 +1,83 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, Button, Dimensions } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from './types/DropdownItem';
 import { useModal } from './ModalContext';
-import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import { convertToDatabaseFormat } from './utils';
+import NewExerciseModalContent from './NewExerciseModalContent';
 
 interface Props {
   exercises: DropdownItem[];
   setExercises: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
+  setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
   handleSelect: (item: DropdownItem) => void;
   selectedItem: DropdownItem | undefined;
-  setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
-
 }
 
 const ExerciseSelect = ({
@@ -23,34 +88,7 @@ const ExerciseSelect = ({
   setSelectedItem,
 }: Props) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
-  const [newExerciseName, setNewExerciseName] = useState<string>('');
-  const { showModal, hideModal } = useModal();
-
-  const handleAddNewExerciseOption = () => {
-    if (newExerciseName.trim().length > 0) {
-      const newExerciseOption = {
-        label: newExerciseName,
-        value: convertToDatabaseFormat(newExerciseName),
-      };
-      setExercises([...exercises, newExerciseOption]);
-      setSelectedItem(newExerciseOption);
-      setNewExerciseName('');
-      hideModal();
-    } else {
-      Toast.show({ type: 'error', text1: 'Whoops!', text2: 'Please enter a valid exercise name.'});
-    }
-  }
-
-  const newExerciseModalContent = 
-    <View>
-      <TextInput
-        placeholder="Enter new exercise name"
-        value={newExerciseName}
-        onChangeText={setNewExerciseName}
-        style={[styles.modalInput, { width: Dimensions.get("window").width * 0.8 }]}
-      />
-      <Button title="Add" onPress={handleAddNewExerciseOption} />
-    </View>;
+  const { showModal } = useModal();
 
   const renderLabel = (item: DropdownItem) => (
     <View style={styles.labelStyle}>
@@ -80,7 +118,7 @@ const ExerciseSelect = ({
       onChange={(item: DropdownItem) => {
         setIsFocus(false);
         if (item.value === "new_exercise") {
-          showModal(newExerciseModalContent);
+          showModal(<NewExerciseModalContent setExercises={setExercises} exercises={exercises} setSelectedItem={setSelectedItem} />);
         } else {
           setSelectedItem(item);
           handleSelect(item);
@@ -115,15 +153,6 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 16,
   },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-    fontSize: 16,
-  },
 });
 
 export default ExerciseSelect;
-
