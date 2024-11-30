@@ -13,14 +13,12 @@ type ExerciseScreenProps = {
 
 const ExerciseScreen = ({ route }: ExerciseScreenProps) => {
   const [modalExerciseEntry, setModalExerciseEntry] = useState<ExerciseEntry | null>(null);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { showModal, hideModal } = useModal();
 
   const handleDeleteExercise = (_e: any) => {
     if (modalExerciseEntry) {
       deleteExerciseById(modalExerciseEntry._id).then(() => {
         // TODO reload data
-        setModalVisible(false);
         hideModal();
       });
     }
@@ -41,6 +39,7 @@ const ExerciseScreen = ({ route }: ExerciseScreenProps) => {
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
       setModalExerciseEntry(m);
+    }).then(() => {
       showModal(modalContent);
     });
   }

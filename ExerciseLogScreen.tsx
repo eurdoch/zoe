@@ -6,8 +6,6 @@ import {
   TextInput,
   Button,
   StyleSheet,
-  Modal,
-  Alert,
   Dimensions,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -15,13 +13,14 @@ import {
 import ScatterPlot from './ScatterPlot';
 
 import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './exercises/network';
-import { convertFromDatabaseFormat, convertToDatabaseFormat, extractUnixTimeFromISOString, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
+import { convertFromDatabaseFormat, extractUnixTimeFromISOString, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
 import Toast from 'react-native-toast-message'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import ExerciseEntry from './types/ExerciseEntry';
+import { useModal } from './ModalContext';
 
 function ExerciseLogScreen(): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
@@ -30,10 +29,8 @@ function ExerciseLogScreen(): React.JSX.Element {
   const [modalExerciseEntry, setModalExerciseEntry] = useState<ExerciseEntry | null>(null);
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [newExerciseName, setNewExerciseName] = useState<string>('');
-  const [modalKey, setModalKey] = useState<string | null>(null);
   const [date, setDate] = useState(new Date());
+  const { showModal } = useModal();
 
   const onChange = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
@@ -60,27 +57,12 @@ function ExerciseLogScreen(): React.JSX.Element {
         }));
         setExercises(items);
       })
-      .catch(console.log);
+      .catch(console.log); // TODO  convert to Toast
   }, []);
 
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
-  }
-
-  const handleAddNewExerciseOption = () => {
-    if (newExerciseName.trim().length > 0) {
-      const newExerciseOption = {
-        label: newExerciseName,
-        value: convertToDatabaseFormat(newExerciseName),
-      };
-      setExercises([...exercises, newExerciseOption]);
-      setSelectedItem(newExerciseOption);
-      setNewExerciseName('');
-      setModalVisible(false);
-    } else {
-      Alert.alert('Error', 'Please enter a valid exercise name');
-    }
   }
 
   const reloadData = async (name: string) => {
@@ -112,7 +94,11 @@ function ExerciseLogScreen(): React.JSX.Element {
           if (insertedEntry._id) {
             reloadData(insertedEntry.name);
           } else {
-            // TODO handle failure, alert user
+            Toast.show({
+              type: 'error',
+              text1: 'Whoops!',
+              text2: 'Entry could not be added, please try again.'
+            });
           }
         }
       }
@@ -123,9 +109,7 @@ function ExerciseLogScreen(): React.JSX.Element {
 
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
-      setModalExerciseEntry(m);
-      setModalKey('datapoint');
-      setModalVisible(true);
+      showModal(datapointModalContentFactory(m));
     });
   }
 
@@ -133,32 +117,19 @@ function ExerciseLogScreen(): React.JSX.Element {
     if (modalExerciseEntry) {
       deleteExerciseById(modalExerciseEntry._id).then(() => {
         reloadData(modalExerciseEntry.name);
-        setModalVisible(false);
       });
     }
   }
 
-  const modals: { [key: string]: React.ReactNode } = {
-    'new_exercise': <View>
-      <TextInput
-        placeholder="Enter new exercise name"
-        value={newExerciseName}
-        onChangeText={setNewExerciseName}
-        style={[styles.modalInput, { width: Dimensions.get("window").width * 0.8 }]}
-      />
-      <Button title="Add" onPress={handleAddNewExerciseOption} />
-    </View>,
-    'datapoint': <View>
-      {modalExerciseEntry && (
-        <>
-          <Text>Weight: {modalExerciseEntry.weight.toString()} lbs</Text>
-          <Text>Reps: {modalExerciseEntry.reps.toString()}</Text>
-          <Text>Date: {formatTime(extractUnixTimeFromISOString(modalExerciseEntry.createdAt))}</Text>
-          <Button title="Delete" onPress={handleDeleteExercise} />
-        </>
-      )}
-    </View>,
-  };
+  const datapointModalContentFactory = (entry: ExerciseEntry) => { 
+    setModalExerciseEntry(entry);
+    return <View>
+      <Text>Weight: {entry.weight.toString()} lbs</Text>
+      <Text>Reps: {entry.reps.toString()}</Text>
+      <Text>Date: {formatTime(extractUnixTimeFromISOString(entry.createdAt))}</Text>
+      <Button title="Delete" onPress={handleDeleteExercise} />
+    </View>;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -193,31 +164,12 @@ function ExerciseLogScreen(): React.JSX.Element {
         </KeyboardAvoidingView>
       )}
       <ExerciseSelect 
-        setModalKey={setModalKey} 
-        setModalVisible={setModalVisible} 
         selectedItem={selectedItem} 
         setSelectedItem={setSelectedItem} 
         handleSelect={handleSelect} 
-        items={exercises} 
+        exercises={exercises} 
+        setExercises={setExercises}
       />
-      { modalKey &&
-        <Modal
-          visible={modalVisible}
-          transparent={true}
-          onRequestClose={() => setModalVisible(false)}
-          animationType="fade"
-        >
-          <TouchableOpacity
-            style={styles.modalContainer}
-            activeOpacity={1}
-            onPressOut={() => setModalVisible(false)}
-          >
-            <View style={styles.modalContent}>
-              {modals[modalKey]}
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      }
       <Toast />
     </SafeAreaView>
   );
@@ -257,14 +209,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-    fontSize: 16,
   },
   inputContainer: {
     marginTop: 20,
