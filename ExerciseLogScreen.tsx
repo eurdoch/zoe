@@ -167,6 +167,7 @@ function ExerciseLogScreen(): React.JSX.Element {
           onDataPointClick={handleDataPointClick}
           data={data}
           title={selectedItem.label}
+          zoomAndPanEnabled={false}
         />
       )}
       { selectedItem && (
