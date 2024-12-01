@@ -5,6 +5,7 @@ import { getFood, postFood } from "./network/food";
 import Food from "./types/Food";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { useModal } from "./ModalContext";
+import FoodEntry from "./types/FoodEntry";
 
 interface NewDietEntryModalContentProps {
   item: NutritionItem;
@@ -44,7 +45,7 @@ const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
           text1: 'Nice!',
           text2: 'Food added.'
         })
-        const insertedEntry = await getFood(result.insertedId);
+        const insertedEntry: FoodEntry = await getFood(result.insertedId);
         // TODO add to local state displaying day's items
       }
     } catch (error) {
@@ -63,6 +64,7 @@ const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
         value={amount}
         onChangeText={setAmount}
         placeholder="Enter amount"
+        onSubmitEditing={handleAddDietEntry}
       />
       <Text>Serving Unit: {item.serving_unit}</Text>
       <Text>Serving Quantity: {item.serving_qty}</Text>
