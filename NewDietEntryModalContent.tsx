@@ -9,9 +9,10 @@ import FoodEntry from "./types/FoodEntry";
 
 interface NewDietEntryModalContentProps {
   item: NutritionItem;
+  setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
+const NewDietEntryModalContent = ({ item, setLogActive }: NewDietEntryModalContentProps) => {
   const [amount, setAmount] = useState('');
   const { hideModal } = useModal();
 
@@ -45,8 +46,16 @@ const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
           text1: 'Nice!',
           text2: 'Food added.'
         })
+        setLogActive(false);
         const insertedEntry: FoodEntry = await getFood(result.insertedId);
-        // TODO add to local state displaying day's items
+        // TODO shoudln't need to update as is handled by useEffect in dietLog ?
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Whoops!',
+          text2: 'Network error, please try again.',
+        })
+        setLogActive(false);
       }
     } catch (error) {
       console.error('Error adding diet entry:', error);

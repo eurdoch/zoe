@@ -1,3 +1,14 @@
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState } from 'react';
 import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { getFoodItemByNixItemId, searchFoodItems } from './network/nutrition';
@@ -7,8 +18,13 @@ import FoodOptionComponent from './FoodOptionComponent';
 import { useModal } from './ModalContext';
 import NewDietEntryModalContent from './NewDietEntryModalContent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FoodEntry from './types/FoodEntry';
 
-const DietLogScreen = () => {
+interface DietLogScreenProps {
+  setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
   const [foodOptions, setFoodOptions] = useState<FoodOption[]>([]);
@@ -28,7 +44,7 @@ const DietLogScreen = () => {
 
   const handleFoodOptionPress = async (option: FoodOption) => {
     const item = await getFoodItemByNixItemId(option.nix_item_id);
-    showModal(<NewDietEntryModalContent item={item} />)
+    showModal(<NewDietEntryModalContent setLogActive={setLogActive} item={item} />)
   }
 
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete

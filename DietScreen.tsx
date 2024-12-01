@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FoodEntry from './types/FoodEntry';
 import { getFoodByUnixTime } from './network/food';
 import FloatingActionButton from './FloatingActionButton';
@@ -12,7 +12,6 @@ const DietScreen = () => {
   useEffect(() => {
     const today = Date.now();
     getFoodByUnixTime(today).then(entries => {
-      console.log(entries);
       setFoodEntries(entries);
     });
   }, [logActive]); // reload when switch back
@@ -21,7 +20,7 @@ const DietScreen = () => {
   return (
     <View style={styles.rootContainer}>
       { logActive ?
-        <DietLogScreen />
+        <DietLogScreen setLogActive={setLogActive} />
         :
         <>
           <View style={styles.container}>
@@ -32,7 +31,9 @@ const DietScreen = () => {
               </View>
             ))}
           </View>
-          <FloatingActionButton onPress={() => {}} />
+          <TouchableOpacity onPress={() => setLogActive(true)}>
+            <FloatingActionButton />
+          </TouchableOpacity>
         </>
       }
     </View>
