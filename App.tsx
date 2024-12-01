@@ -73,7 +73,7 @@ const App = () => {
             name="CreateWorkout"
             component={CreateWorkoutScreen}
             options={{
-              title: "Exercise",
+              title: "Create Workout",
             }}
           />
         </Stack.Navigator>
