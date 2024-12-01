@@ -5,7 +5,11 @@ import { convertFromDatabaseFormat } from './utils';
 import { postWorkout } from './network/workout';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
-const CreateWorkoutScreen = ({ navigation }) => {
+interface CreateWorkoutScreenProps {
+  navigation: any;
+}
+
+const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [availableExercises, setAvailableExercises] = useState<string[]>([]);
   const [workoutName, setWorkoutName] = useState<string>('');
