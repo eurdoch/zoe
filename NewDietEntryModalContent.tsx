@@ -13,17 +13,18 @@ interface NewDietEntryModalContentProps {
 const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
   const [amount, setAmount] = useState('');
 
-const handleAddDietEntry = async (_e: any) => {
+  const handleAddDietEntry = async (_e: any) => {
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Whoops!',
+        text2: 'Amount must be a number.'
+      });
+      return;
+    }
+
     try {
-      const parsedAmount = parseFloat(amount);
-      if (isNaN(parsedAmount)) {
-        Toast.show({
-          type: 'error',
-          text1: 'Whoops!',
-          text2: 'Amount must be a number.'
-        });
-        return;
-      }
       const now = new Date();
       const newFoodEntry: Food = {
         serving_amount: parsedAmount,
