@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-camera";
-import { getNutritionInfo } from "./nutrition";
+import { getNutritionInfo } from "./network/nutrition";
 import { StyleSheet, View, Text } from "react-native"; // Fixed imports
 
 interface BarcodeScannerProps {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, Button, TextInput, Dimensions } from 'react-native';
-import { searchFoodNatural } from './nutrition';
+import { searchFoodNatural } from './network/nutrition';
 import BarcodeScanner from './BarcodeScanner';
 
 const DietScreen = () => {
