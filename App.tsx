@@ -9,6 +9,7 @@ import DietScreen from './DietScreen';
 import { ModalProvider } from './ModalContext';
 import GlobalModal from './GlobalModal';
 import Toast from 'react-native-toast-message';
+import DietLogScreen from './DietLogScreen';
 
 type RootStackParamList = {
   Home: undefined;
@@ -44,6 +45,13 @@ const App = () => {
             component={ExerciseListScreen}
             options={{
               title: "List"
+            }}
+          />
+          <Stack.Screen
+            name="DietLog"
+            component={DietLogScreen}
+            options={{
+              title: "Diet"
             }}
           />
           <Stack.Screen

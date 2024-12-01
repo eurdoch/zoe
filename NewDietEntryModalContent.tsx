@@ -36,7 +36,7 @@ const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
         serving_qty: item.serving_qty,
         serving_unit: item.serving_unit,
         nix_item_id: item.nix_item_id,
-        createdAt: now.toISOString(),
+        createdAt: Date.now(),
       }
       const result = await postFood(newFoodEntry);
       if (result.acknowledged) {

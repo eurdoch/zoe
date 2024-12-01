@@ -26,3 +26,10 @@ export async function deleteFood(id: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+export async function getFoodByUnixTime(unixTime: number): Promise<FoodEntry[]> {
+  const response = await fetch(`${VITALE_BOX_URL}/food?unixTime=${unixTime}`, {
+    method: 'GET',
+  });
+  return response.json();
+}
