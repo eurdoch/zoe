@@ -2,6 +2,7 @@ import express from 'express';
 import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
+import workoutRoutes from './routes/workoutRoutes.js';
 
 const app = express();
 const port = 3000;
@@ -17,14 +18,15 @@ async function connectToDatabase() {
     const database = client.db('vitale');
     const exerciseCollection = database.collection('exercises');
     const foodCollection = database.collection('food');
+    const workoutCollection = database.collection('workout');
 
     app.get('/', (req, res) => {
       res.send('Ping a da pong');
     });
 
-    // Mount exercise routes
     app.use('/exercise', exerciseRoutes(exerciseCollection));
     app.use('/food', foodRoutes(foodCollection));
+    app.use('/workout', workoutRoutes(workoutCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
