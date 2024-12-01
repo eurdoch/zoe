@@ -61,3 +61,31 @@ export const showToastError = (message: string) => {
     text2: message,
   })
 }
+
+interface FoodNutrition {
+  food_name: string;
+  serving_qty: number;
+  nf_calories: number;
+  nf_total_fat: number;
+  nf_total_carbohydrate: number;
+  nf_protein: number;
+}
+
+interface NutritionTotals {
+  calories: number;
+  fat: number;
+  carbs: number;
+  protein: number;
+}
+
+export function calculateNutrition(food: FoodNutrition, servingAmount: number): NutritionTotals {
+  const multiplier = servingAmount / food.serving_qty;
+  
+  return {
+    calories: Math.round(food.nf_calories * multiplier),
+    fat: Math.round(food.nf_total_fat * multiplier * 10) / 10,
+    carbs: Math.round(food.nf_total_carbohydrate * multiplier * 10) / 10,
+    protein: Math.round(food.nf_protein * multiplier * 10) / 10
+  };
+}
+

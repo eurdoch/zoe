@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import FoodEntry from './types/FoodEntry';
 import { getFoodByUnixTime } from './network/food';
 import FloatingActionButton from './FloatingActionButton';
 import DietLogScreen from './DietLogScreen';
+import { calculateCalories, getFoodItemByNixItemId } from './network/nutrition';
+import { calculateNutrition } from './utils';
 
 const DietScreen = () => {
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([])
@@ -13,6 +15,14 @@ const DietScreen = () => {
     const today = Date.now();
     getFoodByUnixTime(today).then(entries => {
       setFoodEntries(entries);
+      let calorieList: number[] = [];
+      entries.forEach(entry => {
+        getFoodItemByNixItemId(entry.nix_item_id).then(info => {
+          const macros = calculateNutrition(info, entry.serving_amount);
+          console.log(macros);
+        })
+      })
+      console.log('cal=orieList', calorieList);
     });
   }, [logActive]); // reload when switch back
 

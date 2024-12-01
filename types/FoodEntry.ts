@@ -1,6 +1,6 @@
 export default interface FoodEntry {
   _id: string;
-  serving_amount: string;
+  serving_amount: number;
   food_name: string;
   brand_name: string;
   serving_qty: number;

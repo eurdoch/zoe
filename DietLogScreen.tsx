@@ -1,24 +1,12 @@
-
-
-
-
-
-
-
-
-
-
-
 import React, { useState } from 'react';
 import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { getFoodItemByNixItemId, searchFoodItems } from './network/nutrition';
+import { getFoodItemByNixItemId, searchFoodItemByText, searchFoodItems } from './network/nutrition';
 import BarcodeScanner from './BarcodeScanner';
 import FoodOption from './types/FoodOption';
 import FoodOptionComponent from './FoodOptionComponent';
 import { useModal } from './ModalContext';
 import NewDietEntryModalContent from './NewDietEntryModalContent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FoodEntry from './types/FoodEntry';
 
 interface DietLogScreenProps {
   setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,10 +16,12 @@ const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
   const [foodOptions, setFoodOptions] = useState<FoodOption[]>([]);
-  const { showModal, hideModal } = useModal();
+  const { showModal } = useModal();
 
   const handleSearchByText = async () => {
     if (searchText) {
+      const result = await searchFoodItemByText(searchText);
+      console.log(result);
       const searchResult: any = await searchFoodItems(searchText); 
       const foods: any = searchResult['branded'];
       setFoodOptions(foods.map((food: any) => ({
@@ -51,7 +41,7 @@ const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
   return (
     <View style={styles.container}>
       {cameraActive ?
-        <BarcodeScanner cameraActive={cameraActive} setCameraActive={setCameraActive} /> :
+        <BarcodeScanner setLogActive={setLogActive} cameraActive={cameraActive} setCameraActive={setCameraActive} /> :
         <View>
           <View style={styles.searchBar}>
             <TextInput

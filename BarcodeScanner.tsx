@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-camera";
-import { getFoodItemByNixItemId, getFoodItemByUpc } from "./network/nutrition";
+import { getFoodItemByNixItemId, getFoodItemByUpc, getMacros } from "./network/nutrition";
 import { StyleSheet, View, Text } from "react-native";
 import { useModal } from "./ModalContext";
 import NewDietEntryModalContent from "./NewDietEntryModalContent";
@@ -8,12 +8,13 @@ import NewDietEntryModalContent from "./NewDietEntryModalContent";
 interface BarcodeScannerProps {
   cameraActive: boolean;
   setCameraActive: React.Dispatch<React.SetStateAction<boolean>>;
+  setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) => {
+const BarcodeScanner = ({ cameraActive, setCameraActive, setLogActive }: BarcodeScannerProps) => {
   const camera = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
-  const { showModal, hideModal } = useModal();
+  const { showModal } = useModal();
 
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
@@ -24,9 +25,10 @@ const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) 
       setCameraActive(false);
       const upc = codes[0].value;
       if (upc) {
-        const result = await getFoodItemByUpc(upc);
-        const item = await getFoodItemByNixItemId(result.nix_item_id);
-        showModal(<NewDietEntryModalContent item={item} />);
+        const item = await getFoodItemByUpc(upc);
+        //const result = await getFoodItemByUpc(upc);
+        //const item = await getFoodItemByNixItemId(result.nix_item_id);
+        showModal(<NewDietEntryModalContent setLogActive={setLogActive} item={item} />);
       }
     }
   });

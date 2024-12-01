@@ -3,7 +3,6 @@ import ExerciseEntry from "../types/ExerciseEntry";
 
 const VITALE_BOX_URL = "https://directto.link";
 
-// TODO switch network and exercises in file tree
 export async function postExercise(exercise: Exercise): Promise<ExerciseEntry> {
   const response = await fetch(`${VITALE_BOX_URL}/exercise`, {
     method: 'POST',
