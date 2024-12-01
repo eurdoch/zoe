@@ -1,6 +1,7 @@
 import { getExerciseDataByName } from "./network/exercise";
 import ExerciseEntry from "./types/ExerciseEntry";
 import DataPoint from "./types/DataPoint";
+import Toast from "react-native-toast-message";
 
 export const formatTime = (unixTime: number): string => {
     const date = new Date(unixTime * 1000);
@@ -43,4 +44,20 @@ export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => 
 export const getExercisesByNameAndConvertToDataPoint = async (name: string): Promise<DataPoint[]> => {
   const exerciseData = await getExerciseDataByName(name);
   return mapEntriesToDataPoint(exerciseData);
+}
+
+export const showToastInfo = (message: string) => {
+  Toast.show({
+    type: 'info',
+    text1: 'Hooray!',
+    text2: message,
+  })
+}
+
+export const showToastError = (message: string) => {
+  Toast.show({
+    type: 'error',
+    text1: 'Whoops!',
+    text2: message,
+  })
 }

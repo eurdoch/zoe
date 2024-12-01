@@ -27,3 +27,10 @@ export async function getWorkouts(): Promise<WorkoutEntry[]> {
   });
   return response.json();
 }
+
+export async function deleteWorkout(id: string): Promise<any> {
+  const response = await fetch(`${VITALE_BOX_URL}/workout/${id}`, {
+    method: 'DELETE',
+  });
+  return response.json();
+}

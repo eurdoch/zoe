@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from './types/WorkoutEntry';
-import { getWorkouts } from './network/workout';
+import { deleteWorkout, getWorkouts } from './network/workout';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { showToastError, showToastInfo } from './utils';
 
 interface StartWorkoutScreenProps {
   navigation: any;
@@ -19,7 +20,15 @@ const StartWorkoutScreen = ({ navigation }: StartWorkoutScreenProps) => {
     navigation.navigate('Workout', { workout: entry })
   }
 
-  const handleDeleteWorkout = (entry: WorkoutEntry) => {
+  const handleDeleteWorkout = async (entry: WorkoutEntry) => {
+    const result = await deleteWorkout(entry._id);
+    if (result.acknowledged) {
+      const updatedWorkouts = await getWorkouts();
+      setWorkoutEntries(updatedWorkouts);
+      showToastInfo("Workout deleted.");
+    } else {
+      showToastError("Workout could not be deleted. Try again.");
+    }
   }
 
   return (
