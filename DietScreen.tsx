@@ -31,9 +31,7 @@ const DietScreen = () => {
               </View>
             ))}
           </View>
-          <TouchableOpacity onPress={() => setLogActive(true)}>
-            <FloatingActionButton />
-          </TouchableOpacity>
+          <FloatingActionButton onPress={() => setLogActive(true)} />
         </>
       }
     </View>

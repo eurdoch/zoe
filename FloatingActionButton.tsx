@@ -1,10 +1,10 @@
-import { View, StyleSheet } from 'react-native';
+import {StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const FloatingActionButton = () => (
-  <View style={styles.fab}>
+const FloatingActionButton = ({onPress}) => (
+  <TouchableOpacity onPress={onPress} style={styles.fab}>
     <MaterialCommunityIcons name="plus" size={30} color="white" />
-  </View>
+  </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
