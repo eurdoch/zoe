@@ -6,6 +6,7 @@ import FoodOption from './types/FoodOption';
 import FoodOptionComponent from './FoodOptionComponent';
 import { useModal } from './ModalContext';
 import NewDietEntryModalContent from './NewDietEntryModalContent';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const DietScreen = () => {
   const [searchText, setSearchText] = useState('');
@@ -45,7 +46,9 @@ const DietScreen = () => {
               onSubmitEditing={handleSearchByText}
             />
             <Button title="Search" onPress={handleSearchByText} />
-            <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
+            <TouchableOpacity onPress={() => setCameraActive(true)}>
+              <MaterialCommunityIcons name="barcode-scan" size={40} color="black" />
+            </TouchableOpacity>
           </View>
           <ScrollView>
             {foodOptions.map((option, index) => (
@@ -63,6 +66,7 @@ const DietScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 10,
   },
   text: {
     color: 'white',
@@ -72,35 +76,8 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: Dimensions.get("window").width,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-  },
-  controls: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 20,
-  },
-  button: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    padding: 15,
-    borderRadius: 30,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  captureButton: {
-    backgroundColor: 'white',
-  },
-  buttonText: {
-    color: 'black',
-    fontSize: 16,
-    fontWeight: 'bold',
+    gap: 10,
+    width: Dimensions.get("window").width - 20,
   },
   input: {
     height: 40,
