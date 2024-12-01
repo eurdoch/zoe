@@ -5,5 +5,5 @@ export default interface Food {
   serving_qty: number;
   serving_unit: string;
   nix_item_id: string;
-  createdAt: string,
+  createdAt: number;
 }
