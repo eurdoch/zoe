@@ -120,12 +120,13 @@ function ExerciseLogScreen(): React.JSX.Element {
     }
   }
 
+  // TODO use global modal through useModal
   const datapointModalContentFactory = (entry: ExerciseEntry) => { 
     setModalExerciseEntry(entry);
     return <View>
       <Text>Weight: {entry.weight.toString()} lbs</Text>
       <Text>Reps: {entry.reps.toString()}</Text>
-      <Text>Date: {formatTime(extractUnixTimeFromISOString(entry.createdAt))}</Text>
+      <Text>Date: {formatTime(entry.createdAt)}</Text>
       <Button title="Delete" onPress={handleDeleteExercise} />
     </View>;
   }

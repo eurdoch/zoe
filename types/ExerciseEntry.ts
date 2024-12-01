@@ -3,6 +3,6 @@ export default interface ExerciseEntry {
   name: string,
   weight: number,
   reps: number,
-  createdAt: string,
+  createdAt: number, // unix time in seconds
 }
 

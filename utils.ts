@@ -30,19 +30,10 @@ export const convertToDatabaseFormat = (str: string): string => {
   return str.replace(/ /g, '_').toLowerCase();
 };
 
-export const extractUnixTimeFromISOString = (isoString: string): number => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-  const midnight = new Date(year, month, day);
-  return Math.floor(midnight.getTime() / 1000);
-};
-
 export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => {
   return entries.map((entry, _i) => {
     return {
-      x: extractUnixTimeFromISOString(entry.createdAt),
+      x: entry.createdAt,
       y: Number(((entry.weight * entry.reps) / 100).toFixed(1)),
       label: entry._id,
     }
