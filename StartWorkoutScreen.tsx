@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from './types/WorkoutEntry';
 import { getWorkouts } from './network/workout';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface StartWorkoutScreenProps {
   navigation: any;
@@ -18,12 +19,20 @@ const StartWorkoutScreen = ({ navigation }: StartWorkoutScreenProps) => {
     navigation.navigate('Workout', { workout: entry })
   }
 
+  const handleDeleteWorkout = (entry: WorkoutEntry) => {
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {workoutEntries.map(entry => (
-        <TouchableOpacity onPress={() => handleStartWorkout(entry)} key={entry._id} style={styles.entryContainer}>
-          <Text style={styles.entryText}>{entry.name}</Text>
-        </TouchableOpacity>
+        <View style={styles.row} key={entry._id}>
+          <TouchableOpacity onPress={() => handleStartWorkout(entry)} style={styles.entryContainer}> 
+            <Text style={styles.entryText}>{entry.name}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDeleteWorkout(entry)}> 
+            <MaterialCommunityIcons name="delete" size={20}/>
+          </TouchableOpacity>
+        </View>
       ))}
     </ScrollView>
   );
@@ -41,6 +50,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginVertical: 8,
+  },
+  row: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   entryText: {
     fontSize: 18,
