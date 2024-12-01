@@ -11,6 +11,7 @@ import GlobalModal from './GlobalModal';
 import Toast from 'react-native-toast-message';
 import DietLogScreen from './DietLogScreen';
 import CreateWorkoutScreen from './CreateWorkoutScreen';
+import StartWorkoutScreen from './StartWorkoutScreen';
 
 type RootStackParamList = {
   Home: undefined;
@@ -74,6 +75,13 @@ const App = () => {
             component={CreateWorkoutScreen}
             options={{
               title: "Create Workout",
+            }}
+          />
+          <Stack.Screen
+            name="StartWorkout"
+            component={StartWorkoutScreen}
+            options={{
+              title: "Start Workout",
             }}
           />
         </Stack.Navigator>

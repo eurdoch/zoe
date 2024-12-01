@@ -16,6 +16,10 @@ const ExerciseScreen: React.FC<ExerciseScreenProps> = ({ navigation }) => {
         title="Create Workout"
         onPress={() => navigation.navigate('CreateWorkout')}
       />
+      <Button
+        title="Start Workout"
+        onPress={() => navigation.navigate('StartWorkout')}
+      />
 {/* <Button
         title="Full List"
         onPress={() => navigation.navigate('ExerciseList')}
