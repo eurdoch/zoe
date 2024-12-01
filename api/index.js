@@ -1,6 +1,7 @@
 import express from 'express';
 import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
+import foodRoutes from './routes/foodRoutes.js';
 
 const app = express();
 const port = 3000;
@@ -15,6 +16,7 @@ async function connectToDatabase() {
     await client.connect();
     const database = client.db('vitale');
     const exerciseCollection = database.collection('exercises');
+    const foodCollection = database.collection('food');
 
     app.get('/', (req, res) => {
       res.send('Ping a da pong');
@@ -22,6 +24,7 @@ async function connectToDatabase() {
 
     // Mount exercise routes
     app.use('/exercise', exerciseRoutes(exerciseCollection));
+    app.use('/food', foodRoutes(foodCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
