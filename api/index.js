@@ -1,5 +1,6 @@
 import express from 'express';
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
+import exerciseRoutes from './routes/exerciseRoutes.js';
 
 const app = express();
 const port = 3000;
@@ -19,58 +20,8 @@ async function connectToDatabase() {
       res.send('Ping a da pong');
     });
 
-    app.get('/exercise/names', async (req, res) => {
-      try {
-        const exerciseNames = await exerciseCollection.distinct('name');
-        res.json(exerciseNames);
-      } catch (err) {
-        res.status(500).json({ error: `Error fetching exercise names: ${err}` });
-      }
-    });
-
-    app.get('/exercise', async (req, res) => {
-      const name = req.query.name;
-      const id = req.query.id;
-      const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
-      try {
-        const exercise = await exerciseCollection.findOne(query);
-        res.json(exercise);
-      } catch (err) {
-        res.status(500).json({ error: `Error fetching exercises: ${err}` });
-      }
-    });
-
-    // TODO this could potentially conflict with /exercise/names
-    app.get('/exercise/:name', async (req, res) => {
-      const name = req.params.name;
-      try {
-        const exercises = await exerciseCollection.find({ name }).toArray();
-        res.json(exercises);
-      } catch (err) {
-        res.status(500).json({ error: `Error fetching exercises: ${err}` });
-      }
-    });
-
-    app.post('/exercise', async (req, res) => {
-      try {
-        const result = await exerciseCollection.insertOne(req.body);
-        const insertedExercise = await exerciseCollection.findOne({ _id: result.insertedId });
-        res.status(201).json(insertedExercise);
-      } catch (err) {
-        res.status(500).json({ error: `Error saving exercise data: ${err}` });
-      }
-    });
-
-    app.delete('/exercise/:id', async (req, res) => {
-      try {
-        const id = new ObjectId(req.params.id);
-        const query = { _id: id };
-        const result = await exerciseCollection.deleteOne(query);
-        res.json({ deletedCount: result.deletedCount });
-      } catch (err) {
-        res.status(500).json({ error: `Error deleting exercises: ${err}` });
-      }
-    });
+    // Mount exercise routes
+    app.use('/exercise', exerciseRoutes(exerciseCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
@@ -80,4 +31,4 @@ async function connectToDatabase() {
   }
 }
 
-connectToDatabase()
+connectToDatabase();
