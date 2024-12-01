@@ -26,6 +26,18 @@ export default function foodRoutes(foodCollection) {
     }
   });
 
+  router.get('/', async (req, res) => {
+    try {
+      const unixTime = parseInt(req.query.unixTime);
+      const startOfDay = new Date(unixTime).setHours(0, 0, 0, 0);
+      const endOfDay = new Date(unixTime).setHours(23, 59, 59, 999);
+      const items = await foodCollection.find({ createdAt: { $gte: new Date(startOfDay), $lte: new Date(endOfDay) } }).toArray();
+      res.json(items);
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to get items' });
+    }
+  });
+
   router.delete('/:id', async (req, res) => {
     try {
       const result = await foodCollection.deleteOne({ _id: new ObjectId(req.params.id) });
