@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScatterPlot from './ScatterPlot';
 import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './network/exercise';
 import { convertFromDatabaseFormat, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
@@ -21,7 +22,12 @@ import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import ExerciseEntry from './types/ExerciseEntry';
 import { useModal } from './ModalContext';
 
-function ExerciseLogScreen(): React.JSX.Element {
+interface ExerciseLogScreenProps {
+  navigation: any;
+  route: any;
+}
+
+function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
@@ -55,6 +61,14 @@ function ExerciseLogScreen(): React.JSX.Element {
           value: name,
         }));
         setExercises(items);
+        if (route.params.name) {
+          const item = {
+            label: convertFromDatabaseFormat(route.params.name),
+            value: route.params.name,
+          };
+          setSelectedItem(item);
+          handleSelect(item);
+        }
       })
       .catch(console.log); // TODO  convert to Toast
   }, []);
@@ -249,4 +263,3 @@ const styles = StyleSheet.create({
 });
 
 export default ExerciseLogScreen;
-
