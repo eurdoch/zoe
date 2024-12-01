@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { getExerciseNames } from './network/exercise';
 import { convertFromDatabaseFormat } from './utils';
 
@@ -28,7 +28,7 @@ const CreateWorkoutScreen = ({ workoutList }: CreateWorkoutScreenProps) => {
   return (
     <View style={styles.container}>
       <ScrollView>
-        { availableExercises.map((exercise: string, index: number) => <TouchableOpacity key={index}>
+        { availableExercises.map((exercise: string, index: number) => <TouchableOpacity style={[styles.listItem, selectedExercises.includes(exercise) && styles.selectedItem]} onPress={() => handleWorkoutPress(exercise)} key={index}>
           <Text style={styles.exerciseText}>{convertFromDatabaseFormat(exercise)}</Text>
         </TouchableOpacity>)}
       </ScrollView>
@@ -57,7 +57,16 @@ const styles = StyleSheet.create({
   },
   exerciseText: {
     fontSize: 30,
-  }
+  },
+  listItem: {
+    padding: 12,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 8,
+    borderRadius: 8,
+  },
+  selectedItem: {
+    backgroundColor: '#00ff00',
+  },
 });
 
 export default CreateWorkoutScreen;
