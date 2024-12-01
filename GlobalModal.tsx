@@ -16,7 +16,6 @@ function GlobalModal() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             {modalContent}
-            <Button title="Close" onPress={hideModal} />
           </View>
         </View>
       </TouchableWithoutFeedback>
