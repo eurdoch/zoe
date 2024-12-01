@@ -1,10 +1,10 @@
 import { View, TextInput, Text, Button } from "react-native"
 import NutritionItem from './types/NutritionItem';
 import { useState } from 'react';
-import { postFood } from "./network/food";
+import { getFood, postFood } from "./network/food";
 import Food from "./types/Food";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import FoodEntry from "./types/FoodEntry";
+import { useModal } from "./ModalContext";
 
 interface NewDietEntryModalContentProps {
   item: NutritionItem;
@@ -12,8 +12,10 @@ interface NewDietEntryModalContentProps {
 
 const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
   const [amount, setAmount] = useState('');
+  const { hideModal } = useModal();
 
   const handleAddDietEntry = async (_e: any) => {
+    hideModal();
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount)) {
       Toast.show({
@@ -35,9 +37,14 @@ const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
         nix_item_id: item.nix_item_id,
         createdAt: now.toISOString(),
       }
-      const insertedEntry: FoodEntry = await postFood(newFoodEntry);
-      if (insertedEntry._id) {
-        console.log(insertedEntry);
+      const result = await postFood(newFoodEntry);
+      if (result.acknowledged) {
+        Toast.show({
+          type: 'info',
+          text1: 'Nice!',
+          text2: 'Food added.'
+        })
+        const insertedEntry = await getFood(result.insertedId);
         // TODO add to local state displaying day's items
       }
     } catch (error) {

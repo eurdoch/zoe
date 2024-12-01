@@ -5,10 +5,10 @@ import ExerciseLogScreen from './ExerciseLogScreen';
 import HomeScreen from './HomeScreen';
 import ExerciseListScreen from './ExerciseListScreen';
 import ExerciseScreen from './ExerciseScreen';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import DietScreen from './DietScreen';
 import { ModalProvider } from './ModalContext';
 import GlobalModal from './GlobalModal';
+import Toast from 'react-native-toast-message';
 
 type RootStackParamList = {
   Home: undefined;
@@ -63,6 +63,7 @@ const App = () => {
         </Stack.Navigator>
         <GlobalModal />
       </NavigationContainer>
+      <Toast />
     </ModalProvider>
   );
 };
