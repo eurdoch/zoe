@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Button } from 'react-native';
 import { getExerciseNames } from './network/exercise';
 import { convertFromDatabaseFormat } from './utils';
+import { postWorkout } from './network/workout';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
-interface CreateWorkoutScreenProps {
-  workoutList: string[];
-}
-
-const CreateWorkoutScreen = ({ workoutList }: CreateWorkoutScreenProps) => {
+const CreateWorkoutScreen = ({ navigation }) => {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [availableExercises, setAvailableExercises] = useState<string[]>([]);
+  const [workoutName, setWorkoutName] = useState<string>('');
 
   useEffect(() => {
     getExerciseNames().then((names: string[]) => {
@@ -25,12 +24,55 @@ const CreateWorkoutScreen = ({ workoutList }: CreateWorkoutScreenProps) => {
     }
   };
 
+  const handleAddWorkout = async () => {
+    if (!workoutName.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Whoops!',
+        text2: 'Must give workout name.'
+      })
+      return;
+    }
+
+    const result = await postWorkout({
+      name: workoutName,
+      exercises: selectedExercises,
+    });
+    if (result.acknowledged) {
+      navigation.navigate('Exercise');
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Whoops!',
+        text2: 'Workout could not be saved, please try again.'
+      })
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter workout name"
+        value={workoutName}
+        onChangeText={setWorkoutName}
+      />
+      <Button title="Add Workout" onPress={handleAddWorkout} />
       <ScrollView>
-        { availableExercises.map((exercise: string, index: number) => <TouchableOpacity style={[styles.listItem, selectedExercises.includes(exercise) && styles.selectedItem]} onPress={() => handleWorkoutPress(exercise)} key={index}>
-          <Text style={styles.exerciseText}>{convertFromDatabaseFormat(exercise)}</Text>
-        </TouchableOpacity>)}
+        { availableExercises.map((exercise: string, index: number) => 
+          <TouchableOpacity 
+            style={[
+              styles.listItem, 
+              selectedExercises.includes(exercise) && styles.selectedItem
+            ]} 
+            onPress={() => handleWorkoutPress(exercise)} 
+            key={index}
+          >
+            <Text style={styles.exerciseText}>
+              {convertFromDatabaseFormat(exercise)}
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -66,6 +108,13 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     backgroundColor: '#00ff00',
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
 });
 
