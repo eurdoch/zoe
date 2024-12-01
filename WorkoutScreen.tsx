@@ -1,28 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from './types/WorkoutEntry';
-import { getWorkouts } from './network/workout';
+import { getWorkout } from './network/workout';
+import { convertFromDatabaseFormat } from './utils';
 
-interface StartWorkoutScreenProps {
+interface WorkoutScreenProps {
   navigation: any;
+  route: any;
 }
 
-const StartWorkoutScreen = ({ navigation }: StartWorkoutScreenProps) => {
-  const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([]);
+const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
+  const [workoutEntry, setWorkoutEntry] = useState<WorkoutEntry | null>(null);
 
   useEffect(() => {
-    getWorkouts().then(ws => setWorkoutEntries(ws));
-  }, []);
+    getWorkout(route.params.workout._id).then(w => setWorkoutEntry(w));
+  })
 
-  const handleStartWorkout = (entry: WorkoutEntry) => {
-    navigation.navigate('Workout', { workout: entry })
+  const handleLogExercise = (exerciseName: string) => {
+    navigation.navigate('ExerciseLog', { name: exerciseName })
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {workoutEntries.map(entry => (
-        <TouchableOpacity onPress={() => handleStartWorkout(entry)} key={entry._id} style={styles.entryContainer}>
-          <Text style={styles.entryText}>{entry.name}</Text>
+      {workoutEntry?.exercises.map((exerciseName, index) => (
+        <TouchableOpacity onPress={() => handleLogExercise(exerciseName)} key={index} style={styles.entryContainer}>
+          <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -64,4 +66,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StartWorkoutScreen;
+export default WorkoutScreen;

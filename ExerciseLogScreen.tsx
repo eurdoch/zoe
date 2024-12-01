@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './network/exercise';
-import { convertFromDatabaseFormat, extractUnixTimeFromISOString, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
+import { convertFromDatabaseFormat, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
 import ExerciseSelect from './ExerciseSelect';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';

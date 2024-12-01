@@ -12,6 +12,8 @@ import Toast from 'react-native-toast-message';
 import DietLogScreen from './DietLogScreen';
 import CreateWorkoutScreen from './CreateWorkoutScreen';
 import StartWorkoutScreen from './StartWorkoutScreen';
+import { convertFromDatabaseFormat } from './utils';
+import WorkoutScreen from './WorkoutScreen';
 
 type RootStackParamList = {
   Home: undefined;
@@ -83,6 +85,11 @@ const App = () => {
             options={{
               title: "Start Workout",
             }}
+          />
+          <Stack.Screen
+            name="Workout"
+            component={WorkoutScreen}
+            options={({ route }) => ({ title: convertFromDatabaseFormat(route.params?.workout.name) })}
           />
         </Stack.Navigator>
         <GlobalModal />
