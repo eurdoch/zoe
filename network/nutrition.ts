@@ -29,7 +29,7 @@ export async function searchFoodNatural(query: string): Promise<any> {
   }
 }
 
-export const getNutritionInfo = async (upc: string): Promise<any[]> => {
+export const getFoodItemByUpc = async (upc: string): Promise<any> => {
   try {
     const response = await fetch(`https://trackapi.nutritionix.com/v2/search/item?upc=${upc}`, {
       method: 'GET',
@@ -48,29 +48,7 @@ export const getNutritionInfo = async (upc: string): Promise<any[]> => {
 
     const food = data.foods[0];
     
-    return {
-      productName: food.food_name,
-      brandName: food.brand_name,
-      servingSize: {
-        quantity: food.serving_qty,
-        unit: food.serving_unit,
-        grams: food.serving_weight_grams
-      },
-      calories: {
-        perServing: food.nf_calories,
-        per100g: (food.nf_calories / food.serving_weight_grams) * 100
-      },
-      nutrients: {
-        totalFat: food.nf_total_fat,
-        saturatedFat: food.nf_saturated_fat,
-        cholesterol: food.nf_cholesterol,
-        sodium: food.nf_sodium,
-        totalCarbs: food.nf_total_carbohydrate,
-        dietaryFiber: food.nf_dietary_fiber,
-        sugars: food.nf_sugars,
-        protein: food.nf_protein
-      }
-    };
+    return food;
   } catch (error) {
     console.error('Error fetching nutrition info:', error);
     throw error;

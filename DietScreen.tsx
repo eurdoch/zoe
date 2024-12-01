@@ -8,13 +8,12 @@ import { useModal } from './ModalContext';
 import NewDietEntryModalContent from './NewDietEntryModalContent';
 
 const DietScreen = () => {
-  const [currentFoodItem, setCurrentFoodItem] = useState<any>({});
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
   const [foodOptions, setFoodOptions] = useState<FoodOption[]>([]);
   const { showModal, hideModal } = useModal();
 
-  const handleSearch = async () => {
+  const handleSearchByText = async () => {
     if (searchText) {
       const searchResult: any = await searchFoodItems(searchText); 
       const foods: any = searchResult['branded'];
@@ -31,10 +30,11 @@ const DietScreen = () => {
     showModal(<NewDietEntryModalContent item={item} />)
   }
 
+  // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
   return (
     <View style={styles.container}>
       {cameraActive ?
-        <BarcodeScanner cameraActive={cameraActive} setCameraActive={setCameraActive} setCurrentFoodItem={setCurrentFoodItem} /> :
+        <BarcodeScanner cameraActive={cameraActive} setCameraActive={setCameraActive} /> :
         <View>
           <View style={styles.searchBar}>
             <TextInput
@@ -42,9 +42,9 @@ const DietScreen = () => {
               onChangeText={setSearchText}
               value={searchText}
               placeholder="Search for food"
-              onSubmitEditing={handleSearch}
+              onSubmitEditing={handleSearchByText}
             />
-            <Button title="Search" onPress={handleSearch} />
+            <Button title="Search" onPress={handleSearchByText} />
             <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
           </View>
           <ScrollView>
