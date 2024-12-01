@@ -4,38 +4,38 @@ import { ObjectId } from 'mongodb';
 const router = express.Router();
 
 export default function foodRoutes(foodCollection) {
-  router.post('/food', async (req, res) => {
+  router.post('/', async (req, res) => {
     try {
       const result = await foodCollection.insertOne(req.body);
       res.status(201).json(result);
     } catch (err) {
-      res.status(500).json({ error: 'Failed to create food item' });
+      res.status(500).json({ error: 'Failed to create item' });
     }
   });
 
-  router.get('/food/:id', async (req, res) => {
+  router.get('/:id', async (req, res) => {
     try {
-      const foodItem = await foodCollection.findOne({ _id: new ObjectId(req.params.id) });
-      if (!foodItem) {
-        res.status(404).json({ error: 'Food item not found' });
+      const item = await foodCollection.findOne({ _id: new ObjectId(req.params.id) });
+      if (!item) {
+        res.status(404).json({ error: 'Item not found' });
         return;
       }
-      res.json(foodItem);
+      res.json(item);
     } catch (err) {
-      res.status(500).json({ error: 'Failed to get food item' });
+      res.status(500).json({ error: 'Failed to get item' });
     }
   });
 
-  router.delete('/food/:id', async (req, res) => {
+  router.delete('/:id', async (req, res) => {
     try {
       const result = await foodCollection.deleteOne({ _id: new ObjectId(req.params.id) });
       if (result.deletedCount === 0) {
-        res.status(404).json({ error: 'Food item not found' });
+        res.status(404).json({ error: 'Item not found' });
         return;
       }
-      res.json({ message: 'Food item deleted successfully' });
+      res.json({ message: 'Item deleted successfully' });
     } catch (err) {
-      res.status(500).json({ error: 'Failed to delete food item' });
+      res.status(500).json({ error: 'Failed to delete item' });
     }
   });
 
