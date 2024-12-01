@@ -42,6 +42,7 @@ const DietScreen = () => {
               onChangeText={setSearchText}
               value={searchText}
               placeholder="Search for food"
+              onSubmitEditing={handleSearch}
             />
             <Button title="Search" onPress={handleSearch} />
             <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
