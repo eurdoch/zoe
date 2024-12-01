@@ -25,8 +25,10 @@ const DietScreen = () => {
               value={searchText}
               placeholder="Search for food"
             />
-            <Button title="Search" onPress={handleSearch} />
-            <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
+            <View style={styles.buttonContainer}>
+              <Button title="Search" onPress={handleSearch} />
+              <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
+            </View>
           </View>
           { currentFoodItem && <Text style={{fontSize: 20}}>{JSON.stringify(currentFoodItem, null, 2)}</Text>}
         </View>
@@ -45,8 +47,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   searchBar: {
-    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
     width: Dimensions.get("window").width,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
   },
   controls: {
     position: 'absolute',
@@ -78,6 +84,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     marginVertical: 10,
+    flex: 1,
   },
 });
 
