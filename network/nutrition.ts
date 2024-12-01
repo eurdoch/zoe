@@ -7,11 +7,7 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-interface NutritionixResponse<T> {
-  data: T;
-}
-
-export async function searchFoodNatural(query: string): Promise<NutritionixResponse<any>> {
+export async function searchFoodNatural(query: string): Promise<any> {
   try {
     const response = await fetch('https://trackapi.nutritionix.com/v2/natural/nutrients', {
       method: 'POST',
@@ -33,7 +29,7 @@ export async function searchFoodNatural(query: string): Promise<NutritionixRespo
   }
 }
 
-export const getNutritionInfo = async (upc: string) => {
+export const getNutritionInfo = async (upc: string): Promise<any[]> => {
   try {
     const response = await fetch(`https://trackapi.nutritionix.com/v2/search/item?upc=${upc}`, {
       method: 'GET',
@@ -96,29 +92,22 @@ const calculateCalories = (nutritionInfo, numberOfServings) => {
   };
 };
 
-// Example 3: Brand Item Search
-//function searchBrandedItems(query: string, limit = 10): Promise<NutritionixResponse<any>> {
-  // try {
-  //   const response = await fetch('https://trackapi.nutritionix.com/v2/search/instant', {
-  //     method: 'GET',
-  //     headers: headers,
-  //     params: {
-  //       query: query,
-  //       branded: true,
-  //       common: false,
-  //       detailed: true,
-  //       limit: limit
-  //     }
-  //   });
+export async function searchFoodItems(query: string): Promise<any[]> {
+  try {
+    const params = new URLSearchParams({ query });
+    const response = await fetch(`https://trackapi.nutritionix.com/v2/search/instant?${params.toString()}`, {
+      method: 'GET',
+      headers: headers,
+    });
 
-  //   if (!response.ok) {
-  //     throw new Error(`HTTP error! status: ${response.status}`);
-  //   }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-  //   const data = await response.json();
-  //   return data;
-  // } catch (error) {
-  //   console.error('Error:', error);
-  //   throw error;
-  // }
-//}
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+}

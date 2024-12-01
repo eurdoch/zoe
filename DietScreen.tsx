@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Button, TextInput, Dimensions } from 'react-native';
-import { searchFoodNatural } from './network/nutrition';
+import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions } from 'react-native';
+import { searchFoodItems } from './network/nutrition';
 import BarcodeScanner from './BarcodeScanner';
+import FoodOption from './types/FoodOption';
+import FoodOptionComponent from './FoodOptionComponent';
 
 const DietScreen = () => {
   const [currentFoodItem, setCurrentFoodItem] = useState<any>({});
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
+  const [foodOptions, setFoodOption] = useState<FoodOption[]>([]);
 
   const handleSearch = async () => {
-    const searchResult = await searchFoodNatural(searchText);
-    console.log(searchResult);
+    const searchResult: any = await searchFoodItems(searchText);
+    const foods: any = searchResult['branded'];
+    setFoodOption(foods.map((food: any) => ({
+      food_name: food.food_name,
+      brand_name: food.brand_name,
+    })));
   }
 
   return (
     <View style={styles.container}>
-      { cameraActive ?
+      {cameraActive ?
         <BarcodeScanner cameraActive={cameraActive} setCameraActive={setCameraActive} setCurrentFoodItem={setCurrentFoodItem} /> :
         <View>
           <View style={styles.searchBar}>
@@ -30,7 +37,11 @@ const DietScreen = () => {
               <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
             </View>
           </View>
-          { currentFoodItem && <Text style={{fontSize: 20}}>{JSON.stringify(currentFoodItem, null, 2)}</Text>}
+          <ScrollView>
+            {foodOptions.map((option, index) => (
+              <FoodOptionComponent key={index} option={option} />
+            ))}
+          </ScrollView>
         </View>
       }
     </View>
