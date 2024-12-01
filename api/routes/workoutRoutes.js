@@ -35,5 +35,18 @@ export default function workoutRoutes(workoutCollection) {
     }
   });
 
+  router.delete('/:id', async (req, res) => {
+    try {
+      const result = await workoutCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+      if (result.deletedCount === 1) {
+        res.status(204).send();
+      } else {
+        res.status(404).json({ error: 'Workout not found' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to delete workout' });
+    }
+  });
+
   return router;
 }
