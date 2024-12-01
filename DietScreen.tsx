@@ -1,23 +1,34 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions } from 'react-native';
-import { searchFoodItems } from './network/nutrition';
+import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { getFoodItemByNixItemId, searchFoodItems } from './network/nutrition';
 import BarcodeScanner from './BarcodeScanner';
 import FoodOption from './types/FoodOption';
 import FoodOptionComponent from './FoodOptionComponent';
+import { useModal } from './ModalContext';
+import NewDietEntryModalContent from './NewDietEntryModalContent';
 
 const DietScreen = () => {
   const [currentFoodItem, setCurrentFoodItem] = useState<any>({});
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
-  const [foodOptions, setFoodOption] = useState<FoodOption[]>([]);
+  const [foodOptions, setFoodOptions] = useState<FoodOption[]>([]);
+  const { showModal, hideModal } = useModal();
 
   const handleSearch = async () => {
-    const searchResult: any = await searchFoodItems(searchText);
-    const foods: any = searchResult['branded'];
-    setFoodOption(foods.map((food: any) => ({
-      food_name: food.food_name,
-      brand_name: food.brand_name,
-    })));
+    if (searchText) {
+      const searchResult: any = await searchFoodItems(searchText); 
+      const foods: any = searchResult['branded'];
+      setFoodOptions(foods.map((food: any) => ({
+        food_name: food.food_name,
+        brand_name: food.brand_name,
+        nix_item_id: food.nix_item_id,
+      })));
+    }
+  }
+
+  const handleFoodOptionPress = async (option: FoodOption) => {
+    const item = await getFoodItemByNixItemId(option.nix_item_id);
+    showModal(<NewDietEntryModalContent item={item} />)
   }
 
   return (
@@ -32,14 +43,14 @@ const DietScreen = () => {
               value={searchText}
               placeholder="Search for food"
             />
-            <View style={styles.buttonContainer}>
-              <Button title="Search" onPress={handleSearch} />
-              <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
-            </View>
+            <Button title="Search" onPress={handleSearch} />
+            <Button title="Scan Bar" onPress={() => setCameraActive(true)} />
           </View>
           <ScrollView>
             {foodOptions.map((option, index) => (
-              <FoodOptionComponent key={index} option={option} />
+              <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
+                <FoodOptionComponent option={option} />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>

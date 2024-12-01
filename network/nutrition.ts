@@ -111,3 +111,22 @@ export async function searchFoodItems(query: string): Promise<any[]> {
     throw error;
   }
 }
+
+export async function getFoodItemByNixItemId(nixItemId: string): Promise<any> {
+  try {
+    const response = await fetch(`https://trackapi.nutritionix.com/v2/search/item?nix_item_id=${nixItemId}`, {
+      method: 'GET',
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data['foods'][0];
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+}
