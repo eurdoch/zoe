@@ -1,6 +1,10 @@
-import { View, TextInput, Text } from "react-native"
+import { View, TextInput, Text, Button } from "react-native"
 import NutritionItem from './types/NutritionItem';
 import { useState } from 'react';
+import { postFood } from "./network/food";
+import Food from "./types/Food";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import FoodEntry from "./types/FoodEntry";
 
 interface NewDietEntryModalContentProps {
   item: NutritionItem;
@@ -8,6 +12,42 @@ interface NewDietEntryModalContentProps {
 
 const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
   const [amount, setAmount] = useState('');
+
+const handleAddDietEntry = async (_e: any) => {
+    try {
+      const parsedAmount = parseFloat(amount);
+      if (isNaN(parsedAmount)) {
+        Toast.show({
+          type: 'error',
+          text1: 'Whoops!',
+          text2: 'Amount must be a number.'
+        });
+        return;
+      }
+      const now = new Date();
+      const newFoodEntry: Food = {
+        serving_amount: parsedAmount,
+        food_name: item.food_name,
+        brand_name: item.brand_name,
+        serving_qty: item.serving_qty,
+        serving_unit: item.serving_unit,
+        nix_item_id: item.nix_item_id,
+        createdAt: now.toISOString(),
+      }
+      const insertedEntry: FoodEntry = await postFood(newFoodEntry);
+      if (insertedEntry._id) {
+        console.log(insertedEntry);
+        // TODO add to local state displaying day's items
+      }
+    } catch (error) {
+      console.error('Error adding diet entry:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Whoops!',
+        text2: 'An error occurred while adding the diet entry.'
+      });
+    }
+  }
 
   return (
     <View>
@@ -18,6 +58,7 @@ const NewDietEntryModalContent = ({ item }: NewDietEntryModalContentProps) => {
       />
       <Text>Serving Unit: {item.serving_unit}</Text>
       <Text>Serving Quantity: {item.serving_qty}</Text>
+      <Button onPress={handleAddDietEntry} title="Add Diet Entry" />
     </View>
   );
 }
