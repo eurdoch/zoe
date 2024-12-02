@@ -19,6 +19,7 @@ async function connectToDatabase() {
     const exerciseCollection = database.collection('exercises');
     const foodCollection = database.collection('food');
     const workoutCollection = database.collection('workout');
+    const weightCollection = database.collection('weight');
 
     app.get('/', (req, res) => {
       res.send('Ping a da pong');
@@ -27,6 +28,7 @@ async function connectToDatabase() {
     app.use('/exercise', exerciseRoutes(exerciseCollection));
     app.use('/food', foodRoutes(foodCollection));
     app.use('/workout', workoutRoutes(workoutCollection));
+    app.use('/weight', weightRoutes(weightCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
