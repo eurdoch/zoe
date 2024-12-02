@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationProp } from '@react-navigation/native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from 'react-native-paper';
 
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
@@ -15,15 +16,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => handlePress('Exercise')}>
-          <Text style={styles.buttonText}>Exercise</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => handlePress('Diet')}>
-          <Text style={styles.buttonText}>Diet</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => handlePress('Weight')}>
-          <Text style={styles.buttonText}>Weight</Text>
-        </TouchableOpacity>
+        <Button onPress={() => handlePress('Exercise')}>Exercise</Button>
+        <Button onPress={() => handlePress('Diet')}>
+          Diet
+        </Button>
+        <Button onPress={() => handlePress('Weight')}>
+          Weight
+        </Button>
       </View>
     </SafeAreaView>
   );
@@ -38,17 +37,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginHorizontal: 16,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 8,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
 });
 

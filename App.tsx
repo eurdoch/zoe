@@ -15,6 +15,7 @@ import StartWorkoutScreen from './StartWorkoutScreen';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './WorkoutScreen';
 import WeightScreen from './WeightScreen';
+import { PaperProvider } from 'react-native-paper';
 
 type RootStackParamList = {
   Home: undefined;
@@ -29,80 +30,82 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const App = () => {
   return (
     <ModalProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{
-              title: "Home"
-            }}
-          />
-          <Stack.Screen
-            name="ExerciseLog"
-            component={ExerciseLogScreen}
-            options={{
-              title: "Log"
-            }}
-          />
-          <Stack.Screen
-            name="ExerciseList"
-            component={ExerciseListScreen}
-            options={{
-              title: "List"
-            }}
-          />
-          <Stack.Screen
-            name="DietLog"
-            component={DietLogScreen}
-            options={{
-              title: "Diet"
-            }}
-          />
-          <Stack.Screen
-            name="Diet"
-            component={DietScreen}
-            options={{
-              title: "Diet"
-            }}
-          />
-          <Stack.Screen
-            name="Exercise"
-            component={ExerciseScreen}
-            options={{
-              title: "Exercise",
-            }}
-          />
-          <Stack.Screen
-            name="CreateWorkout"
-            component={CreateWorkoutScreen}
-            options={{
-              title: "Create Workout",
-            }}
-          />
-          <Stack.Screen
-            name="StartWorkout"
-            component={StartWorkoutScreen}
-            options={{
-              title: "Start Workout",
-            }}
-          />
-          <Stack.Screen
-            name="Workout"
-            component={WorkoutScreen}
-            options={({ route }) => ({ title: convertFromDatabaseFormat(route.params?.workout.name) })}
-          />
-          <Stack.Screen
-            name="Weight"
-            component={WeightScreen}
-            options={{
-              title: "Weight",
-            }}
-          />
-        </Stack.Navigator>
-        <GlobalModal />
-      </NavigationContainer>
-      <Toast />
+      <PaperProvider theme={{version: 2}}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                title: "Home"
+              }}
+            />
+            <Stack.Screen
+              name="ExerciseLog"
+              component={ExerciseLogScreen}
+              options={{
+                title: "Log"
+              }}
+            />
+            <Stack.Screen
+              name="ExerciseList"
+              component={ExerciseListScreen}
+              options={{
+                title: "List"
+              }}
+            />
+            <Stack.Screen
+              name="DietLog"
+              component={DietLogScreen}
+              options={{
+                title: "Diet"
+              }}
+            />
+            <Stack.Screen
+              name="Diet"
+              component={DietScreen}
+              options={{
+                title: "Diet"
+              }}
+            />
+            <Stack.Screen
+              name="Exercise"
+              component={ExerciseScreen}
+              options={{
+                title: "Exercise",
+              }}
+            />
+            <Stack.Screen
+              name="CreateWorkout"
+              component={CreateWorkoutScreen}
+              options={{
+                title: "Create Workout",
+              }}
+            />
+            <Stack.Screen
+              name="StartWorkout"
+              component={StartWorkoutScreen}
+              options={{
+                title: "Start Workout",
+              }}
+            />
+            <Stack.Screen
+              name="Workout"
+              component={WorkoutScreen}
+              options={({ route }) => ({ title: convertFromDatabaseFormat(route.params?.workout.name) })}
+            />
+            <Stack.Screen
+              name="Weight"
+              component={WeightScreen}
+              options={{
+                title: "Weight",
+              }}
+            />
+          </Stack.Navigator>
+          <GlobalModal />
+        </NavigationContainer>
+        <Toast />
+      </PaperProvider>
     </ModalProvider>
   );
 };
