@@ -3,6 +3,7 @@ import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
+import weightRoutes from './routes/weightRoute.js';
 
 const app = express();
 const port = 3000;
