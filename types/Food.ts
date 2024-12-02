@@ -1,4 +1,4 @@
-export interface Food {
+export default interface Food {
   brand: string;
   categories: string[];
   id: string;
@@ -10,4 +10,5 @@ export interface Food {
     fiber: number;
     protein: number;
   };
+  createdAt: number;
 }

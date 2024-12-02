@@ -69,6 +69,7 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
       id: productResponse.id,
       name: productResponse.name,
       macros: calculatedMacros,
+      createdAt: Date.now(),
     };
     const result = await postFood(newFood);
     if (result.acknowledged) {
