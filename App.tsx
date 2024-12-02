@@ -30,7 +30,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const App = () => {
   return (
     <ModalProvider>
-      <PaperProvider theme={{version: 2}}>
+      <PaperProvider>
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Button, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper';
 
 interface ExerciseScreenProps {
   navigation: any;
@@ -8,28 +9,16 @@ interface ExerciseScreenProps {
 const ExerciseScreen: React.FC<ExerciseScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Button
-        title="Log"
-        onPress={() => navigation.navigate('ExerciseLog')}
-      />
-      <Button
-        title="Create Workout"
-        onPress={() => navigation.navigate('CreateWorkout')}
-      />
-      <Button
-        title="Start Workout"
-        onPress={() => navigation.navigate('StartWorkout')}
-      />
-{/* <Button
-        title="Full List"
-        onPress={() => navigation.navigate('ExerciseList')}
-      /> */}
+      <Button onPress={() => navigation.navigate('ExerciseLog')}>Log</Button>
+      <Button onPress={() => navigation.navigate('CreateWorkout')}>Create Workout</Button>
+      <Button onPress={() => navigation.navigate('StartWorkout')}>Start Workout</Button>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
