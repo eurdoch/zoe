@@ -4,7 +4,6 @@ import FoodEntry from './types/FoodEntry';
 import { getFoodByUnixTime } from './network/food';
 import FloatingActionButton from './FloatingActionButton';
 import DietLogScreen from './DietLogScreen';
-import { calculateNutrition } from './utils';
 
 const DietScreen = () => {
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([])
