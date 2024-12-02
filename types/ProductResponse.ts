@@ -6,10 +6,10 @@ export interface ProductResponse {
   name: string;
   nutriments: {
     calories: number;
-    carbs: string;
+    carbs: number;
     fat: number;
     fiber: number;
-    protein: string;
+    protein: number;
   };
   quantity: null;
 }

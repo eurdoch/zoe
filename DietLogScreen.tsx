@@ -7,6 +7,7 @@ import { useModal } from './ModalContext';
 import NewDietEntryModalContent from './NewDietEntryModalContent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError } from './utils';
+import MacroCalculator from './MacroCalculator';
 
 interface DietLogScreenProps {
   setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,7 +32,7 @@ const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
   }
 
   const handleFoodOptionPress = async (option: any) => {
-    showModal(<NewDietEntryModalContent setLogActive={setLogActive} item={option} />)
+    showModal(<MacroCalculator productResponse={option} setLogActive={setLogActive} />)
   }
 
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
