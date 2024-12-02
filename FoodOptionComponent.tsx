@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import FoodOption from './types/FoodOption';
 
 interface FoodOptionComponentProps {
-  option: FoodOption;
+  option: any;
 }
 
 const FoodOptionComponent: React.FC<FoodOptionComponentProps> = ({
@@ -12,7 +11,7 @@ const FoodOptionComponent: React.FC<FoodOptionComponentProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.name}>{option.food_name}</Text>
-      <Text>{option.brand_name}</Text>
+      <Text>{option.name}</Text>
     </View>
   );
 };

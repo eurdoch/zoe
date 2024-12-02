@@ -1,3 +1,7 @@
+import MacroInfo from "../types/MacroInfo";
+import MacrosByServing from "../types/MacrosByServing";
+import ProductResponse from "../types/ProductResponse";
+
 export const getFoodItemByUpc = async (upc: string): Promise<any> => {
   try {
     const response = await fetch(
@@ -83,34 +87,94 @@ export const searchFoodItemByText = async (searchQuery: string, options = {}) =>
   }
 }
 
-interface Nutrients {
-  carbohydrates_100g: number;
-  proteins_100g: number;
-  fat_100g: number;
-  'energy-kcal_100g': number;
-  fiber_100g: number;
-}
+/**
+ * Parses a serving size string to extract the amount and unit
+ * @param servingSize - Serving size string (e.g., "100 g", "1 cup (240 ml)")
+ * @returns Object containing amount and unit
+ */
+function parseServingSize(servingSize: string): { amount: number; unit: string } {
+  // Remove parenthetical content
+  const cleanServing = servingSize.replace(/\([^)]*\)/g, '').trim();
+  
+  // Extract number and unit
+  const match = cleanServing.match(/^([\d.]+)\s*([a-zA-Z]+)?/);
+  
+  if (!match) {
+    throw new Error(`Unable to parse serving size: ${servingSize}`);
+  }
 
-interface ProductResponse {
-  status: number;
-  product: {
-    product_name: string;
-    nutriments: Nutrients;
-    serving_size?: string;
-    brands?: string;
+  return {
+    amount: parseFloat(match[1]),
+    unit: (match[2] || 'g').toLowerCase()
   };
 }
 
-interface MacroInfo {
-  productName: string;
-  servingSize: string | null;
-  brand: string | null;
-  macros: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
+/**
+ * Converts a serving amount to grams if necessary
+ * @param amount - The amount to convert
+ * @param unit - The unit to convert from
+ * @returns Amount in grams
+ */
+function convertToGrams(amount: number, unit: string): number {
+  const conversions: { [key: string]: number } = {
+    g: 1,
+    kg: 1000,
+    mg: 0.001,
+    oz: 28.3495,
+    lb: 453.592,
+    ml: 1, // Assuming density of 1g/ml for simplicity
+    l: 1000,
+  };
+
+  const conversionFactor = conversions[unit.toLowerCase()];
+  if (!conversionFactor) {
+    throw new Error(`Unsupported unit: ${unit}`);
+  }
+
+  return amount * conversionFactor;
+}
+
+/**
+ * Calculates macros based on a specific serving amount
+ * @param product - Product response from OpenFoodFacts API
+ * @param servingAmount - Amount to calculate macros for
+ * @param servingUnit - Unit of the serving amount (default: 'g')
+ * @returns Calculated macros for the specified serving amount
+ */
+export function calculateMacrosByServing(
+  productResponse: ProductResponse,
+  servingAmount: number,
+  servingUnit: string = 'g'
+): MacrosByServing {
+  const { product } = productResponse;
+  const { nutriments } = product;
+
+  // Convert serving amount to grams for calculation
+  const amountInGrams = convertToGrams(servingAmount, servingUnit);
+  
+  // Calculate the ratio for scaling nutrients (per 100g to actual serving)
+  const ratio = amountInGrams / 100;
+
+  // Calculate scaled macros, rounding to 1 decimal place
+  const scaledMacros = {
+    calories: Math.round(nutriments['energy-kcal_100g'] * ratio * 10) / 10,
+    protein: Math.round(nutriments.proteins_100g * ratio * 10) / 10,
+    carbs: Math.round(nutriments.carbohydrates_100g * ratio * 10) / 10,
+    fat: Math.round(nutriments.fat_100g * ratio * 10) / 10,
+    fiber: Math.round(nutriments.fiber_100g * ratio * 10) / 10,
+  };
+
+  return {
+    servingInfo: {
+      amount: servingAmount,
+      unit: servingUnit,
+      originalServingSize: product.serving_size || null,
+    },
+    product: {
+      name: product.product_name || 'Unknown Product',
+      brand: product.brands || null,
+    },
+    macros: scaledMacros,
   };
 }
 

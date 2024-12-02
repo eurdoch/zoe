@@ -1,18 +1,17 @@
 import { View, TextInput, Text, Button } from "react-native"
-import NutritionItem from './types/NutritionItem';
 import { useState } from 'react';
 import { getFood, postFood } from "./network/food";
-import Food from "./types/Food";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { useModal } from "./ModalContext";
-import FoodEntry from "./types/FoodEntry";
+import MacroCalculator from "./MacroCalculator";
 
 interface NewDietEntryModalContentProps {
-  item: NutritionItem;
+  item: any;
   setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const NewDietEntryModalContent = ({ item, setLogActive }: NewDietEntryModalContentProps) => {
+  console.log('item, ', item);
   const [amount, setAmount] = useState('');
   const { hideModal } = useModal();
 
@@ -29,17 +28,7 @@ const NewDietEntryModalContent = ({ item, setLogActive }: NewDietEntryModalConte
     }
 
     try {
-      const now = new Date();
-      const newFoodEntry: Food = {
-        serving_amount: parsedAmount,
-        food_name: item.food_name,
-        brand_name: item.brand_name,
-        serving_qty: item.serving_qty,
-        serving_unit: item.serving_unit,
-        nix_item_id: item.nix_item_id,
-        createdAt: Date.now(),
-      }
-      const result = await postFood(newFoodEntry);
+      //const result = await postFood(newFoodEntry);
       if (result.acknowledged) {
         Toast.show({
           type: 'info',
@@ -47,7 +36,7 @@ const NewDietEntryModalContent = ({ item, setLogActive }: NewDietEntryModalConte
           text2: 'Food added.'
         })
         setLogActive(false);
-        const insertedEntry: FoodEntry = await getFood(result.insertedId);
+        //const insertedEntry: FoodEntry = await getFood(result.insertedId);
         // TODO shoudln't need to update as is handled by useEffect in dietLog ?
       } else {
         Toast.show({
@@ -69,15 +58,7 @@ const NewDietEntryModalContent = ({ item, setLogActive }: NewDietEntryModalConte
 
   return (
     <View>
-      <TextInput
-        value={amount}
-        onChangeText={setAmount}
-        placeholder="Enter amount"
-        onSubmitEditing={handleAddDietEntry}
-      />
-      <Text>Serving Unit: {item.serving_unit}</Text>
-      <Text>Serving Quantity: {item.serving_qty}</Text>
-      <Button onPress={handleAddDietEntry} title="Add Diet Entry" />
+      <MacroCalculator productResponse={item} />
     </View>
   );
 }

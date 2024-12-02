@@ -22,7 +22,6 @@ const DietScreen = () => {
           console.log(macros);
         })
       })
-      console.log('cal=orieList', calorieList);
     });
   }, [logActive]); // reload when switch back
 

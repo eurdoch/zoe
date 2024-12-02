@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { getFoodItemByNixItemId, searchFoodItemByText, searchFoodItems } from './network/nutrition';
+import { searchFoodItemByText } from './network/nutrition';
 import BarcodeScanner from './BarcodeScanner';
-import FoodOption from './types/FoodOption';
 import FoodOptionComponent from './FoodOptionComponent';
 import { useModal } from './ModalContext';
 import NewDietEntryModalContent from './NewDietEntryModalContent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { showToastError } from './utils';
 
 interface DietLogScreenProps {
   setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
@@ -15,26 +15,23 @@ interface DietLogScreenProps {
 const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
-  const [foodOptions, setFoodOptions] = useState<FoodOption[]>([]);
+  const [foodOptions, setFoodOptions] = useState<any[]>([]);
   const { showModal } = useModal();
 
   const handleSearchByText = async () => {
     if (searchText) {
-      const result = await searchFoodItemByText(searchText);
-      console.log(result);
-      const searchResult: any = await searchFoodItems(searchText); 
-      const foods: any = searchResult['branded'];
-      setFoodOptions(foods.map((food: any) => ({
-        food_name: food.food_name,
-        brand_name: food.brand_name,
-        nix_item_id: food.nix_item_id,
-      })));
+      try {
+        const result = await searchFoodItemByText(searchText);
+        console.log(result.products);
+        setFoodOptions(result.products);
+      } catch (error: any) {
+        showToastError(error.toString());
+      }
     }
   }
 
-  const handleFoodOptionPress = async (option: FoodOption) => {
-    const item = await getFoodItemByNixItemId(option.nix_item_id);
-    showModal(<NewDietEntryModalContent setLogActive={setLogActive} item={item} />)
+  const handleFoodOptionPress = async (option: any) => {
+    showModal(<NewDietEntryModalContent setLogActive={setLogActive} item={option} />)
   }
 
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
