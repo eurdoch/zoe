@@ -1,4 +1,4 @@
-export interface ProductResponse {
+export default interface ProductResponse {
   brand: string;
   categories: string[];
   id: string;

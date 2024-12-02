@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-camera";
-import { getFoodItemByNixItemId, getFoodItemByUpc, getMacros } from "./network/nutrition";
+import { getFoodItemByUpc } from "./network/nutrition";
 import { StyleSheet, View, Text } from "react-native";
 import { useModal } from "./ModalContext";
-import NewDietEntryModalContent from "./NewDietEntryModalContent";
+import MacroCalculator from "./MacroCalculator";
+import { transformToProductResponse } from "./transform";
 
 interface BarcodeScannerProps {
   cameraActive: boolean;
@@ -26,9 +27,9 @@ const BarcodeScanner = ({ cameraActive, setCameraActive, setLogActive }: Barcode
       const upc = codes[0].value;
       if (upc) {
         const item = await getFoodItemByUpc(upc);
-        //const result = await getFoodItemByUpc(upc);
-        //const item = await getFoodItemByNixItemId(result.nix_item_id);
-        showModal(<NewDietEntryModalContent setLogActive={setLogActive} item={item} />);
+        const productResponse = transformToProductResponse(item);
+        console.log(productResponse);
+        showModal(<MacroCalculator setLogActive={setLogActive} productResponse={productResponse} />)
       }
     }
   });

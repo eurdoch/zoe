@@ -5,7 +5,7 @@ import ProductResponse from "../types/ProductResponse";
 export const getFoodItemByUpc = async (upc: string): Promise<any> => {
   try {
     const response = await fetch(
-      `https://world.openfoodfacts.org/api/v2/product/${upc}.json`
+      `https://world.openfoodfacts.org/api/v2/product/${upc}?fields=brands,categories_tags,code,image_url,product_name,nutriments,quantity`
     );
 
     if (!response.ok) {
@@ -14,7 +14,7 @@ export const getFoodItemByUpc = async (upc: string): Promise<any> => {
 
     const data = await response.json();
     
-    return data;
+    return data.product;
   } catch (error) {
     console.error('Error fetching nutrition info:', error);
     throw error;
