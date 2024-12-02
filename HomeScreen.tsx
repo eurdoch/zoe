@@ -21,6 +21,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <TouchableOpacity style={styles.button} onPress={() => handlePress('Diet')}>
           <Text style={styles.buttonText}>Diet</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => handlePress('Weight')}>
+          <Text style={styles.buttonText}>Weight</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

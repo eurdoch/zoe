@@ -14,6 +14,7 @@ import CreateWorkoutScreen from './CreateWorkoutScreen';
 import StartWorkoutScreen from './StartWorkoutScreen';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './WorkoutScreen';
+import WeightScreen from './WeightScreen';
 
 type RootStackParamList = {
   Home: undefined;
@@ -90,6 +91,13 @@ const App = () => {
             name="Workout"
             component={WorkoutScreen}
             options={({ route }) => ({ title: convertFromDatabaseFormat(route.params?.workout.name) })}
+          />
+          <Stack.Screen
+            name="Weight"
+            component={WeightScreen}
+            options={{
+              title: "Weight",
+            }}
           />
         </Stack.Navigator>
         <GlobalModal />
