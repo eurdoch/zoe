@@ -16,7 +16,6 @@ const AddWeightModal = ({ loadData }: AddWeightModalProps) => {
         value: parsedWeight,
         createdAt: Date.now(),
       });
-      console.log(result);
       if (result.acknowledged) {
         showToastInfo('Weight added.');
         hideModal();

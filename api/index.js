@@ -4,6 +4,7 @@ import exerciseRoutes from './routes/exerciseRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
+import supplementRoutes from './routes/supplementRoute.js';
 
 const app = express();
 const port = 3000;
@@ -31,7 +32,7 @@ async function connectToDatabase() {
     app.use('/food', foodRoutes(foodCollection));
     app.use('/workout', workoutRoutes(workoutCollection));
     app.use('/weight', weightRoutes(weightCollection));
-    app.use('/supplement', weightRoutes(weightCollection));
+    app.use('/supplement', supplementRoutes(supplementCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
