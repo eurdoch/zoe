@@ -1,28 +1,43 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import WeightEntry from './types/WeightEntry';
 import FloatingActionButton from './FloatingActionButton';
 import { useModal } from './ModalContext';
 import AddWeightModal from './AddWeightModal';
 import { getWeight } from './network/weight';
+import { mapWeigthEntriesToDataPoint } from './utils';
+import ScatterPlot from './ScatterPlot';
+import DataPoint from './types/DataPoint';
 
 const WeightScreen = () => {
   const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
+  const [data, setData] = useState<DataPoint[]>([]);
   const { showModal } = useModal();
 
+  const loadData = () => {
+    getWeight().then(result => {
+      setWeightEntries(result);
+      setData(mapWeigthEntriesToDataPoint(result));
+    });
+  }
+
   useEffect(() => {
-    getWeight().then(result => setWeightEntries(result));
+    loadData();
   }, []);
 
   const handleAddWeight = (_e: any) => {
-    showModal(<AddWeightModal />);
+    showModal(<AddWeightModal loadData={loadData} />);
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {weightEntries.map((entry, index) => <Text key={index}>{JSON.stringify(entry)}</Text>)}
+    <View style={styles.container}>
+      <ScatterPlot
+        data={data}
+        onDataPointClick={() => {}}
+        zoomAndPanEnabled={false}
+      />
       <FloatingActionButton onPress={handleAddWeight} />
-    </ScrollView>
+    </View>
   );
 };
 
@@ -30,6 +45,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,

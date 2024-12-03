@@ -2,6 +2,7 @@ import { getExerciseDataByName } from "./network/exercise";
 import ExerciseEntry from "./types/ExerciseEntry";
 import DataPoint from "./types/DataPoint";
 import Toast from "react-native-toast-message";
+import WeightEntry from "./types/WeightEntry";
 
 export const formatTime = (unixTime: number): string => {
     const date = new Date(unixTime * 1000);
@@ -39,6 +40,13 @@ export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => 
       label: entry._id,
     }
   });
+}
+
+export const mapWeigthEntriesToDataPoint = (entries: WeightEntry[]): DataPoint[] => {
+  return entries.map(entry => ({
+    x: entry.createdAt,
+    y: entry.value,
+  }));
 }
 
 export const getExercisesByNameAndConvertToDataPoint = async (name: string): Promise<DataPoint[]> => {

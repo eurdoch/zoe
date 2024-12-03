@@ -3,11 +3,12 @@ import { View, TextInput, Button } from "react-native";
 import { postWeight } from "./network/weight";
 import { showToastError, showToastInfo } from "./utils";
 import { useModal } from "./ModalContext";
-
-const AddWeightModal = () => {
+interface AddWeightModalProps {
+  loadData: () => void;
+}
+const AddWeightModal = ({ loadData }: AddWeightModalProps) => {
   const [weight, setWeight] = useState<string>("");
   const { hideModal } = useModal()
-
   const handleAddWeight = async (_e: any) => {
     const parsedWeight = parseFloat(weight);
     if (!isNaN(parsedWeight)) {
@@ -19,6 +20,7 @@ const AddWeightModal = () => {
       if (result.acknowledged) {
         showToastInfo('Weight added.');
         hideModal();
+        loadData();
       } else {
         showToastError('Weight could not be added, try again.');
       }
@@ -26,7 +28,6 @@ const AddWeightModal = () => {
       showToastError('Weight must be a number.')
     }
   }
-
   return (
     <View>
       <TextInput
@@ -38,5 +39,4 @@ const AddWeightModal = () => {
     </View>
   );
 }
-
 export default AddWeightModal;
