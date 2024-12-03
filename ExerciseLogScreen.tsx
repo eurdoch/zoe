@@ -10,24 +10,23 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScatterPlot from './ScatterPlot';
 import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './network/exercise';
-import { convertFromDatabaseFormat, formatTime, getExercisesByNameAndConvertToDataPoint } from './utils';
-import ExerciseSelect from './ExerciseSelect';
+import { convertFromDatabaseFormat, formatTime, getExercisesByNameAndConvertToDataPoint, showToastError } from './utils';
 import DropdownItem from './types/DropdownItem';
 import DataPoint from './types/DataPoint';
 import Toast from 'react-native-toast-message'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import ExerciseEntry from './types/ExerciseEntry';
 import { useModal } from './ModalContext';
+import { Picker } from '@react-native-picker/picker';
+import NewExerciseModalContent from './NewExerciseModalContent';
 
 interface ExerciseLogScreenProps {
-  navigation: any;
   route: any;
 }
 
-function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React.JSX.Element {
+function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
@@ -61,19 +60,24 @@ function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React
           value: name,
         }));
         setExercises(items);
-        if (route.params.name) {
+        if (route.params && route.params.name) {
           const item = {
             label: convertFromDatabaseFormat(route.params.name),
             value: route.params.name,
           };
           setSelectedItem(item);
           handleSelect(item);
+        } else {
+          setSelectedItem(items[0]);
         }
       })
-      .catch(console.log); // TODO  convert to Toast
+      .catch(err => {
+        showToastError('Could not get exercises: ' + err.toString());
+      }); 
   }, []);
 
   const handleSelect = async (item: DropdownItem) => {
+    console.log(item.value);
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
   }
@@ -101,7 +105,7 @@ function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React
             name: selectedItem.value,
             weight: parsedWeight,
             reps: parsedReps,
-            createdAt: date.toISOString(),
+            createdAt: Date.now(),
           }
           const insertedEntry = await postExercise(newExercise);
           if (insertedEntry._id) {
@@ -145,6 +149,8 @@ function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React
     </View>;
   }
 
+  const dropdownItems = [{ value: 'new_exercise', label: 'Add New Exercise' }, ...exercises];
+
   return (
     <SafeAreaView style={styles.container}>
     { data && selectedItem && (
@@ -177,14 +183,34 @@ function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React
           <Button title="Add" onPress={handleAddDataPoint} color="#4CAF50" />
         </KeyboardAvoidingView>
       )}
-      <ExerciseSelect 
-        selectedItem={selectedItem} 
-        setSelectedItem={setSelectedItem} 
-        handleSelect={handleSelect} 
-        exercises={exercises} 
-        setExercises={setExercises}
-        setData={setData}
-      />
+      <Picker
+        style={{
+          height: 100,
+          width: '100%',
+        }}
+        selectedValue={selectedItem?.value}
+        onValueChange={(exercise_id: string) => {
+          if (exercise_id === "new_exercise") {
+            showModal(
+              <NewExerciseModalContent
+                setData={setData}
+                setExercises={setExercises}
+                exercises={exercises}
+                setSelectedItem={setSelectedItem}
+              />
+            );
+          } else {
+            const item: DropdownItem = {
+              label: convertFromDatabaseFormat(exercise_id),
+              value: exercise_id,
+            };
+            setSelectedItem(item);
+            handleSelect(item);
+          }
+        }}
+      >
+        {dropdownItems.map(item => <Picker.Item key={item.label} label={item.label} value={item.value} />)}
+      </Picker>
       <Toast />
     </SafeAreaView>
   );
@@ -193,18 +219,19 @@ function ExerciseLogScreen({ navigation, route }: ExerciseLogScreenProps): React
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
     height: Dimensions.get("window").height,
     width: Dimensions.get("window").width,
     backgroundColor: '#F5F5F5',
   },
   selectMenu: {
-    flexGrow: 1,
+    flex: 1,
   },
   selectContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: Dimensions.get("window").width,
   },
   modalContainer: {
     flex: 1,
