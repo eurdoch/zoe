@@ -3,6 +3,7 @@ import {
   SafeAreaView,
   View,
   Text,
+  StyleSheet
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './network/exercise';
@@ -16,11 +17,9 @@ import { useModal } from './ModalContext';
 import { Picker } from '@react-native-picker/picker';
 import NewExerciseModalContent from './NewExerciseModalContent';
 import { Button, TextInput } from 'react-native-paper';
-
 interface ExerciseLogScreenProps {
   route: any;
 }
-
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
@@ -30,7 +29,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [reps, setReps] = useState<string>("");
   const [date, setDate] = useState(new Date());
   const { showModal } = useModal();
-
   const dropdownItems = [
     {
       value: '',
@@ -42,12 +40,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }, 
     ...exercises
   ];
-
   const onChange = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setDate(currentDate);
   };
-
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
       value: date,
@@ -57,7 +53,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       display: 'default'
     });
   };
-
   useEffect(() => {
     getExerciseNames()
       .then(names => {
@@ -80,19 +75,16 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         showToastError('Could not get exercises: ' + err.toString());
       }); 
   }, []);
-
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
   }
-
   const reloadData = async (name: string) => {
     setData(await getExercisesByNameAndConvertToDataPoint(name)); 
     setReps(""); 
     setWeight("");
     setDate(new Date());
   }
-
   const handleAddDataPoint = async (_e: any) => {
     try {
       if (selectedItem) {
@@ -127,13 +119,11 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       console.log(err);
     }
   }
-
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
       showModal(datapointModalContentFactory(m));
     });
   }
-
   const handleDeleteExercise = (_e: any) => {
     if (modalExerciseEntry) {
       deleteExerciseById(modalExerciseEntry._id).then(() => {
@@ -141,7 +131,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       });
     }
   }
-
   // TODO use global modal through useModal
   const datapointModalContentFactory = (entry: ExerciseEntry) => { 
     setModalExerciseEntry(entry);
@@ -152,10 +141,8 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       <Button onPress={handleDeleteExercise}>Delete</Button>
     </View>;
   }
-
-
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
     { data && selectedItem && (
         <ScatterPlot
           onDataPointClick={handleDataPointClick}
@@ -214,5 +201,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     </SafeAreaView>
   );
 }
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+});
 export default ExerciseLogScreen;
