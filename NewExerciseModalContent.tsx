@@ -10,7 +10,7 @@ interface NewExerciseModalContentProps {
   exercises: DropdownItem[];
   setExercises: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
-  setData: React.Dispatch<React.SetStateAction<DataPoint[] | undefined>>;
+  setData: React.Dispatch<React.SetStateAction<DataPoint[]>>;
 }
 
 const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, setData }: NewExerciseModalContentProps) => {

@@ -3,12 +3,6 @@ import {
   SafeAreaView,
   View,
   Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  KeyboardAvoidingView,
 } from 'react-native';
 import ScatterPlot from './ScatterPlot';
 import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './network/exercise';
@@ -21,6 +15,7 @@ import ExerciseEntry from './types/ExerciseEntry';
 import { useModal } from './ModalContext';
 import { Picker } from '@react-native-picker/picker';
 import NewExerciseModalContent from './NewExerciseModalContent';
+import { Button, TextInput } from 'react-native-paper';
 
 interface ExerciseLogScreenProps {
   route: any;
@@ -35,6 +30,18 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [reps, setReps] = useState<string>("");
   const [date, setDate] = useState(new Date());
   const { showModal } = useModal();
+
+  const dropdownItems = [
+    {
+      value: '',
+      label: 'Select an exercise',
+    },
+    {
+      value: 'new_exercise',
+      label: 'Add New Exercise'
+    }, 
+    ...exercises
+  ];
 
   const onChange = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
@@ -67,8 +74,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           };
           setSelectedItem(item);
           handleSelect(item);
-        } else {
-          setSelectedItem(items[0]);
         }
       })
       .catch(err => {
@@ -77,7 +82,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }, []);
 
   const handleSelect = async (item: DropdownItem) => {
-    console.log(item.value);
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
   }
@@ -145,14 +149,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       <Text>Weight: {entry.weight.toString()} lbs</Text>
       <Text>Reps: {entry.reps.toString()}</Text>
       <Text>Date: {formatTime(entry.createdAt)}</Text>
-      <Button title="Delete" onPress={handleDeleteExercise} />
+      <Button onPress={handleDeleteExercise}>Delete</Button>
     </View>;
   }
 
-  const dropdownItems = [{ value: 'new_exercise', label: 'Add New Exercise' }, ...exercises];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView>
     { data && selectedItem && (
         <ScatterPlot
           onDataPointClick={handleDataPointClick}
@@ -162,26 +165,22 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         />
       )}
       { selectedItem && (
-        <KeyboardAvoidingView style={styles.inputContainer}>
+        <View>
           <TextInput
-            placeholder="Weight"
-            value={weight.toString()}
+            label="Weight"
+            value={weight}
             onChangeText={(text) => setWeight(text)}
-            style={styles.input}
-            placeholderTextColor="#aaa"
           />
           <TextInput
             placeholder="Reps"
             value={reps.toString()}
             onChangeText={(text) => setReps(text)}
-            style={styles.input}
-            placeholderTextColor="#aaa"
           />
-          <TouchableOpacity onPress={showDatePicker} style={styles.dateContainer}>
-            <Text style={styles.dateText}>{date.toDateString()}</Text>
-          </TouchableOpacity>
-          <Button title="Add" onPress={handleAddDataPoint} color="#4CAF50" />
-        </KeyboardAvoidingView>
+          <Button icon="calendar" onPress={showDatePicker}>
+            <Text>{date.toDateString()}</Text>
+          </Button>
+          <Button onPress={handleAddDataPoint}>Add</Button>
+        </View>
       )}
       <Picker
         style={{
@@ -215,78 +214,5 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    height: Dimensions.get("window").height,
-    width: Dimensions.get("window").width,
-    backgroundColor: '#F5F5F5',
-  },
-  selectMenu: {
-    flex: 1,
-  },
-  selectContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)'
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  inputContainer: {
-    marginTop: 20,
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#D3D3D3',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-    fontSize: 16,
-  },
-  dateContainer: {
-    backgroundColor: '#F5F5F5',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-});
 
 export default ExerciseLogScreen;
