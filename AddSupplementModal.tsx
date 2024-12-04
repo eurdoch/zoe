@@ -34,7 +34,6 @@ const AddSupplementModal = ({ loadData }: AddSupplementModalProps) => {
         createdAt: Date.now(),
         amount_unit: selectedUnit.value,
       });
-      console.log(result);
       if (result.acknowledged) {
         showToastInfo('Supplement added.');
         hideModal();
