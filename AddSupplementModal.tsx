@@ -31,7 +31,7 @@ const AddSupplementModal = ({ loadData }: AddSupplementModalProps) => {
       const result = await postSupplement({
         name: supplementName,
         amount: parsedAmount,
-        createdAt: Date.now(),
+        createdAt: Math.floor(Date.now() / 1000),
         amount_unit: selectedUnit.value,
       });
       if (result.acknowledged) {
