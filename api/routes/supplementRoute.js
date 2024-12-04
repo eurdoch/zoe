@@ -7,8 +7,8 @@ export default function supplementRoutes(supplementCollection) {
 
   router.get('/names', async (req, res) => {
     try {
-      const exerciseNames = await exerciseCollection.distinct('name');
-      res.json(exerciseNames);
+      const supplementNames = await supplementCollection.distinct('name');
+      res.json(supplementNames);
     } catch (err) {
       res.status(500).json({ error: `Error fetching exercise names: ${err}` });
     }
