@@ -13,6 +13,14 @@ export async function postSupplement(supplement: Supplement): Promise<any> {
   });
   return response.json();
 }
+
+export async function getSupplementNames(): Promise<string[]> {
+  const response = await fetch(`${VITALE_BOX_URL}/supplement/names`, {
+    method: 'GET',
+  });
+  return response.json();
+}
+
 export async function getSupplement(startDate?: number, endDate?: number): Promise<SupplementEntry[]> {
   const response = await fetch(`${VITALE_BOX_URL}/supplement?startDate=${startDate}&endDate=${endDate}`, {
     method: 'GET',

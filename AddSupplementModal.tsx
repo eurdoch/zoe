@@ -3,6 +3,7 @@ import { ScrollView, Text, View, TextInput, Button, StyleSheet, TouchableOpacity
 import { postSupplement } from "./network/supplement";
 import { showToastError, showToastInfo } from "./utils";
 import { useModal } from "./ModalContext";
+import { Dropdown } from "react-native-element-dropdown";
 
 interface AddSupplementModalProps {
   loadData: () => void;

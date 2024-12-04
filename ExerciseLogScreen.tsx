@@ -56,6 +56,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       display: 'default'
     });
   };
+
   useEffect(() => {
     getExerciseNames()
       .then(names => {
@@ -78,10 +79,12 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         showToastError('Could not get exercises: ' + err.toString());
       }); 
   }, []);
+
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
   }
+
   const reloadData = async (name: string) => {
     setData(await getExercisesByNameAndConvertToDataPoint(name)); 
     setReps(""); 
