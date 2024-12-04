@@ -16,6 +16,7 @@ import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './WorkoutScreen';
 import WeightScreen from './WeightScreen';
 import { PaperProvider } from 'react-native-paper';
+import SupplementScreen from './SupplementsScreen';
 
 type RootStackParamList = {
   Home: undefined;
@@ -99,6 +100,13 @@ const App = () => {
               component={WeightScreen}
               options={{
                 title: "Weight",
+              }}
+            />
+            <Stack.Screen
+              name="Supplement"
+              component={SupplementScreen}
+              options={{
+                title: "Supplements",
               }}
             />
           </Stack.Navigator>

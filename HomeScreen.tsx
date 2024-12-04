@@ -17,12 +17,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.buttonContainer}>
         <Button onPress={() => handlePress('Exercise')}>Exercise</Button>
-        <Button onPress={() => handlePress('Diet')}>
-          Diet
-        </Button>
-        <Button onPress={() => handlePress('Weight')}>
-          Weight
-        </Button>
+        <Button onPress={() => handlePress('Diet')}>Diet</Button>
+        <Button onPress={() => handlePress('Weight')}>Weight</Button>
+        <Button onPress={() => handlePress('Supplement')}>Supplements</Button>
       </View>
     </SafeAreaView>
   );
