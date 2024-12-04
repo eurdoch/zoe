@@ -5,6 +5,15 @@ const router = express.Router();
 
 export default function supplementRoutes(supplementCollection) {
 
+  router.get('/names', async (req, res) => {
+    try {
+      const exerciseNames = await exerciseCollection.distinct('name');
+      res.json(exerciseNames);
+    } catch (err) {
+      res.status(500).json({ error: `Error fetching exercise names: ${err}` });
+    }
+  });
+
   router.post('/', async (req, res) => {
     try {
       const result = await supplementCollection.insertOne(req.body);

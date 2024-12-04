@@ -29,6 +29,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [reps, setReps] = useState<string>("");
   const [date, setDate] = useState(new Date());
   const { showModal } = useModal();
+
   const dropdownItems = [
     {
       value: '',
@@ -40,10 +41,12 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }, 
     ...exercises
   ];
+
   const onChange = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setDate(currentDate);
   };
+
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
       value: date,
