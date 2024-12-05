@@ -1,9 +1,8 @@
-import { View, TextInput, Text, Button } from "react-native"
+import { View } from "react-native"
 import { useState } from 'react';
-import { getFood, postFood } from "./network/food";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import { useModal } from "./ModalContext";
-import MacroCalculator from "./MacroCalculator";
+import { useModal } from "../components/ModalContext";
+import MacroCalculator from "../components/MacroCalculator";
 
 interface NewDietEntryModalContentProps {
   item: any;

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-camera";
-import { getFoodItemByUpc } from "./network/nutrition";
+import { getFoodItemByUpc } from "../network/nutrition";
 import { StyleSheet, View, Text } from "react-native";
 import { useModal } from "./ModalContext";
 import MacroCalculator from "./MacroCalculator";
-import { transformToProductResponse } from "./transform";
+import { transformToProductResponse } from "../transform";
 
 interface BarcodeScannerProps {
   cameraActive: boolean;

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import WeightEntry from './types/WeightEntry';
-import FloatingActionButton from './FloatingActionButton';
-import { useModal } from './ModalContext';
-import AddWeightModal from './AddWeightModal';
-import { getWeight } from './network/weight';
-import { mapWeigthEntriesToDataPoint } from './utils';
-import ScatterPlot from './ScatterPlot';
-import DataPoint from './types/DataPoint';
+import WeightEntry from '../types/WeightEntry';
+import FloatingActionButton from '../components/FloatingActionButton';
+import { useModal } from '../components/ModalContext';
+import AddWeightModal from '../modals/AddWeightModal';
+import { getWeight } from '../network/weight';
+import { mapWeigthEntriesToDataPoint } from '../utils';
+import ScatterPlot from '../ScatterPlot';
+import DataPoint from '../types/DataPoint';
 
 const WeightScreen = () => {
   const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);

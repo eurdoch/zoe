@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
-import WorkoutEntry from './types/WorkoutEntry';
-import { getWorkout } from './network/workout';
-import { convertFromDatabaseFormat } from './utils';
+import WorkoutEntry from '../types/WorkoutEntry';
+import { getWorkout } from '../network/workout';
+import { convertFromDatabaseFormat } from '../utils';
 
 interface WorkoutScreenProps {
   navigation: any;

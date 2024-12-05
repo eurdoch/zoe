@@ -7,10 +7,10 @@ import {
   Button,
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import { showToastError, showToastInfo } from './utils';
-import { ProductResponse } from './types/ProductResponse';
-import { Food } from './types/FoodEntry';
-import { postFood } from './network/food';
+import { showToastError, showToastInfo } from '../utils';
+import ProductResponse from '../types/ProductResponse';
+import Food from '../types/FoodEntry';
+import { postFood } from '../network/food';
 import { useModal } from './ModalContext';
 
 interface MacroCalculatorProps {

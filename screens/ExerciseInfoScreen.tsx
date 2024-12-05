@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Button, Text } from 'react-native';
-import ExerciseEntry from './types/ExerciseEntry';
-import { deleteExerciseById, getExerciseById } from './network/exercise';
-import ScatterPlot from './ScatterPlot';
-import DataPoint from './types/DataPoint';
-import { extractUnixTimeFromISOString, formatTime } from './utils';
-import { useModal } from './ModalContext';
+import ExerciseEntry from '../types/ExerciseEntry';
+import { deleteExerciseById, getExerciseById } from '../network/exercise';
+import ScatterPlot from '../ScatterPlot';
+import DataPoint from '../types/DataPoint';
+import { formatTime } from '../utils';
+import { useModal } from '../components/ModalContext';
 
 type ExerciseInfoScreenProps = {
   route: any;

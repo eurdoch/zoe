@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Button, Dimensions, StyleSheet, TextInput, View } from "react-native";
-import { convertToDatabaseFormat } from "./utils";
-import { useModal } from "./ModalContext";
+import { convertToDatabaseFormat } from "../utils";
+import { useModal } from "../components/ModalContext";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import DropdownItem from "./types/DropdownItem";
-import DataPoint from "./types/DataPoint";
+import DropdownItem from "../types/DropdownItem";
+import DataPoint from "../types/DataPoint";
 
 interface NewExerciseModalContentProps {
   exercises: DropdownItem[];

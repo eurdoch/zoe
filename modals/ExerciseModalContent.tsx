@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import { formatTime, showToastError } from './utils';
-import ExerciseEntry from './types/ExerciseEntry';
-import { deleteExerciseById } from './network/exercise';
-import { useModal } from './ModalContext';
+import { formatTime, showToastError } from '../utils';
+import ExerciseEntry from '../types/ExerciseEntry';
+import { deleteExerciseById } from '../network/exercise';
+import { useModal } from '../components/ModalContext';
 
 interface Props {
   entry: ExerciseEntry;

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Button } from 'react-native';
-import { getExerciseNames } from './network/exercise';
-import { convertFromDatabaseFormat } from './utils';
-import { postWorkout } from './network/workout';
+import { getExerciseNames } from '../network/exercise';
+import { convertFromDatabaseFormat } from '../utils';
+import { postWorkout } from '../network/workout';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 interface CreateWorkoutScreenProps {

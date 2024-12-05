@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import FoodEntry from './types/FoodEntry';
-import { getFoodByUnixTime } from './network/food';
-import FloatingActionButton from './FloatingActionButton';
+import FoodEntry from '../types/FoodEntry';
+import { getFoodByUnixTime } from '../network/food';
+import FloatingActionButton from '../components/FloatingActionButton';
 import DietLogScreen from './DietLogScreen';
 
 const DietScreen = () => {
