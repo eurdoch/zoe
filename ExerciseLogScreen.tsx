@@ -17,6 +17,7 @@ import { useModal } from './ModalContext';
 import { Picker } from '@react-native-picker/picker';
 import NewExerciseModalContent from './NewExerciseModalContent';
 import { Button, TextInput } from 'react-native-paper';
+import ExerciseModalContent from './ExerciseModalContent';
 interface ExerciseLogScreenProps {
   route: any;
 }
@@ -24,7 +25,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
-  const [modalExerciseEntry, setModalExerciseEntry] = useState<ExerciseEntry | null>(null);
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
   const [date, setDate] = useState(new Date());
@@ -91,6 +91,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     setWeight("");
     setDate(new Date());
   }
+
   const handleAddDataPoint = async (_e: any) => {
     try {
       if (selectedItem) {
@@ -107,7 +108,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             name: selectedItem.value,
             weight: parsedWeight,
             reps: parsedReps,
-            createdAt: Date.now(),
+            createdAt: Math.floor(date.getTime() / 1000),
           }
           const insertedEntry = await postExercise(newExercise);
           if (insertedEntry._id) {
@@ -125,28 +126,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       console.log(err);
     }
   }
+
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
-      showModal(datapointModalContentFactory(m));
+      showModal(<ExerciseModalContent reloadData={reloadData} entry={m} />)
     });
   }
-  const handleDeleteExercise = (_e: any) => {
-    if (modalExerciseEntry) {
-      deleteExerciseById(modalExerciseEntry._id).then(() => {
-        reloadData(modalExerciseEntry.name);
-      });
-    }
-  }
-  // TODO use global modal through useModal
-  const datapointModalContentFactory = (entry: ExerciseEntry) => { 
-    setModalExerciseEntry(entry);
-    return <View>
-      <Text>Weight: {entry.weight.toString()} lbs</Text>
-      <Text>Reps: {entry.reps.toString()}</Text>
-      <Text>Date: {formatTime(entry.createdAt)}</Text>
-      <Button onPress={handleDeleteExercise}>Delete</Button>
-    </View>;
-  }
+
   return (
     <SafeAreaView style={styles.container}>
     { data && selectedItem && (
