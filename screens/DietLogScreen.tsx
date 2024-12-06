@@ -22,7 +22,6 @@ const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
     if (searchText) {
       try {
         const result = await searchFoodItemByText(searchText);
-        console.log(result.products[0]);
         setFoodOptions(result.products);
       } catch (error: any) {
         showToastError(error.toString());
