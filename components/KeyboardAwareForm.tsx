@@ -1,3 +1,4 @@
+
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import React, { useRef, useState } from 'react';
 import {
@@ -21,7 +22,7 @@ interface InputConfig extends Omit<TextInputProps, 'ref'> {
   isDate?: boolean;
 }
 interface FormData {
-  [key: string]: string;
+  [key: string]: string | number;
 }
 interface KeyboardAwareFormProps {
   inputs: InputConfig[];
@@ -46,28 +47,26 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
 }) => {
   // Create refs object for all inputs
   const inputRefs = useRef<InputRefs>({});
-  const [date, setDate] = useState(new Date());
   // Initialize form state based on input configurations
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce((acc, input) => ({
       ...acc,
-      [input.name]: input.defaultValue || (input.isDate ? Math.floor(date.getTime() / 1000) : ''),
+      [input.name]: input.defaultValue || (input.name === 'createdAt' ? Math.floor(new Date().getTime() / 1000) : ''),
     }), {})
   );
-  console.log(formData);
   // Handle form submission
   const handleSubmit = (): void => {
     onSubmit?.(formData);
     setFormData(inputs.reduce((acc, input) => ({
       ...acc,
-      [input.name]: '',
+      [input.name]: input.isDate ? Math.floor(new Date().getTime() / 1000).toString() : '',
     }), {}));
   };
   // Update form data
   const updateFormData = (field: string, value: string): void => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: field === 'createdAt' ? Number(value) : value,
     }));
   };
   // Function to focus next input
@@ -80,13 +79,14 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
     }
   };
   const onChange = (_event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
-    setDate(currentDate);
-    updateFormData('date', currentDate);
+    if (selectedDate) {
+      console.log(selectedDate);
+      updateFormData('createdAt', Math.floor(selectedDate.getTime() / 1000).toString());
+    }
   };
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
-      value: date,
+      value: new Date(formData.createdAt as number * 1000),
       onChange,
       mode: 'date',
       is24Hour: true,
@@ -102,10 +102,10 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
           // Destructure name and other props to avoid passing name to TextInput
           const { name, defaultValue, ...inputProps } = input;
           
-          if (input.isDate) {
+          if (name === 'createdAt') {
             return (
               <Button icon="calendar" onPress={showDatePicker}>
-                <Text>{date.toDateString()}</Text>
+                <Text>{new Date((formData[name] as number) * 1000).toLocaleString()}</Text>
               </Button>
             )
           } else {
@@ -116,7 +116,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
                   inputRefs.current[name] = ref;
                 }}
                 style={[styles.input, inputStyle]}
-                value={formData[name]}
+                value={formData[name] as string}
                 onChangeText={(value: string) => updateFormData(name, value)}
                 returnKeyType={index === inputs.length - 1 ? 'done' : 'next'}
                 onSubmitEditing={() => focusNextInput(index)}

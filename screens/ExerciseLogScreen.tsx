@@ -24,6 +24,7 @@ interface ExerciseFormData {
   weight: string;
   reps: string;
   notes: string;
+  createdAt: number;
 }
 
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
@@ -60,7 +61,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       defaultValue: '',
     },
     {
-      name: 'date',
+      name: 'createdAt',
       isDate: true,
     },
   ];
@@ -95,7 +96,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   const reloadData = async (name: string) => {
     setData(await getExercisesByNameAndConvertToDataPoint(name)); 
-    setDate(new Date());
   }
 
   const handleAddDataPoint = (formData: ExerciseFormData) => {
@@ -114,7 +114,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             name: selectedItem.value,
             weight: parsedWeight,
             reps: parsedReps,
-            createdAt: Math.floor(date.getTime() / 1000),
+            createdAt: formData.createdAt,
             notes: formData.notes,
           }
           postExercise(newExercise)
