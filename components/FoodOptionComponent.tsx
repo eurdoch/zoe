@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 interface FoodOptionComponentProps {
-  option: any;
+  option: any; 
 }
 
 const FoodOptionComponent: React.FC<FoodOptionComponentProps> = ({
@@ -10,8 +10,8 @@ const FoodOptionComponent: React.FC<FoodOptionComponentProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.name}>{option.food_name}</Text>
-      <Text>{option.name}</Text>
+      <Text style={styles.name}>{option.name}</Text>
+      { option.brand && <Text>{option.brand}</Text> }
     </View>
   );
 };
@@ -28,15 +28,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  description: {
-    fontSize: 14,
-    color: '#666',
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'green',
   },
 });
 
