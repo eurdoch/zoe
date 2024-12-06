@@ -12,14 +12,11 @@ import {
   TextStyle,
   StyleProp,
 } from 'react-native';
-
 // Interface for individual input configuration
 interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
   defaultValue?: string;
 }
-
-// Interface for form data
 //interface FormData {
 //  [key: string]: string;
 //}
@@ -28,7 +25,6 @@ interface FormData {
   reps: string,
   notes: string,
 }
-
 // Props interface for the form component
 interface KeyboardAwareFormProps {
   inputs: InputConfig[];
@@ -39,12 +35,10 @@ interface KeyboardAwareFormProps {
   buttonStyle?: StyleProp<ViewStyle>;
   buttonTextStyle?: StyleProp<TextStyle>;
 }
-
 // Type for input refs
 type InputRefs = {
   [key: string]: TextInput | null;
 };
-
 const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({ 
   inputs = [], 
   onSubmit, 
@@ -56,7 +50,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
 }) => {
   // Create refs object for all inputs
   const inputRefs = useRef<InputRefs>({});
-
   // Initialize form state based on input configurations
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce((acc, input) => ({
@@ -64,12 +57,14 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       [input.name]: input.defaultValue || '',
     }), {})
   );
-
   // Handle form submission
   const handleSubmit = (): void => {
     onSubmit?.(formData);
+    setFormData(inputs.reduce((acc, input) => ({
+      ...acc,
+      [input.name]: '',
+    }), {}));
   };
-
   // Update form data
   const updateFormData = (field: string, value: string): void => {
     setFormData(prev => ({
@@ -77,7 +72,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       [field]: value,
     }));
   };
-
   // Function to focus next input
   const focusNextInput = (currentIndex: number): void => {
     const nextInput = inputs[currentIndex + 1];
@@ -87,7 +81,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       handleSubmit();
     }
   };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -113,7 +106,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
             />
           );
         })}
-
         <TouchableOpacity 
           style={[styles.button, buttonStyle]}
           onPress={handleSubmit}
@@ -126,7 +118,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
     </KeyboardAvoidingView>
   );
 };
-
 const styles = StyleSheet.create({
   form: {
     padding: 20,
@@ -153,5 +144,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
 export default KeyboardAwareForm;
