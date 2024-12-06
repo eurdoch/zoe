@@ -130,6 +130,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             weight: parsedWeight,
             reps: parsedReps,
             createdAt: Math.floor(date.getTime() / 1000),
+            notes: formData.notes,
           }
           postExercise(newExercise)
             .then(insertedEntry => {
