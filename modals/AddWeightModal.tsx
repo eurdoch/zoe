@@ -16,7 +16,7 @@ const AddWeightModal = ({ loadData }: AddWeightModalProps) => {
     if (!isNaN(parsedWeight)) {
       const result = await postWeight({
         value: parsedWeight,
-        createdAt: Date.now(),
+        createdAt: Math.floor(Date.now() / 1000),
       });
       if (result.acknowledged) {
         showToastInfo('Weight added.');
