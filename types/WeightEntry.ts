@@ -1,5 +1,5 @@
-export default interface WeightEntry {
+import Weight from "./Weight";
+
+export default interface WeightEntry extends Weight {
   _id: number;
-  value: number;
-  createdAt: number;
 }

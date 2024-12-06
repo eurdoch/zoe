@@ -1,8 +1,9 @@
 import { View } from "react-native"
 import { useState } from 'react';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import { useModal } from "../components/ModalContext";
+import { useModal } from "../modals/ModalContext";
 import MacroCalculator from "../components/MacroCalculator";
+import { postFood } from "../network/food";
 
 interface NewDietEntryModalContentProps {
   item: any;
@@ -27,7 +28,7 @@ const NewDietEntryModalContent = ({ item, setLogActive }: NewDietEntryModalConte
     }
 
     try {
-      //const result = await postFood(newFoodEntry);
+      const result = await postFood(newFoodEntry);
       if (result.acknowledged) {
         Toast.show({
           type: 'info',

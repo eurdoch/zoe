@@ -1,7 +1,5 @@
-export default interface SupplementEntry {
+import Supplement from "./Supplement";
+
+export default interface SupplementEntry extends Supplement {
   _id: string;
-  name: string;
-  amount_unit: string;
-  amount: number;
-  createdAt: number;
 }

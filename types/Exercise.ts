@@ -3,4 +3,5 @@ export default interface Exercise {
   weight: number,
   reps: number,
   createdAt: number, // unix time in seconds
+  notes?: string,
 }

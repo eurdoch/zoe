@@ -1,8 +1,6 @@
-export default interface ExerciseEntry {
+import Exercise from "./Exercise";
+
+export default interface ExerciseEntry extends Exercise {
   _id: string,
-  name: string,
-  weight: number,
-  reps: number,
-  createdAt: number, // unix time in seconds
 }
 
