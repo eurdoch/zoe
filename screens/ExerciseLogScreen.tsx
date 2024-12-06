@@ -10,13 +10,10 @@ import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, sho
 import DropdownItem from '../types/DropdownItem';
 import DataPoint from '../types/DataPoint';
 import Toast from 'react-native-toast-message'
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useModal } from '../modals/ModalContext';
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
-import { Button, Text } from 'react-native-paper';
-import CustomPicker from '../components/CustomPicker';
 import { Dropdown } from 'react-native-element-dropdown';
 
 interface ExerciseLogScreenProps {
@@ -34,7 +31,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
-  const [date, setDate] = useState(new Date());
   const { showModal } = useModal();
 
   const dropdownItems = [
@@ -62,23 +58,12 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       name: 'notes',
       placeholder: 'Notes',
       defaultValue: '',
-    }
+    },
+    {
+      name: 'date',
+      isDate: true,
+    },
   ];
-
-  const onChange = (_event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
-    setDate(currentDate);
-  };
-
-  const showDatePicker = () => {
-    DateTimePickerAndroid.open({
-      value: date,
-      onChange,
-      mode: 'date',
-      is24Hour: true,
-      display: 'default'
-    });
-  };
 
   useEffect(() => {
     getExerciseNames()
@@ -175,9 +160,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
               onSubmit={handleAddDataPoint}
               submitButtonText="Add"
             />
-            <Button icon="calendar" onPress={showDatePicker}>
-              <Text>{date.toDateString()}</Text>
-            </Button>
           </View>
         )
       }

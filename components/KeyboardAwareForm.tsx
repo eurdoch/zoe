@@ -1,3 +1,4 @@
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import React, { useRef, useState } from 'react';
 import {
   View,
@@ -12,15 +13,16 @@ import {
   TextStyle,
   StyleProp,
 } from 'react-native';
+import { Button } from 'react-native-paper';
 // Interface for individual input configuration
 interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
   defaultValue?: string;
+  isDate?: boolean;
 }
 interface FormData {
   [key: string]: string;
 }
-
 interface KeyboardAwareFormProps {
   inputs: InputConfig[];
   onSubmit?: (data: FormData) => void;
@@ -38,20 +40,21 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
   inputs = [], 
   onSubmit, 
   submitButtonText = 'Submit',
-  containerStyle,
   inputStyle,
   buttonStyle,
   buttonTextStyle,
 }) => {
   // Create refs object for all inputs
   const inputRefs = useRef<InputRefs>({});
+  const [date, setDate] = useState(new Date());
   // Initialize form state based on input configurations
   const [formData, setFormData] = useState<FormData>(
     inputs.reduce((acc, input) => ({
       ...acc,
-      [input.name]: input.defaultValue || '',
+      [input.name]: input.defaultValue || (input.isDate ? Math.floor(date.getTime() / 1000) : ''),
     }), {})
   );
+  console.log(formData);
   // Handle form submission
   const handleSubmit = (): void => {
     onSubmit?.(formData);
@@ -76,6 +79,20 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       handleSubmit();
     }
   };
+  const onChange = (_event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || date;
+    setDate(currentDate);
+    updateFormData('date', currentDate);
+  };
+  const showDatePicker = () => {
+    DateTimePickerAndroid.open({
+      value: date,
+      onChange,
+      mode: 'date',
+      is24Hour: true,
+      display: 'default'
+    });
+  };
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -85,21 +102,29 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
           // Destructure name and other props to avoid passing name to TextInput
           const { name, defaultValue, ...inputProps } = input;
           
-          return (
-            <TextInput
-              key={name}
-              ref={(ref: TextInput | null) => {
-                inputRefs.current[name] = ref;
-              }}
-              style={[styles.input, inputStyle]}
-              value={formData[name]}
-              onChangeText={(value: string) => updateFormData(name, value)}
-              returnKeyType={index === inputs.length - 1 ? 'done' : 'next'}
-              onSubmitEditing={() => focusNextInput(index)}
-              blurOnSubmit={index === inputs.length - 1}
-              {...inputProps}
-            />
-          );
+          if (input.isDate) {
+            return (
+              <Button icon="calendar" onPress={showDatePicker}>
+                <Text>{date.toDateString()}</Text>
+              </Button>
+            )
+          } else {
+            return (
+              <TextInput
+                key={name}
+                ref={(ref: TextInput | null) => {
+                  inputRefs.current[name] = ref;
+                }}
+                style={[styles.input, inputStyle]}
+                value={formData[name]}
+                onChangeText={(value: string) => updateFormData(name, value)}
+                returnKeyType={index === inputs.length - 1 ? 'done' : 'next'}
+                onSubmitEditing={() => focusNextInput(index)}
+                blurOnSubmit={index === inputs.length - 1}
+                {...inputProps}
+              />
+            );
+          }
         })}
         <TouchableOpacity 
           style={[styles.button, buttonStyle]}
