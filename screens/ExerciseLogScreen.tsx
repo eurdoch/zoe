@@ -198,7 +198,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         onFocus={() => setIsFocus(true)}
         onBlur={() => setIsFocus(false)}
         onChange={item => {
-          console.log(item);
           if (item.value === "new_exercise") {
             showModal(
               <NewExerciseModalContent

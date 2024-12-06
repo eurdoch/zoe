@@ -17,15 +17,10 @@ interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
   defaultValue?: string;
 }
-//interface FormData {
-//  [key: string]: string;
-//}
 interface FormData {
-  weight: string,
-  reps: string,
-  notes: string,
+  [key: string]: string;
 }
-// Props interface for the form component
+
 interface KeyboardAwareFormProps {
   inputs: InputConfig[];
   onSubmit?: (data: FormData) => void;
