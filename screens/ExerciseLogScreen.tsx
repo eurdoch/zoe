@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
-  View,
-  Text,
-  StyleSheet
+  StyleSheet,
+  View
 } from 'react-native';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
@@ -13,34 +12,57 @@ import DataPoint from '../types/DataPoint';
 import Toast from 'react-native-toast-message'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useModal } from '../modals/ModalContext';
-import { Picker } from '@react-native-picker/picker';
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
-import { Button, TextInput } from 'react-native-paper';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
+import KeyboardAwareForm from '../components/KeyboardAwareForm';
+import { Button, Text } from 'react-native-paper';
+import CustomPicker from '../components/CustomPicker';
+import { Dropdown } from 'react-native-element-dropdown';
 
 interface ExerciseLogScreenProps {
   route: any;
 }
 
+interface ExerciseFormData {
+  weight: string;
+  reps: string;
+  notes: string;
+}
+
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
+  const [isFocus, setIsFocus] = useState<boolean>(false);
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
-  const [weight, setWeight] = useState<string>("");
-  const [reps, setReps] = useState<string>("");
   const [date, setDate] = useState(new Date());
   const { showModal } = useModal();
 
   const dropdownItems = [
     {
-      value: '',
-      label: 'Select an exercise',
-    },
-    {
       value: 'new_exercise',
       label: 'Add New Exercise'
     }, 
     ...exercises
+  ];
+
+  const exerciseLogInputs = [
+    {
+      name: 'weight',
+      placeholder: 'Weight',
+      keyboardType: 'numeric' as const,
+      defaultValue: '',
+    },
+    {
+      name: 'reps', 
+      placeholder: 'Reps',
+      keyboardType: 'numeric' as const,
+      defaultValue: '',
+    },
+    {
+      name: 'notes',
+      placeholder: 'Notes',
+      defaultValue: '',
+    }
   ];
 
   const onChange = (_event: any, selectedDate?: Date) => {
@@ -88,16 +110,14 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   const reloadData = async (name: string) => {
     setData(await getExercisesByNameAndConvertToDataPoint(name)); 
-    setReps(""); 
-    setWeight("");
     setDate(new Date());
   }
 
-  const handleAddDataPoint = async (_e: any) => {
+  const handleAddDataPoint = (formData: ExerciseFormData) => {
     try {
       if (selectedItem) {
-        const parsedWeight = parseFloat(weight);
-        const parsedReps = parseInt(reps);
+        const parsedWeight = parseFloat(formData.weight);
+        const parsedReps = parseInt(formData.reps);
         if (isNaN(parsedReps) || isNaN(parsedWeight)) {
           Toast.show({
             type: 'error',
@@ -111,16 +131,18 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             reps: parsedReps,
             createdAt: Math.floor(date.getTime() / 1000),
           }
-          const insertedEntry = await postExercise(newExercise);
-          if (insertedEntry._id) {
-            reloadData(insertedEntry.name);
-          } else {
-            Toast.show({
-              type: 'error',
-              text1: 'Whoops!',
-              text2: 'Entry could not be added, please try again.'
+          postExercise(newExercise)
+            .then(insertedEntry => {
+              if (insertedEntry._id) {
+                reloadData(insertedEntry.name);
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Whoops!',
+                  text2: 'Entry could not be added, please try again.'
+                });
+              }
             });
-          }
         }
       }
     } catch (err) {
@@ -136,7 +158,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   return (
     <SafeAreaView style={styles.container}>
-    { data && selectedItem && (
+      { data && selectedItem && (
         <ScatterPlot
           onDataPointClick={handleDataPointClick}
           data={data}
@@ -144,37 +166,39 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           zoomAndPanEnabled={false}
         />
       )}
-      { selectedItem && (
-        <View>
-          <TextInput
-            label="Weight"
-            value={weight}
-            onChangeText={(text) => setWeight(text)}
-          />
-          <TextInput
-            placeholder="Reps"
-            value={reps.toString()}
-            onChangeText={(text) => setReps(text)}
-          />
-          <TextInput
-            placeholder="Notes"
-            value={notes}
-            onChangeText={(text) => setNotes(text)}
-          />
-          <Button icon="calendar" onPress={showDatePicker}>
-            <Text>{date.toDateString()}</Text>
-          </Button>
-          <Button onPress={handleAddDataPoint}>Add</Button>
-        </View>
-      )}
-      <Picker
-        style={{
-          height: 100,
-          width: '100%',
-        }}
-        selectedValue={selectedItem?.value}
-        onValueChange={(exercise_id: string) => {
-          if (exercise_id === "new_exercise") {
+      { 
+        selectedItem && (
+          <View>
+            <KeyboardAwareForm
+              inputs={exerciseLogInputs}
+              onSubmit={handleAddDataPoint}
+              submitButtonText="Add"
+            />
+            <Button icon="calendar" onPress={showDatePicker}>
+              <Text>{date.toDateString()}</Text>
+            </Button>
+          </View>
+        )
+      }
+      <Dropdown
+        style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        inputSearchStyle={styles.inputSearchStyle}
+        iconStyle={styles.iconStyle}
+        data={dropdownItems}
+        search
+        maxHeight={300}
+        labelField="label"
+        valueField="value"
+        placeholder={!isFocus ? 'Select exercise' : '...'}
+        searchPlaceholder="Search..."
+        value={selectedItem === undefined ? '' : selectedItem.value}
+        onFocus={() => setIsFocus(true)}
+        onBlur={() => setIsFocus(false)}
+        onChange={item => {
+          console.log(item);
+          if (item.value === "new_exercise") {
             showModal(
               <NewExerciseModalContent
                 setData={setData}
@@ -184,25 +208,50 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
               />
             );
           } else {
-            const item: DropdownItem = {
-              label: convertFromDatabaseFormat(exercise_id),
-              value: exercise_id,
-            };
             setSelectedItem(item);
             handleSelect(item);
           }
         }}
-      >
-        {dropdownItems.map(item => <Picker.Item key={item.label} label={item.label} value={item.value} />)}
-      </Picker>
-      <Toast />
+      />
     </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
     padding: 20,
   },
+  dropdown: {
+      height: 50,
+      borderColor: 'gray',
+      borderWidth: 0.5,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+  },
+  label: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    left: 22,
+    top: 8,
+    zIndex: 999,
+    paddingHorizontal: 8,
+    fontSize: 14,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 16,
+  }
 });
 export default ExerciseLogScreen;
