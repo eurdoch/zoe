@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button, Dimensions, StyleSheet, TextInput, View } from "react-native";
 import { convertToDatabaseFormat } from "../utils";
-import { useModal } from "../components/ModalContext";
-import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { useModal } from "../modals/ModalContext";
+import Toast from "react-native-toast-message";
 import DropdownItem from "../types/DropdownItem";
 import DataPoint from "../types/DataPoint";
 

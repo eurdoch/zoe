@@ -4,7 +4,7 @@ import { Button, Text } from 'react-native-paper';
 import { formatTime, showToastError } from '../utils';
 import ExerciseEntry from '../types/ExerciseEntry';
 import { deleteExerciseById } from '../network/exercise';
-import { useModal } from '../components/ModalContext';
+import { useModal } from '../modals/ModalContext';
 
 interface Props {
   entry: ExerciseEntry;

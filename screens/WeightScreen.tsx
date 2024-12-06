@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import WeightEntry from '../types/WeightEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { useModal } from '../components/ModalContext';
+import { useModal } from '../modals/ModalContext';
 import AddWeightModal from '../modals/AddWeightModal';
 import { getWeight } from '../network/weight';
 import { mapWeigthEntriesToDataPoint } from '../utils';

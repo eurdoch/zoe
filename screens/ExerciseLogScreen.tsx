@@ -5,22 +5,23 @@ import {
   Text,
   StyleSheet
 } from 'react-native';
-import ScatterPlot from './ScatterPlot';
-import { deleteExerciseById, getExerciseById, getExerciseNames, postExercise } from './network/exercise';
-import { convertFromDatabaseFormat, formatTime, getExercisesByNameAndConvertToDataPoint, showToastError } from './utils';
-import DropdownItem from './types/DropdownItem';
-import DataPoint from './types/DataPoint';
+import ScatterPlot from '../ScatterPlot';
+import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
+import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
+import DropdownItem from '../types/DropdownItem';
+import DataPoint from '../types/DataPoint';
 import Toast from 'react-native-toast-message'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import ExerciseEntry from './types/ExerciseEntry';
-import { useModal } from './ModalContext';
+import { useModal } from '../modals/ModalContext';
 import { Picker } from '@react-native-picker/picker';
-import NewExerciseModalContent from './NewExerciseModalContent';
+import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import { Button, TextInput } from 'react-native-paper';
-import ExerciseModalContent from './ExerciseModalContent';
+import ExerciseModalContent from '../modals/ExerciseModalContent';
+
 interface ExerciseLogScreenProps {
   route: any;
 }
+
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
@@ -154,6 +155,11 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             placeholder="Reps"
             value={reps.toString()}
             onChangeText={(text) => setReps(text)}
+          />
+          <TextInput
+            placeholder="Notes"
+            value={notes}
+            onChangeText={(text) => setNotes(text)}
           />
           <Button icon="calendar" onPress={showDatePicker}>
             <Text>{date.toDateString()}</Text>

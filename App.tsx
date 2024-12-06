@@ -1,27 +1,25 @@
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ExerciseLogScreen from './ExerciseLogScreen';
+import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
-import ExerciseListScreen from './ExerciseListScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
-import { ModalProvider } from './components/ModalContext';
-import GlobalModal from './GlobalModal';
+import { ModalProvider } from './modals/ModalContext';
+import GlobalModal from './modals/GlobalModal';
 import Toast from 'react-native-toast-message';
-import DietLogScreen from './DietLogScreen';
+import DietLogScreen from './screens/DietLogScreen';
 import CreateWorkoutScreen from './screens/CreateWorkoutScreen';
-import StartWorkoutScreen from './StartWorkoutScreen';
+import StartWorkoutScreen from './screens/StartWorkoutScreen';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
 import { PaperProvider } from 'react-native-paper';
-import SupplementScreen from './SupplementsScreen';
+import SupplementScreen from './screens/SupplementsScreen';
 
 type RootStackParamList = {
   Home: undefined;
   ExerciseLog: undefined;
-  ExerciseList: undefined;
   Exercise: { title: string };
   Diet: undefined;
 };
@@ -46,13 +44,6 @@ const App = () => {
               component={ExerciseLogScreen}
               options={{
                 title: "Log"
-              }}
-            />
-            <Stack.Screen
-              name="ExerciseList"
-              component={ExerciseListScreen}
-              options={{
-                title: "List"
               }}
             />
             <Stack.Screen

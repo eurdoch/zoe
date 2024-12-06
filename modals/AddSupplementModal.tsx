@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ScrollView, Text, View, TextInput, Button, StyleSheet, TouchableOpacity } from "react-native";
 import { postSupplement } from "../network/supplement";
 import { showToastError, showToastInfo } from "../utils";
-import { useModal } from "../components/ModalContext";
+import { useModal } from "./ModalContext";
 
 interface AddSupplementModalProps {
   loadData: () => void;

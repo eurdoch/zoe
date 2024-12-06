@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
-import WorkoutEntry from './types/WorkoutEntry';
-import { deleteWorkout, getWorkouts } from './network/workout';
+import WorkoutEntry from '../types/WorkoutEntry';
+import { deleteWorkout, getWorkouts } from '../network/workout';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { showToastError, showToastInfo } from './utils';
+import { showToastError, showToastInfo } from '../utils';
 
 interface StartWorkoutScreenProps {
   navigation: any;

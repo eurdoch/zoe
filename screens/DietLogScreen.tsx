@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { searchFoodItemByText } from './network/nutrition';
-import BarcodeScanner from './BarcodeScanner';
-import FoodOptionComponent from './FoodOptionComponent';
-import { useModal } from './ModalContext';
-import NewDietEntryModalContent from './NewDietEntryModalContent';
+import { searchFoodItemByText } from '../network/nutrition';
+import FoodOptionComponent from '../components/FoodOptionComponent';
+import BarcodeScanner from '../components/BarcodeScanner';
+import { useModal } from '../modals/ModalContext';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { showToastError } from './utils';
-import MacroCalculator from './MacroCalculator';
+import { showToastError } from '../utils';
+import MacroCalculator from '../components/MacroCalculator';
 
 interface DietLogScreenProps {
   setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
@@ -93,3 +92,4 @@ const styles = StyleSheet.create({
 });
 
 export default DietLogScreen;
+

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, Dimensions } from 'react-native';
-import { getSupplement } from './network/supplement';
-import SupplementEntry from './types/SupplementEntry';
-import FloatingActionButton from './FloatingActionButton';
-import { useModal } from './ModalContext';
-import AddSupplementModal from './AddSupplementModal';
-import { formatTime } from './utils';
+import { getSupplement } from '../network/supplement';
+import SupplementEntry from '../types/SupplementEntry';
+import FloatingActionButton from '../components/FloatingActionButton';
+import { useModal } from '../modals/ModalContext';
+import AddSupplementModal from '../modals/AddSupplementModal';
+import { formatTime } from '../utils';
 
 interface SupplementScreenProps {}
 

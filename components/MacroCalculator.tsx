@@ -11,7 +11,7 @@ import { showToastError, showToastInfo } from '../utils';
 import ProductResponse from '../types/ProductResponse';
 import Food from '../types/FoodEntry';
 import { postFood } from '../network/food';
-import { useModal } from './ModalContext';
+import { useModal } from '../modals/ModalContext';
 
 interface MacroCalculatorProps {
   productResponse: ProductResponse;

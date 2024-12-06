@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { View, TextInput, Button } from "react-native";
 import { postWeight } from "../network/weight";
 import { showToastError, showToastInfo } from "../utils";
-import { useModal } from "../components/ModalContext";
+import { useModal } from "../modals/ModalContext";
+
 interface AddWeightModalProps {
   loadData: () => void;
 }
+
 const AddWeightModal = ({ loadData }: AddWeightModalProps) => {
   const [weight, setWeight] = useState<string>("");
   const { hideModal } = useModal()
