@@ -1,4 +1,3 @@
-
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import React, { useRef, useState } from 'react';
 import {
@@ -63,7 +62,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
     }), {}));
   };
   // Update form data
-  const updateFormData = (field: string, value: string): void => {
+  const updateFormData = (field: string, value: string | number): void => {
     setFormData(prev => ({
       ...prev,
       [field]: field === 'createdAt' ? Number(value) : value,
@@ -80,8 +79,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
   };
   const onChange = (_event: any, selectedDate?: Date) => {
     if (selectedDate) {
-      console.log(selectedDate);
-      updateFormData('createdAt', Math.floor(selectedDate.getTime() / 1000).toString());
+      updateFormData('createdAt', Math.floor(selectedDate.getTime() / 1000));
     }
   };
   const showDatePicker = () => {
@@ -118,8 +116,8 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
                 style={[styles.input, inputStyle]}
                 value={formData[name] as string}
                 onChangeText={(value: string) => updateFormData(name, value)}
-                returnKeyType={index === inputs.length - 1 ? 'done' : 'next'}
-                onSubmitEditing={() => focusNextInput(index)}
+                returnKeyType={index === inputs.length - 2 ? 'done' : 'next'}
+                onSubmitEditing={() => index === inputs.length - 2 ? handleSubmit() : focusNextInput(index)}
                 blurOnSubmit={index === inputs.length - 1}
                 {...inputProps}
               />
