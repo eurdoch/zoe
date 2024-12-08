@@ -1,21 +1,62 @@
-
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, Dimensions, Modal, Pressable } from 'react-native';
-import { getSupplement } from '../network/supplement';
+import { ScrollView, View, Text, StyleSheet, Dimensions, Modal, Pressable, TextInput, TouchableOpacity, Button } from 'react-native';
+import { getSupplement, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { formatTime } from '../utils';
+import { formatTime, showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 interface SupplementScreenProps {}
+interface Option {
+  label: string;
+  value: string;
+}
 const SupplementScreen: React.FC<SupplementScreenProps> = () => {
   const [supplementEntries, setSupplementEntries] = useState<SupplementEntry[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [supplementName, setSupplementName] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const loadData = () => {
     getSupplement().then(entries => setSupplementEntries(entries));
   }
   useEffect(() => {
     loadData();
   }, []);
+  const selectOption = (option: Option) => {
+    setSelectedUnit(option);
+    setIsOpen(false);
+  };
+
+  const handleAddSupplement = async (_e: any) => {
+    const parsedAmount = parseFloat(amount);
+    if (!isNaN(parsedAmount)) {
+      const result = await postSupplement({
+        name: supplementName,
+        amount: parsedAmount,
+        createdAt: Math.floor(Date.now() / 1000),
+        amount_unit: selectedUnit.value,
+      });
+      if (result.acknowledged) {
+        showToastInfo('Supplement added.');
+        loadData();
+      } else {
+        showToastError('Supplement could not be added, try again.');
+      }
+    } else {
+      showToastError('Supplement must be a number.')
+    }
+  }
+
+  const options = [
+    { label: "unit", value: "" },
+    { label: "mg", value: "mg" },
+    { label: "tablet", value: "tablet" },
+    { label: "capsule", value: "capsule" },
+    { label: "ml", value: "ml" },
+    { label: "UI", value: "UI" }
+  ]
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {
@@ -29,7 +70,39 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
       }
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <Text>Hello</Text>
+        <TextInput
+          value={supplementName}
+          onChangeText={setSupplementName}
+          placeholder="Enter supplement"
+        />
+        <View style={styles.amountContainer}>
+          <TextInput placeholder="Amount" value={amount} onChangeText={setAmount} />
+          <View style={styles.container}>
+            <TouchableOpacity
+              style={styles.selectedOption}
+              onPress={() => setIsOpen(!isOpen)}
+            >
+              <Text>
+                { selectedUnit ? selectedUnit.label : 'unit'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+          {isOpen && (
+            <ScrollView style={styles.optionsList}>
+              {options.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.option}
+                  onPress={() => selectOption(option)}
+                >
+                  <Text>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        <Button title="Add" onPress={handleAddSupplement} />
       </CustomModal>
     </ScrollView>
   );
@@ -95,6 +168,40 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'center',
+  },
+  selectedOption: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+  },
+  optionsList: {
+    maxHeight: 150,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  option: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    overflow: 'hidden', // This helps contain the picker within the border
+    marginVertical: 10,
+  },
+  picker: {
+    height: 50, // Fixed height makes it more controllable
+    width: '100%',
+  },
+  amountContainer: {
+    display: 'flex',
+    flexDirection: 'row'
   },
 });
 export default SupplementScreen;
