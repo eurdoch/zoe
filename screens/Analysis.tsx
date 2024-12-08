@@ -1,44 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Switch } from 'react-native';
-import DataPoint from '../types/DataPoint';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseNames } from '../network/exercise';
-import { convertFromDatabaseFormat } from '../utils';
+import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint } from '../utils';
 interface AnalysisScreenProps {
   navigation: any;
 }
 const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
-  const [exerciseNames, setExerciseNames] = useState<string[]>([]);
-  const [datasetLabels, setDatasetLabels] = useState<string[]>([]);
-  const [datasets, setDatasets] = useState<DataPoint[][]>([]);
-
+  const [selectedDatasets, setSelectedDatasets] = useState<any>([]);
+  const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({});
+  
   useEffect(() => {
-    getExerciseNames().then(setExerciseNames);
+    getExerciseNames().then(names => {
+      const initialStates = names.reduce((acc, name) => ({
+        ...acc,
+        [name]: false,
+      }), {});
+      setSwitchStates({ ...initialStates, weight: false, supplements: false });
+    });
   }, []);
 
+  useEffect(() => {
+    selectedDatasets.map(item => Object.keys(item)[0]);
+  }, []);
+
+  const handleSwitch = (id: string, value: boolean) => {
+    setSwitchStates((prevState) => ({
+      ...prevState,
+      [id]: value,
+    }));
+    if (id === 'weights' || id === 'supplements') {
+      // handle
+    } else {
+      getExercisesByNameAndConvertToDataPoint(id)
+        .then(dset => {
+          setSelectedDatasets([
+            ...selectedDatasets,
+            { [id]: dset }
+          ])
+        });
+    }
+  }
   return (
     <View style={styles.container}>
       <Text>Analysis</Text>
       <ScatterPlot
-        datasets={datasets}
-        datasetLabels={datasetLabels}
+        datasets={selectedDatasets.map(item => Object.keys(item)[0])}
+        datasetLabels={selectedDatasets.map(item => Object.values(item)[0])}
         onDataPointClick={() => {}}
       />
       <View style={styles.switchesContainer}>
-        {exerciseNames.map((exerciseName) => (
-          <View key={exerciseName} style={styles.switchContainer}>
-            <Text>{convertFromDatabaseFormat(exerciseName)}</Text>
-            <Switch />
+        {Object.keys(switchStates).map((id) => (
+          <View key={id} style={styles.switchContainer}>
+            <Text>{convertFromDatabaseFormat(id)}</Text>
+            <Switch
+              value={switchStates[id]}
+              onValueChange={(value) => {
+                handleSwitch(id, value);
+              }}
+            />
           </View>
         ))}
-        <View style={styles.switchContainer}>
-          <Text>Weight</Text>
-          <Switch />
-        </View>
-        <View style={styles.switchContainer}>
-          <Text>Supplements</Text>
-          <Switch />
-        </View>
       </View>
     </View>
   );
