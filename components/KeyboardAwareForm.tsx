@@ -58,14 +58,14 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
     onSubmit?.(formData);
     setFormData(inputs.reduce((acc, input) => ({
       ...acc,
-      [input.name]: input.isDate ? Math.floor(new Date().getTime() / 1000).toString() : '',
+      [input.name]: input.isDate ? Math.floor(new Date().getTime() / 1000) : '',
     }), {}));
   };
   // Update form data
   const updateFormData = (field: string, value: string | number): void => {
     setFormData(prev => ({
       ...prev,
-      [field]: field === 'createdAt' ? Number(value) : value,
+      [field]: value,
     }));
   };
   // Function to focus next input
@@ -102,7 +102,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
           
           if (name === 'createdAt') {
             return (
-              <Button icon="calendar" onPress={showDatePicker}>
+              <Button key={name} icon="calendar" onPress={showDatePicker}>
                 <Text>{new Date((formData[name] as number) * 1000).toLocaleString()}</Text>
               </Button>
             )
