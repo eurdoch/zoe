@@ -1,21 +1,30 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Button } from 'react-native-paper';
-
+import { View, StyleSheet, Dimensions } from 'react-native';
+import Menu from '../components/Menu';
 interface ExerciseScreenProps {
   navigation: any;
 }
-
+const menuItems = [
+  {
+    label: "Log",
+    screenName: "ExerciseLog",
+  },
+  {
+    label: "Create Workout",
+    screenName: "CreateWorkout",
+  },
+  {
+    label: "Start Workout",
+    screenName: "StartWorkout",
+  }
+]
 const ExerciseScreen: React.FC<ExerciseScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Button onPress={() => navigation.navigate('ExerciseLog')}>Log</Button>
-      <Button onPress={() => navigation.navigate('CreateWorkout')}>Create Workout</Button>
-      <Button onPress={() => navigation.navigate('StartWorkout')}>Start Workout</Button>
+      <Menu menuItems={menuItems} navigation={navigation} />
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -23,8 +32,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '20px',
+    gap: 10,
   },
 });
-
 export default ExerciseScreen;
