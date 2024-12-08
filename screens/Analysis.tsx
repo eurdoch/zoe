@@ -20,10 +20,6 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
     });
   }, []);
 
-  useEffect(() => {
-    selectedDatasets.map(item => Object.keys(item)[0]);
-  }, []);
-
   const handleSwitch = (id: string, value: boolean) => {
     setSwitchStates((prevState) => ({
       ...prevState,
@@ -45,8 +41,8 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
     <View style={styles.container}>
       <Text>Analysis</Text>
       <ScatterPlot
-        datasets={selectedDatasets.map(item => Object.keys(item)[0])}
-        datasetLabels={selectedDatasets.map(item => Object.values(item)[0])}
+        datasets={selectedDatasets.map(item => Object.values(item)[0])}
+        datasetLabels={selectedDatasets.map(item => Object.keys(item)[0])}
         onDataPointClick={() => {}}
       />
       <View style={styles.switchesContainer}>
