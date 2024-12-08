@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Modal, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Modal, TouchableOpacity, View, StyleSheet, Dimensions } from 'react-native';
 interface CustomModalProps {
   children: React.ReactNode;
   visible: boolean;
@@ -7,6 +8,7 @@ interface CustomModalProps {
   setVisible: (visible: boolean) => void;
 }
 const CustomModal = ({ children, visible, setVisible, animationType = 'fade' }: CustomModalProps) => {
+  const screenWidth = Dimensions.get('window').width;
   return (
     <Modal
       animationType={animationType}
@@ -16,7 +18,7 @@ const CustomModal = ({ children, visible, setVisible, animationType = 'fade' }: 
       onDismiss={() => setVisible(false)}
     >
       <TouchableOpacity style={styles.modalOverlay} onPress={() => setVisible(false)}>
-        <View style={styles.modalView}>
+        <View style={[styles.modalView, { maxWidth: screenWidth * 0.8 }]}>
           {children}
         </View>
       </TouchableOpacity>
