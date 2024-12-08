@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import MouselessButton from './MouselessButton';
@@ -12,13 +11,16 @@ interface MenuProps {
 }
 const Menu = ({ navigation, menuItems }: MenuProps) => {
   const screenWidth = Dimensions.get('window').width;
-  const buttonSize = screenWidth / 2;
+  const buttonSize = (screenWidth - 80) / 2;
   return (
     <View style={styles.container}>
       {menuItems.map((item, index) => (
         <View
           key={index}
-          style={{ width: buttonSize, height: buttonSize }}
+          style={{
+            width: buttonSize,
+            height: buttonSize,
+          }}
         >
           <MouselessButton
             onPress={() => navigation.navigate(item.screenName)}
@@ -32,9 +34,11 @@ const Menu = ({ navigation, menuItems }: MenuProps) => {
 };
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
   },
 });
 export default Menu;
