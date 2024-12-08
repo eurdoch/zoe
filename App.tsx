@@ -117,7 +117,7 @@ const App = () => {
               name="Analysis"
               component={AnalysisScreen}
               options={{
-                headerShown: false,
+                title: "Analysis"
               }}
             />
           </Stack.Navigator>
