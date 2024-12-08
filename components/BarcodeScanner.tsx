@@ -9,10 +9,9 @@ import { transformToProductResponse } from "../transform";
 interface BarcodeScannerProps {
   cameraActive: boolean;
   setCameraActive: React.Dispatch<React.SetStateAction<boolean>>;
-  setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const BarcodeScanner = ({ cameraActive, setCameraActive, setLogActive }: BarcodeScannerProps) => {
+const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) => {
   const camera = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
   const { showModal } = useModal();
@@ -28,8 +27,7 @@ const BarcodeScanner = ({ cameraActive, setCameraActive, setLogActive }: Barcode
       if (upc) {
         const item = await getFoodItemByUpc(upc);
         const productResponse = transformToProductResponse(item);
-        console.log(productResponse);
-        showModal(<MacroCalculator setLogActive={setLogActive} productResponse={productResponse} />)
+        showModal(<MacroCalculator productResponse={productResponse} />)
       }
     }
   });

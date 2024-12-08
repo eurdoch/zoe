@@ -15,7 +15,6 @@ import { useModal } from '../modals/ModalContext';
 
 interface MacroCalculatorProps {
   productResponse: ProductResponse;
-  setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const UNITS = [
@@ -29,7 +28,6 @@ const UNITS = [
 
 const MacroCalculator: React.FC<MacroCalculatorProps> = ({
   productResponse,
-  setLogActive,
 }) => {
   const [servingAmount, setServingAmount] = useState<string>('100');
   const [servingUnit, setServingUnit] = useState<string>('g');
@@ -73,7 +71,6 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
     };
     const result = await postFood(newFood);
     if (result.acknowledged) {
-      setLogActive(false);
       hideModal();
       showToastInfo('Food added.');
       // TODO navigate awayu

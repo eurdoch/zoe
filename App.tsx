@@ -31,7 +31,11 @@ const App = () => {
     <ModalProvider>
       <PaperProvider>
         <NavigationContainer>
-          <Stack.Navigator>
+          <Stack.Navigator
+            screenOptions={{
+              animation: 'slide_from_right',
+            }}
+          >
             <Stack.Screen
               name="Home"
               component={HomeScreen}
@@ -50,7 +54,7 @@ const App = () => {
               name="DietLog"
               component={DietLogScreen}
               options={{
-                title: "Diet"
+                title: "Diet Log"
               }}
             />
             <Stack.Screen

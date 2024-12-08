@@ -9,10 +9,10 @@ import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
 
 interface DietLogScreenProps {
-  setLogActive: React.Dispatch<React.SetStateAction<boolean>>;
+  navigation: any;
 }
 
-const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
+const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
@@ -30,14 +30,14 @@ const DietLogScreen = ({ setLogActive }: DietLogScreenProps) => {
   }
 
   const handleFoodOptionPress = async (option: any) => {
-    showModal(<MacroCalculator productResponse={option} setLogActive={setLogActive} />)
+    showModal(<MacroCalculator productResponse={option} />)
   }
 
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
   return (
     <View style={styles.container}>
       {cameraActive ?
-        <BarcodeScanner setLogActive={setLogActive} cameraActive={cameraActive} setCameraActive={setCameraActive} /> :
+        <BarcodeScanner cameraActive={cameraActive} setCameraActive={setCameraActive} /> :
         <View>
           <View style={styles.searchBar}>
             <TextInput
