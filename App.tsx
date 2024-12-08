@@ -17,6 +17,7 @@ import WeightScreen from './screens/WeightScreen';
 import { PaperProvider } from 'react-native-paper';
 import SupplementScreen from './screens/SupplementsScreen';
 import BarcodeScanner from './components/BarcodeScanner';
+import AnalysisScreen from './screens/Analysis';
 
 type RootStackParamList = {
   Home: undefined;
@@ -108,6 +109,13 @@ const App = () => {
             <Stack.Screen
               name="BarcodeScanner"
               component={BarcodeScanner}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Analysis"
+              component={AnalysisScreen}
               options={{
                 headerShown: false,
               }}
