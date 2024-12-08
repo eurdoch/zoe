@@ -5,6 +5,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { useModal } from "../modals/ModalContext";
 import { transformToProductResponse } from "../transform";
 import MacroCalculator from "./MacroCalculator";
+import NetworkError from "../errors/NetworkError";
 
 interface BarcodeScannerProps {
   navigation: any;
@@ -23,10 +24,17 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     onCodeScanned: async (codes) => {
       const upc = codes[0].value;
       if (upc) {
-        const item = await getFoodItemByUpc(upc);
-        const productResponse = transformToProductResponse(item);
-        showModal(<MacroCalculator productResponse={productResponse} />)
-        setCameraActive(false);
+        try {
+          const item = await getFoodItemByUpc(upc);
+          const productResponse = transformToProductResponse(item);
+          showModal(<MacroCalculator productResponse={productResponse} />)
+          setCameraActive(false);
+        } catch(err: any) {
+          if (err instanceof NetworkError) {
+            showModal(<View><Text>Product could not be found.</Text></View>)
+            setCameraActive(false);
+          }
+        }
       }
     }
   });
