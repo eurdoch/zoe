@@ -11,7 +11,7 @@ import Svg, {
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import DataPoint from './types/DataPoint';
-import { formatTime } from './utils';
+import { convertFromDatabaseFormat, formatTime } from './utils';
 interface ScatterPlotProps {
   datasets: DataPoint[][];
   width?: number;
@@ -216,7 +216,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           {datasets.map((dataset, index) => (
             <View key={index} style={styles.legendItem}>
               <View style={[styles.legendColor, { backgroundColor: colors[index] }]} />
-              <Text style={styles.legendLabel}>{datasetLabels[index]}</Text>
+              <Text style={styles.legendLabel}>{convertFromDatabaseFormat(datasetLabels[index])}</Text>
             </View>
           ))}
         </View>
