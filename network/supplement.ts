@@ -14,6 +14,13 @@ export async function postSupplement(supplement: Supplement): Promise<any> {
   return response.json();
 }
 
+export async function getExerciseNames(): Promise<string[]> {
+  const response = await fetch(`${VITALE_BOX_URL}/supplement/names`, {
+    method: 'GET',
+  });
+  return response.json();
+}
+
 export async function getSupplementNames(): Promise<string[]> {
   const response = await fetch(`${VITALE_BOX_URL}/supplement/names`, {
     method: 'GET',

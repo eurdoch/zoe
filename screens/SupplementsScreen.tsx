@@ -1,34 +1,56 @@
 
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, Dimensions, Modal, Pressable, TextInput, TouchableOpacity, Button } from 'react-native';
-import { getSupplement, postSupplement } from '../network/supplement';
+import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { formatTime, showToastError, showToastInfo } from '../utils';
+import { convertFromDatabaseFormat, formatTime, showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import { Dropdown } from 'react-native-element-dropdown';
+import DropdownItem from '../types/DropdownItem';
 interface SupplementScreenProps {}
 interface Option {
   label: string;
   value: string;
 }
 const SupplementScreen: React.FC<SupplementScreenProps> = () => {
+  const [supplements, setSupplements] = useState<DropdownItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
+  const [isFocus, setIsFocus] = useState<boolean>(false);
   const [supplementEntries, setSupplementEntries] = useState<SupplementEntry[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [supplementName, setSupplementName] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const loadData = () => {
     getSupplement().then(entries => setSupplementEntries(entries));
   }
+  const dropdownItems = [
+    {
+      value: 'new_supplement',
+      label: 'Add New Supplement'
+    }, 
+    ...supplements,
+  ];
   useEffect(() => {
     loadData();
+    getSupplementNames()
+      .then(names => {
+        const sortedNames = names.sort((a, b) => a.localeCompare(b));
+        const items = sortedNames.map(name => ({
+          label: convertFromDatabaseFormat(name),
+          value: name,
+        }));
+        setSupplements(items);
+      })
+      .catch(err => {
+        showToastError('Could not get supplements: ' + err.toString());
+      });
   }, []);
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
-    if (!isNaN(parsedAmount)) {
+    if (!isNaN(parsedAmount) && selectedItem) {
       const result = await postSupplement({
-        name: supplementName,
+        name: selectedItem.value,
         amount: parsedAmount,
         createdAt: Math.floor(Date.now() / 1000),
         amount_unit: selectedUnit.value,
@@ -65,10 +87,24 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
       }
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <TextInput
-          value={supplementName}
-          onChangeText={setSupplementName}
-          placeholder="Enter supplement"
+        <Dropdown
+          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+          placeholderStyle={styles.placeholderStyle}
+          selectedTextStyle={styles.selectedTextStyle}
+          inputSearchStyle={styles.inputSearchStyle}
+          iconStyle={styles.iconStyle}
+          data={dropdownItems}
+          search
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          searchPlaceholder="Search..."
+          placeholder={!isFocus ? 'Select supplement' : '...'}
+          value={selectedItem === undefined ? '' : selectedItem.value}
+          onFocus={() => setIsFocus(true)}
+          onBlur={() => setIsFocus(false)}
+          onChange={item => {
+          }}
         />
         <View style={styles.amountContainer}>
           <TextInput style={styles.amountInput} placeholder="Amount" value={amount} onChangeText={setAmount} />
@@ -197,6 +233,20 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderRadius: 8,
     paddingHorizontal: 8,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 16,
   },
 });
 export default SupplementScreen;
