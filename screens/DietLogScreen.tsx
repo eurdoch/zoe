@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { useModal } from '../modals/ModalContext';
@@ -37,7 +37,9 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
           placeholder="Search for food"
           onSubmitEditing={handleSearchByText}
         />
-        <Button title="Search" onPress={handleSearchByText} />
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearchByText}>
+          <MaterialCommunityIcons name="magnify" size={24} color="white" />
+        </TouchableOpacity>
       </View>
       <ScrollView>
         {foodOptions.map((option, index) => (
@@ -57,23 +59,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
-  text: {
-    color: 'white',
-    fontSize: 18,
-    textAlign: 'center',
-  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     width: Dimensions.get("window").width - 20,
+    marginBottom: 10,
   },
   input: {
-    height: 40,
+    height: 48,
     borderWidth: 1,
+    borderRadius: 20,
     padding: 10,
-    marginVertical: 10,
     flex: 1,
+  },
+  searchButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
   barcodeIcon: {
     position: 'absolute',
