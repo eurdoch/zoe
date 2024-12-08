@@ -52,7 +52,7 @@ const AddSupplementModal = ({ loadData }: AddSupplementModalProps) => {
     { label: "tablet", value: "tablet" },
     { label: "capsule", value: "capsule" },
     { label: "ml", value: "ml" },
-    { label: "ui", value: "ui" }
+    { label: "UI", value: "UI" }
   ]
 
   return (
