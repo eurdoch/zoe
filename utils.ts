@@ -42,7 +42,7 @@ export const mapEntriesToDataPoint = (entries: ExerciseEntry[]): DataPoint[] => 
   });
 }
 
-export const mapWeigthEntriesToDataPoint = (entries: WeightEntry[]): DataPoint[] => {
+export const mapWeightEntriesToDataPoint = (entries: WeightEntry[]): DataPoint[] => {
   return entries.map(entry => ({
     x: entry.createdAt,
     y: entry.value,

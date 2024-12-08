@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, Switch } from 'react-native';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseNames } from '../network/exercise';
-import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint } from '../utils';
+import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, mapWeightEntriesToDataPoint } from '../utils';
+import { getSupplement } from '../network/supplement';
+import { getWeight } from '../network/weight';
 interface AnalysisScreenProps {
   navigation: any;
 }
@@ -28,16 +30,24 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
     
     if (value) {
       // Adding dataset when switch is turned on
-      if (id === 'weights' || id === 'supplements') {
+      if (id === 'weight') {
+        getWeight().then(entries => {
+          const dset = mapWeightEntriesToDataPoint(entries);
+          console.log(dset);
+          setSelectedDatasets([
+            ...selectedDatasets,
+            { [id]: dset}
+          ])
+        });
+      } else if (id === 'supplements') {
         // handle
       } else {
-        getExercisesByNameAndConvertToDataPoint(id)
-          .then(dset => {
-            setSelectedDatasets([
-              ...selectedDatasets,
-              { [id]: dset }
-            ])
-          });
+        getExercisesByNameAndConvertToDataPoint(id).then(dset => {
+          setSelectedDatasets([
+            ...selectedDatasets,
+            { [id]: dset }
+          ])
+        });
       }
     } else {
       // Removing dataset when switch is turned off
