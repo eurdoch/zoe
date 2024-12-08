@@ -3,18 +3,21 @@ import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-ca
 import { getFoodItemByUpc } from "../network/nutrition";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { useModal } from "../modals/ModalContext";
-import MacroCalculator from "./MacroCalculator";
 import { transformToProductResponse } from "../transform";
+import MacroCalculator from "./MacroCalculator";
+
 interface BarcodeScannerProps {
-  cameraActive: boolean;
-  setCameraActive: React.Dispatch<React.SetStateAction<boolean>>;
+  navigation: any;
 }
-const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) => {
+
+const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
+  const [cameraActive, setCameraActive] = useState<boolean>(true);
   const camera = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
   const { showModal } = useModal();
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
+
   const codeScanner = useCodeScanner({
     codeTypes: ['qr', 'ean-13'],
     onCodeScanned: async (codes) => {
@@ -23,9 +26,17 @@ const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) 
         const item = await getFoodItemByUpc(upc);
         const productResponse = transformToProductResponse(item);
         showModal(<MacroCalculator productResponse={productResponse} />)
+        setCameraActive(false);
       }
     }
   });
+
+  useEffect(() => {
+    if (!cameraActive) {
+      navigation.goBack();
+    }
+  }, [cameraActive]);
+
   useEffect(() => {
     const checkPermission = async () => {
       const cameraPermission = await Camera.requestCameraPermission();
@@ -33,6 +44,7 @@ const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) 
     };
     checkPermission();
   }, []);
+
   if (!hasPermission) {
     return (
       <View style={[styles.container, styles.textContainer]}>
@@ -40,6 +52,7 @@ const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) 
       </View>
     );
   }
+
   if (!device) {
     return (
       <View style={[styles.container, styles.textContainer]}>
@@ -47,6 +60,7 @@ const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) 
       </View>
     );
   }
+
   return (
     <View style={StyleSheet.absoluteFill}>
       <Camera
@@ -69,6 +83,7 @@ const BarcodeScanner = ({ cameraActive, setCameraActive }: BarcodeScannerProps) 
   );
 }
 export default BarcodeScanner;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

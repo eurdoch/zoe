@@ -36,31 +36,26 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
   return (
     <View style={styles.container}>
-      {cameraActive ?
-        <BarcodeScanner cameraActive={cameraActive} setCameraActive={setCameraActive} /> :
-        <View>
-          <View style={styles.searchBar}>
-            <TextInput
-              style={styles.input}
-              onChangeText={setSearchText}
-              value={searchText}
-              placeholder="Search for food"
-              onSubmitEditing={handleSearchByText}
-            />
-            <Button title="Search" onPress={handleSearchByText} />
-            <TouchableOpacity onPress={() => setCameraActive(true)}>
-              <MaterialCommunityIcons name="barcode-scan" size={40} color="black" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView>
-            {foodOptions.map((option, index) => (
-              <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
-                <FoodOptionComponent option={option} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      }
+      <View style={styles.searchBar}>
+        <TextInput
+          style={styles.input}
+          onChangeText={setSearchText}
+          value={searchText}
+          placeholder="Search for food"
+          onSubmitEditing={handleSearchByText}
+        />
+        <Button title="Search" onPress={handleSearchByText} />
+        <TouchableOpacity onPress={() => navigation.navigate('BarcodeScanner')}>
+          <MaterialCommunityIcons name="barcode-scan" size={40} color="black" />
+        </TouchableOpacity>
+      </View>
+      <ScrollView>
+        {foodOptions.map((option, index) => (
+          <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
+            <FoodOptionComponent option={option} />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 };
