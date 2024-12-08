@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, Dimensions, TextInput, Button } from 'react-native';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { convertFromDatabaseFormat, formatTime, showToastError, showToastInfo } from '../utils';
+import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
@@ -20,6 +21,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [amount, setAmount] = useState<string>("");
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
+  const [newSupplementName, setNewSupplementName] = useState<string>("");
   const loadData = () => {
     getSupplement().then(entries => setSupplementEntries(entries));
   }
@@ -30,9 +32,14 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
     }, 
     ...supplements,
   ];
-  useEffect(()=> {
-    console.log(supplements);
-  }, [supplements]);
+
+  useEffect(() => {
+    if (!modalVisible) {
+      setSelectedItem(undefined);
+      setAmount("");
+    }
+  }, [modalVisible]);
+
   useEffect(() => {
     loadData();
     getSupplementNames()
@@ -50,21 +57,26 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
   }, []);
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
-    if (!isNaN(parsedAmount) && selectedItem) {
-      const result = await postSupplement({
-        name: selectedItem.value,
-        amount: parsedAmount,
-        createdAt: Math.floor(Date.now() / 1000),
-        amount_unit: selectedUnit.value,
-      });
-      if (result.acknowledged) {
-        showToastInfo('Supplement added.');
-        loadData();
+    if (!isNaN(parsedAmount)) {
+      const supplementName = selectedItem?.value === 'new_supplement' ? convertToDatabaseFormat(newSupplementName) : selectedItem?.value;
+      if (supplementName) {
+        const result = await postSupplement({
+          name: supplementName,
+          amount: parsedAmount,
+          createdAt: Math.floor(Date.now() / 1000),
+          amount_unit: selectedUnit.value,
+        });
+        if (result.acknowledged) {
+          showToastInfo('Supplement added.');
+          loadData();
+        } else {
+          showToastError('Supplement could not be added, try again.');
+        }
       } else {
-        showToastError('Supplement could not be added, try again.');
+        showToastError('Please select or enter a supplement name.');
       }
     } else {
-      showToastError('Supplement must be a number.')
+      showToastError('Supplement amount must be a number.');
     }
   }
   const options = [
@@ -89,26 +101,36 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
       }
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'blue', minWidth: '100%' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={dropdownItems}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          searchPlaceholder="Search..."
-          placeholder={!isFocus ? 'Select exercise' : '...'}
-          value={selectedItem === undefined ? '' : selectedItem.value}
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={item => {
-            setSelectedItem(item);
-          }}
-        />
+        {selectedItem?.value === 'new_supplement' ? (
+          <TextInput
+            style={styles.newSupplementInput}
+            placeholder="Enter new supplement name"
+            value={newSupplementName}
+            onChangeText={setNewSupplementName}
+          />
+        ) : (
+          <Dropdown
+            style={[styles.dropdown, isFocus && { borderColor: 'blue', minWidth: '100%' }]}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            iconStyle={styles.iconStyle}
+            data={dropdownItems}
+            search
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            searchPlaceholder="Search..."
+            placeholder={!isFocus ? 'Select exercise' : '...'}
+            value={selectedItem === undefined ? '' : selectedItem.value}
+            onFocus={() => setIsFocus(true)}
+            onBlur={() => setIsFocus(false)}
+            onChange={item => {
+              setSelectedItem(item);
+              setNewSupplementName("");
+            }}
+          />
+        )}
         <View style={styles.amountContainer}>
           <TextInput style={styles.amountInput} placeholder="Amount" value={amount} onChangeText={setAmount} />
           <Dropdown
@@ -250,6 +272,13 @@ const styles = StyleSheet.create({
   inputSearchStyle: {
     height: 40,
     fontSize: 16,
+  },
+  newSupplementInput: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    height: 50,
   },
 });
 export default SupplementScreen;
