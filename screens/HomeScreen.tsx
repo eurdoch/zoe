@@ -4,21 +4,38 @@ import { NavigationProp } from '@react-navigation/native';
 import { StyleSheet, Button, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MouselessButton from '../components/MouselessButton';
+import Menu from '../components/Menu';
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
 };
+const menuItems = [
+  {
+    label: "Exercise",
+    screenName: "Exercise",
+  },
+  {
+    label: "Diet",
+    screenName: "Diet",
+  },
+  {
+    label: "Weight",
+    screenName: "Weight",
+  },
+  {
+    label: "Supplements",
+    screenName: "Supplement",
+  },
+]
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const handlePress = (screen: string) => {
     navigation.navigate(screen);
   };
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.buttonContainer}>
-        <MouselessButton onPress={() => handlePress('Exercise')}>Exercise</MouselessButton>
-        <MouselessButton onPress={() => handlePress('Diet')}>Diet</MouselessButton>
-        <MouselessButton onPress={() => handlePress('Weight')}>Weight</MouselessButton>
-        <MouselessButton onPress={() => handlePress('Supplement')}>Supplements</MouselessButton>
-      </View>
+      <Menu 
+        menuItems={menuItems}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 };
@@ -34,5 +51,4 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
 });
-
 export default HomeScreen;
