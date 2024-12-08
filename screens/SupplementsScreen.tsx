@@ -5,6 +5,7 @@ import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
 import { formatTime, showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
+import { Dropdown } from 'react-native-element-dropdown';
 interface SupplementScreenProps {}
 interface Option {
   label: string;
@@ -15,7 +16,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [supplementName, setSupplementName] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const loadData = () => {
     getSupplement().then(entries => setSupplementEntries(entries));
@@ -23,11 +23,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
   useEffect(() => {
     loadData();
   }, []);
-  const selectOption = (option: Option) => {
-    setSelectedUnit(option);
-    setIsOpen(false);
-  };
-
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
     if (!isNaN(parsedAmount)) {
@@ -47,7 +42,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
       showToastError('Supplement must be a number.')
     }
   }
-
   const options = [
     { label: "unit", value: "" },
     { label: "mg", value: "mg" },
@@ -56,7 +50,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
     { label: "ml", value: "ml" },
     { label: "UI", value: "UI" }
   ]
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {
@@ -77,31 +70,16 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
         />
         <View style={styles.amountContainer}>
           <TextInput placeholder="Amount" value={amount} onChangeText={setAmount} />
-          <View style={styles.container}>
-            <TouchableOpacity
-              style={styles.selectedOption}
-              onPress={() => setIsOpen(!isOpen)}
-            >
-              <Text>
-                { selectedUnit ? selectedUnit.label : 'unit'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Dropdown
+            style={styles.dropdown}
+            data={options}
+            labelField="label"
+            valueField="value"
+            placeholder={selectedUnit.label}
+            value={selectedUnit.value}
+            onChange={item => setSelectedUnit(item)}
+          />
         </View>
-        
-          {isOpen && (
-            <ScrollView style={styles.optionsList}>
-              {options.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={styles.option}
-                  onPress={() => selectOption(option)}
-                >
-                  <Text>{option.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
         <Button title="Add" onPress={handleAddSupplement} />
       </CustomModal>
     </ScrollView>
@@ -202,6 +180,14 @@ const styles = StyleSheet.create({
   amountContainer: {
     display: 'flex',
     flexDirection: 'row'
+  },
+  dropdown: {
+    flex: 1,
+    height: 50,
+    borderColor: 'gray',
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 8,
   },
 });
 export default SupplementScreen;
