@@ -244,8 +244,11 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     marginTop: 10,
+    gap: 5,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   legendItem: {
     flexDirection: 'row',

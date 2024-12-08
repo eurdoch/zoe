@@ -47,7 +47,6 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text>Analysis</Text>
       <ScatterPlot
         datasets={selectedDatasets.map(item => Object.values(item)[0])}
         datasetLabels={selectedDatasets.map(item => Object.keys(item)[0])}
