@@ -147,7 +147,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       { data && selectedItem && (
         <ScatterPlot
           onDataPointClick={handleDataPointClick}
-          data={data}
+          datasets={[data]}
           title={selectedItem.label}
           zoomAndPanEnabled={false}
         />

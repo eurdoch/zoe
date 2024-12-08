@@ -10,13 +10,11 @@ import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
 
 const WeightScreen = () => {
-  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
   const [data, setData] = useState<DataPoint[]>([]);
   const { showModal } = useModal();
 
   const loadData = () => {
     getWeight().then(result => {
-      setWeightEntries(result);
       setData(mapWeigthEntriesToDataPoint(result));
     });
   }
@@ -32,7 +30,7 @@ const WeightScreen = () => {
   return (
     <View style={styles.container}>
       <ScatterPlot
-        data={data}
+        datasets={[data]}
         onDataPointClick={() => {}}
         zoomAndPanEnabled={false}
       />

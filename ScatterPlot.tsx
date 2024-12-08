@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { View, Text, Dimensions, StyleSheet, GestureResponderEvent } from 'react-native';
 import { ReactNativeZoomableView, ZoomableViewEvent } from '@openspacelabs/react-native-zoomable-view';
@@ -11,9 +12,8 @@ import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import DataPoint from './types/DataPoint';
 import { formatTime } from './utils';
-
 interface ScatterPlotProps {
-  data: DataPoint[];
+  datasets: DataPoint[][];
   width?: number;
   height?: number;
   title?: string;
@@ -23,28 +23,29 @@ interface ScatterPlotProps {
     bottom: number;
     left: number;
   };
-  onDataPointClick: (point: DataPoint) => void;
+  onDataPointClick: (point: DataPoint, datasetIndex: number) => void;
   zoomAndPanEnabled?: boolean;
+  datasetLabels?: string[];
 }
-
 const ScatterPlot: React.FC<ScatterPlotProps> = ({
-  data,
+  datasets,
   width = Dimensions.get('window').width - 40,
   height = 300,
   margins = { top: 20, right: 20, bottom: 50, left: 50 },
   title,
   onDataPointClick,
   zoomAndPanEnabled = true,
+  datasetLabels,
 }) => {
   const [selectedPoint, setSelectedPoint] = useState<DataPoint | null>(null);
-
+  const [selectedDatasetIndex, setSelectedDatasetIndex] = useState<number | null>(null);
   const chartDetails = useMemo(() => {
     const innerWidth = width - margins.left - margins.right;
     const innerHeight = height - margins.top - margins.bottom;
-
-    const xExtent = d3Array.extent(data, d => d.x) as [number, number];
-    const yExtent = d3Array.extent(data, d => d.y) as [number, number];
-
+    const xExtents = datasets.map(dataset => d3Array.extent(dataset, d => d.x) as [number, number]);
+    const yExtents = datasets.map(dataset => d3Array.extent(dataset, d => d.y) as [number, number]);
+    const xExtent = d3Array.extent([].concat(...xExtents.map(([min, max]) => [min, max]))) as [number, number];
+    const yExtent = d3Array.extent([].concat(...yExtents.map(([min, max]) => [min, max]))) as [number, number];
     const xScale = d3Scale.scaleLinear()
       .domain([
         xExtent[0] - (xExtent[1] - xExtent[0]) * 0.1, 
@@ -57,13 +58,14 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
         yExtent[1] + (yExtent[1] - yExtent[0]) * 0.1
       ])
       .range([innerHeight, 0]);
-
-    const points = data.map(d => ({
-      x: xScale(d.x),
-      y: yScale(d.y),
-      originalData: d
-    }));
-
+    const points = datasets.map((dataset, i) =>
+      dataset.map(d => ({
+        x: xScale(d.x),
+        y: yScale(d.y),
+        originalData: d,
+        datasetIndex: i
+      }))
+    );
     return { 
       xScale, 
       yScale, 
@@ -73,8 +75,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       xExtent,
       yExtent
     };
-  }, [data, width, height, margins]);
-
+  }, [datasets, width, height, margins]);
   const xTicks = useMemo(() => 
     chartDetails.xScale.ticks(5).map(tick => ({
       value: tick,
@@ -82,7 +83,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     })), 
   [chartDetails]
   );
-
   const yTicks = useMemo(() => 
     chartDetails.yScale.ticks(5).map(tick => ({
       value: tick,
@@ -90,27 +90,28 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     })), 
   [chartDetails]
   );
-
   const handleSingleTap = (event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
     const { locationX, locationY } = event.nativeEvent;
     const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
     const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
-
     const radius = 20 / zoomableViewEvent.zoomLevel;
-    const closestPoint = chartDetails.points.find(point => {
+    const closestPoint = chartDetails.points.flatMap((points, i) =>
+      points.map(point => ({ ...point, datasetIndex: i }))
+    ).find(point => {
       const dx = point.x - adjustedX;
       const dy = point.y - adjustedY;
       return Math.sqrt(dx * dx + dy * dy) <= radius;
     });
-
     if (closestPoint) {
       setSelectedPoint(closestPoint.originalData);
-      onDataPointClick?.(closestPoint.originalData);
+      setSelectedDatasetIndex(closestPoint.datasetIndex);
+      onDataPointClick?.(closestPoint.originalData, closestPoint.datasetIndex);
     } else {
       setSelectedPoint(null);
+      setSelectedDatasetIndex(null);
     }
   };
-
+  const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6610f2'];
   return (
     <View style={styles.container}>
       <Text style={styles.titleText}>{title}</Text>
@@ -129,19 +130,20 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <Svg width={width} height={height}>
             <G x={margins.left} y={margins.top}>
               {/* Data Points */}
-              {chartDetails.points.map((point, index) => (
-                <Circle
-                  key={index}
-                  cx={point.x}
-                  cy={point.y}
-                  r={5}
-                  fill={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
-                  stroke={selectedPoint === point.originalData ? "#ff0000" : "#007bff"}
-                  strokeWidth={2}
-                  onPress={() => handleDataPointClick(point.originalData)}
-                />
-              ))}
-
+              {chartDetails.points.flatMap((points, i) =>
+                points.map((point, index) => (
+                  <Circle
+                    key={`${i}-${index}`}
+                    cx={point.x}
+                    cy={point.y}
+                    r={5}
+                    fill={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
+                    stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
+                    strokeWidth={2}
+                    onPress={() => handleDataPointClick(point.originalData, i)}
+                  />
+                ))
+              )}
               {/* X-axis */}
               <Line
                 x1={0}
@@ -151,7 +153,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 stroke="#000"
                 strokeWidth={2}
               />
-
               {/* Y-axis */}
               <Line
                 x1={0}
@@ -161,7 +162,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 stroke="#000"
                 strokeWidth={2}
               />
-
               {/* X-axis ticks */}
               {xTicks.map((tick, i) => (
                 <G key={`x-tick-${i}`}>
@@ -184,7 +184,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                   </SvgText>
                 </G>
               ))}
-
               {/* Y-axis ticks */}
               {yTicks.map((tick, i) => (
                 <G key={`y-tick-${i}`}>
@@ -212,10 +211,19 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           </Svg>
         </ReactNativeZoomableView>
       </View>
+      {datasetLabels && (
+        <View style={styles.legendContainer}>
+          {datasets.map((dataset, index) => (
+            <View key={index} style={styles.legendItem}>
+              <View style={[styles.legendColor, { backgroundColor: colors[index] }]} />
+              <Text style={styles.legendLabel}>{datasetLabels[index]}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     display: 'flex',
@@ -233,7 +241,25 @@ const styles = StyleSheet.create({
   zoomableView: {
     width: '100%',
     height: '100%',
-  }
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 5,
+  },
+  legendLabel: {
+    fontSize: 14,
+  },
 });
-
 export default ScatterPlot;
