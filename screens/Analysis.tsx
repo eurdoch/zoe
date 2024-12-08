@@ -33,7 +33,6 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
       if (id === 'weight') {
         getWeight().then(entries => {
           const dset = mapWeightEntriesToDataPoint(entries);
-          console.log(dset);
           setSelectedDatasets([
             ...selectedDatasets,
             { [id]: dset}

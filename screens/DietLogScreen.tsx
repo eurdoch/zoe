@@ -2,22 +2,17 @@ import React, { useState } from 'react';
 import { View, ScrollView, Button, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
-import BarcodeScanner from '../components/BarcodeScanner';
 import { useModal } from '../modals/ModalContext';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
-
 interface DietLogScreenProps {
   navigation: any;
 }
-
 const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
-  const [cameraActive, setCameraActive] = useState(false);
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
   const { showModal } = useModal();
-
   const handleSearchByText = async () => {
     if (searchText) {
       try {
@@ -28,11 +23,9 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
       }
     }
   }
-
   const handleFoodOptionPress = async (option: any) => {
     showModal(<MacroCalculator productResponse={option} />)
   }
-
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
   return (
     <View style={styles.container}>
@@ -45,9 +38,6 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
           onSubmitEditing={handleSearchByText}
         />
         <Button title="Search" onPress={handleSearchByText} />
-        <TouchableOpacity onPress={() => navigation.navigate('BarcodeScanner')}>
-          <MaterialCommunityIcons name="barcode-scan" size={40} color="black" />
-        </TouchableOpacity>
       </View>
       <ScrollView>
         {foodOptions.map((option, index) => (
@@ -56,10 +46,12 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      <TouchableOpacity style={styles.barcodeIcon} onPress={() => navigation.navigate('BarcodeScanner')}>
+        <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
+      </TouchableOpacity>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -83,7 +75,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     flex: 1,
   },
+  barcodeIcon: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+  },
 });
-
 export default DietLogScreen;
-

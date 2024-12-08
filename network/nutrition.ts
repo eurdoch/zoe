@@ -7,13 +7,14 @@ export const getFoodItemByUpc = async (upc: string): Promise<any> => {
     const response = await fetch(
       `https://world.openfoodfacts.org/api/v2/product/${upc}?fields=brands,categories_tags,code,image_url,product_name,nutriments,quantity`
     );
-
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.status === 404) {
+        console.log(`Product with UPC ${upc} not found.`);
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     }
-
     const data = await response.json();
-    
     return data.product;
   } catch (error) {
     console.error('Error fetching nutrition info:', error);
