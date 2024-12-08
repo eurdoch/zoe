@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, Dimensions, Modal, Pressable, TextInput, TouchableOpacity, Button } from 'react-native';
 import { getSupplement, postSupplement } from '../network/supplement';
@@ -50,6 +51,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
     { label: "ml", value: "ml" },
     { label: "UI", value: "UI" }
   ]
+  const longestOptionLabel = options.reduce((longest, option) => option.label.length > longest.length ? option.label : longest, "");
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {
@@ -69,9 +71,9 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
           placeholder="Enter supplement"
         />
         <View style={styles.amountContainer}>
-          <TextInput placeholder="Amount" value={amount} onChangeText={setAmount} />
+          <TextInput style={styles.amountInput} placeholder="Amount" value={amount} onChangeText={setAmount} />
           <Dropdown
-            style={styles.dropdown}
+            style={[styles.dropdown, { width: longestOptionLabel.length * 10 + 20 }]}
             data={options}
             labelField="label"
             valueField="value"
@@ -181,8 +183,15 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row'
   },
-  dropdown: {
+  amountInput: {
     flex: 1,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginRight: 8,
+  },
+  dropdown: {
     height: 50,
     borderColor: 'gray',
     borderWidth: 0.5,
