@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#121212',
-    fontFamily: 'System', // You can change to Inter if you have it installed
+    fontFamily: 'Inter',
     fontSize: 19.2, // equivalent to 1.2rem
     fontWeight: '700',
     textAlign: 'center',

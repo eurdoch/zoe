@@ -1,16 +1,15 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text } from 'react-native-paper';
 import { formatTime, showToastError } from '../utils';
 import ExerciseEntry from '../types/ExerciseEntry';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { deleteExerciseById } from '../network/exercise';
 import { useModal } from '../modals/ModalContext';
-
 interface Props {
   entry: ExerciseEntry;
   reloadData: (name: string) => void;
 }
-
 const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData }) => {
   const { hideModal } = useModal();
 
@@ -25,18 +24,28 @@ const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData }) => {
 
   return (
     <View style={styles.container}>
-      <Text>Weight: {entry.weight.toString()} lbs</Text>
-      <Text>Reps: {entry.reps.toString()}</Text>
-      <Text>Date: {formatTime(entry.createdAt)}</Text>
-      <Button onPress={handleDeleteExercise}>Delete</Button>
+      <Text style={[styles.text, styles.bold]}>{formatTime(entry.createdAt)}</Text>
+      <Text style={styles.text}>{entry.reps.toString() + ' @ ' + entry.weight.toString() + ' lbs'}</Text>
+      <TouchableOpacity onPress={() => handleDeleteExercise(entry)}> 
+        <MaterialCommunityIcons name="delete" size={20}/>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flexDirection: 'column',
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  text: {
+    fontFamily: 'System',
+    fontSize: 20,
+  },
+  bold: {
+    fontWeight: 'bold',
+  }
 });
-
 export default ExerciseModalContent;
