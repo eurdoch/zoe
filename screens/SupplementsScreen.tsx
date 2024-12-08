@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, Dimensions, Modal, Pressable, TextInput, TouchableOpacity, Button } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Dimensions, TextInput, Button } from 'react-native';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -31,6 +30,9 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
     }, 
     ...supplements,
   ];
+  useEffect(()=> {
+    console.log(supplements);
+  }, [supplements]);
   useEffect(() => {
     loadData();
     getSupplementNames()
@@ -80,7 +82,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
         supplementEntries.map(entry => <View style={styles.supplementEntry} key={entry._id}>
             <View style={styles.entryTextContainer}>
               <Text style={[styles.entryText, styles.boldText]}>{formatTime(entry.createdAt)}</Text>
-              <Text style={styles.entryText}>{entry.name}</Text>
+              <Text style={styles.entryText}>{convertFromDatabaseFormat(entry.name)}</Text>
             </View>
             <Text style={styles.entryText}>{entry.amount + ' ' + entry.amount_unit }</Text>
         </View>)
@@ -88,7 +90,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+          style={[styles.dropdown, isFocus && { borderColor: 'blue', minWidth: '100%' }]}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
@@ -99,11 +101,12 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
           labelField="label"
           valueField="value"
           searchPlaceholder="Search..."
-          placeholder={!isFocus ? 'Select supplement' : '...'}
+          placeholder={!isFocus ? 'Select exercise' : '...'}
           value={selectedItem === undefined ? '' : selectedItem.value}
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
           onChange={item => {
+            setSelectedItem(item);
           }}
         />
         <View style={styles.amountContainer}>

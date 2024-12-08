@@ -34,10 +34,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
+    flexDirection: 'column',
+    gap: 10,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    alignItems: 'center',
+    width: '100%'
   },
   modalText: {
     fontSize: 18,
