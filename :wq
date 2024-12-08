@@ -1,0 +1,209 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 <path-to-source-icon.png>"
+  exit 1
+fi
+
+SOURCE_ICON=$1
+
+# Check if source file exists
+if [ ! -f "$SOURCE_ICON" ]; then
+  echo "Error: Source file '$SOURCE_ICON' not found!"
+  exit 1
+fi
+
+# Check if ImageMagick is installed
+if ! command -v convert &>/dev/null; then
+  echo "Error: ImageMagick is not installed. Please install it first."
+  echo "macOS: brew install imagemagick"
+  echo "Ubuntu/Debian: sudo apt-get install imagemagick"
+  exit 1
+fi
+
+# Check if we're in a React Native project
+if [ ! -d "android" ] || [ ! -d "ios" ]; then
+  echo "Error: android/ or ios/ directory not found!"
+  echo "Please run this script from your React Native project root directory."
+  exit 1
+fi
+
+echo "Generating Android icons..."
+
+# Android icons - direct to correct paths
+ANDROID_RES="android/app/src/main/res"
+mkdir -p "$ANDROID_RES/mipmap-mdpi"
+mkdir -p "$ANDROID_RES/mipmap-hdpi"
+mkdir -p "$ANDROID_RES/mipmap-xhdpi"
+mkdir -p "$ANDROID_RES/mipmap-xxhdpi"
+mkdir -p "$ANDROID_RES/mipmap-xxxhdpi"
+mkdir -p "$ANDROID_RES/mipmap-anydpi-v26"
+
+# Calculate padding percentage (e.g., 75% of original size means 25% padding)
+PADDING_PERCENT=60
+
+# Generate Android square icons with padding
+convert "$SOURCE_ICON" -resize "$((48 * PADDING_PERCENT / 100))x$((48 * PADDING_PERCENT / 100))" -gravity center -background white -extent 48x48 "$ANDROID_RES/mipmap-mdpi/ic_launcher.png"
+convert "$SOURCE_ICON" -resize "$((72 * PADDING_PERCENT / 100))x$((72 * PADDING_PERCENT / 100))" -gravity center -background white -extent 72x72 "$ANDROID_RES/mipmap-hdpi/ic_launcher.png"
+convert "$SOURCE_ICON" -resize "$((96 * PADDING_PERCENT / 100))x$((96 * PADDING_PERCENT / 100))" -gravity center -background white -extent 96x96 "$ANDROID_RES/mipmap-xhdpi/ic_launcher.png"
+convert "$SOURCE_ICON" -resize "$((144 * PADDING_PERCENT / 100))x$((144 * PADDING_PERCENT / 100))" -gravity center -background white -extent 144x144 "$ANDROID_RES/mipmap-xxhdpi/ic_launcher.png"
+convert "$SOURCE_ICON" -resize "$((192 * PADDING_PERCENT / 100))x$((192 * PADDING_PERCENT / 100))" -gravity center -background white -extent 192x192 "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher.png"
+
+# Copy square icons to round icons
+cp "$ANDROID_RES/mipmap-mdpi/ic_launcher.png" "$ANDROID_RES/mipmap-mdpi/ic_launcher_round.png"
+cp "$ANDROID_RES/mipmap-hdpi/ic_launcher.png" "$ANDROID_RES/mipmap-hdpi/ic_launcher_round.png"
+cp "$ANDROID_RES/mipmap-xhdpi/ic_launcher.png" "$ANDROID_RES/mipmap-xhdpi/ic_launcher_round.png"
+cp "$ANDROID_RES/mipmap-xxhdpi/ic_launcher.png" "$ANDROID_RES/mipmap-xxhdpi/ic_launcher_round.png"
+cp "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher.png" "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher_round.png"
+
+# Generate foreground icons with padding
+convert "$SOURCE_ICON" -resize "$((48 * PADDING_PERCENT / 100))x$((48 * PADDING_PERCENT / 100))" -gravity center -background white -extent 48x48 "$ANDROID_RES/mipmap-mdpi/ic_launcher_foreground.png"
+convert "$SOURCE_ICON" -resize "$((72 * PADDING_PERCENT / 100))x$((72 * PADDING_PERCENT / 100))" -gravity center -background white -extent 72x72 "$ANDROID_RES/mipmap-hdpi/ic_launcher_foreground.png"
+convert "$SOURCE_ICON" -resize "$((96 * PADDING_PERCENT / 100))x$((96 * PADDING_PERCENT / 100))" -gravity center -background white -extent 96x96 "$ANDROID_RES/mipmap-xhdpi/ic_launcher_foreground.png"
+convert "$SOURCE_ICON" -resize "$((144 * PADDING_PERCENT / 100))x$((144 * PADDING_PERCENT / 100))" -gravity center -background white -extent 144x144 "$ANDROID_RES/mipmap-xxhdpi/ic_launcher_foreground.png"
+convert "$SOURCE_ICON" -resize "$((192 * PADDING_PERCENT / 100))x$((192 * PADDING_PERCENT / 100))" -gravity center -background white -extent 192x192 "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
+
+# Create adaptive icon XML files
+cat >"$ANDROID_RES/mipmap-anydpi-v26/ic_launcher.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background"/>
+    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+</adaptive-icon>
+EOF
+
+cat >"$ANDROID_RES/mipmap-anydpi-v26/ic_launcher_round.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background"/>
+    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+</adaptive-icon>
+EOF
+
+# Create values folder and color resource file
+mkdir -p "$ANDROID_RES/values"
+cat >"$ANDROID_RES/values/ic_launcher_background.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>
+EOF
+
+echo "Generating iOS icons..."
+
+# iOS icons - create in Assets.xcassets directory
+IOS_ASSETS="ios/YourAppName/Images.xcassets/AppIcon.appiconset"
+mkdir -p "$IOS_ASSETS"
+
+# Generate iOS icons with padding
+convert "$SOURCE_ICON" -resize "$((40 * PADDING_PERCENT / 100))x$((40 * PADDING_PERCENT / 100))" -gravity center -background white -extent 40x40 "$IOS_ASSETS/Icon-20@2x.png"        # iPad Notifications
+convert "$SOURCE_ICON" -resize "$((60 * PADDING_PERCENT / 100))x$((60 * PADDING_PERCENT / 100))" -gravity center -background white -extent 60x60 "$IOS_ASSETS/Icon-20@3x.png"        # iPhone Notifications
+convert "$SOURCE_ICON" -resize "$((58 * PADDING_PERCENT / 100))x$((58 * PADDING_PERCENT / 100))" -gravity center -background white -extent 58x58 "$IOS_ASSETS/Icon-29@2x.png"        # Settings
+convert "$SOURCE_ICON" -resize "$((87 * PADDING_PERCENT / 100))x$((87 * PADDING_PERCENT / 100))" -gravity center -background white -extent 87x87 "$IOS_ASSETS/Icon-29@3x.png"        # Settings
+convert "$SOURCE_ICON" -resize "$((80 * PADDING_PERCENT / 100))x$((80 * PADDING_PERCENT / 100))" -gravity center -background white -extent 80x80 "$IOS_ASSETS/Icon-40@2x.png"        # Spotlight
+convert "$SOURCE_ICON" -resize "$((120 * PADDING_PERCENT / 100))x$((120 * PADDING_PERCENT / 100))" -gravity center -background white -extent 120x120 "$IOS_ASSETS/Icon-40@3x.png"    # Spotlight
+convert "$SOURCE_ICON" -resize "$((120 * PADDING_PERCENT / 100))x$((120 * PADDING_PERCENT / 100))" -gravity center -background white -extent 120x120 "$IOS_ASSETS/Icon-60@2x.png"    # iPhone App
+convert "$SOURCE_ICON" -resize "$((180 * PADDING_PERCENT / 100))x$((180 * PADDING_PERCENT / 100))" -gravity center -background white -extent 180x180 "$IOS_ASSETS/Icon-60@3x.png"    # iPhone App Plus
+convert "$SOURCE_ICON" -resize "$((152 * PADDING_PERCENT / 100))x$((152 * PADDING_PERCENT / 100))" -gravity center -background white -extent 152x152 "$IOS_ASSETS/Icon-76@2x.png"    # iPad App
+convert "$SOURCE_ICON" -resize "$((167 * PADDING_PERCENT / 100))x$((167 * PADDING_PERCENT / 100))" -gravity center -background white -extent 167x167 "$IOS_ASSETS/Icon-83.5@2x.png"  # iPad Pro App
+convert "$SOURCE_ICON" -resize "$((1024 * PADDING_PERCENT / 100))x$((1024 * PADDING_PERCENT / 100))" -gravity center -background white -extent 1024x1024 "$IOS_ASSETS/Icon-1024.png" # App Store
+
+# Create Contents.json for iOS
+cat >"$IOS_ASSETS/Contents.json" <<'EOF'
+{
+  "images" : [
+    {
+      "size" : "20x20",
+      "idiom" : "iphone",
+      "filename" : "Icon-20@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "20x20",
+      "idiom" : "iphone",
+      "filename" : "Icon-20@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "29x29",
+      "idiom" : "iphone",
+      "filename" : "Icon-29@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "29x29",
+      "idiom" : "iphone",
+      "filename" : "Icon-29@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "40x40",
+      "idiom" : "iphone",
+      "filename" : "Icon-40@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "40x40",
+      "idiom" : "iphone",
+      "filename" : "Icon-40@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "60x60",
+      "idiom" : "iphone",
+      "filename" : "Icon-60@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "60x60",
+      "idiom" : "iphone",
+      "filename" : "Icon-60@3x.png",
+      "scale" : "3x"
+    },
+    {
+      "size" : "76x76",
+      "idiom" : "ipad",
+      "filename" : "Icon-76@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "83.5x83.5",
+      "idiom" : "ipad",
+      "filename" : "Icon-83.5@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
+      "idiom" : "ios-marketing",
+      "filename" : "Icon-1024.png",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "version" : 1,
+    "author" : "xcode"
+  }
+}
+EOF
+
+echo "Done! Icons have been generated in:"
+echo "- Android: $ANDROID_RES/"
+echo "  - Regular icons: mipmap-*/ic_launcher.png"
+echo "  - Round icons: mipmap-*/ic_launcher_round.png (identical to regular)"
+echo "  - Foreground: mipmap-*/ic_launcher_foreground.png"
+echo "  - Adaptive icon XML: mipmap-anydpi-v26/ic_launcher.xml"
+echo "  - Adaptive icon XML (round): mipmap-anydpi-v26/ic_launcher_round.xml"
+echo "- iOS: $IOS_ASSETS/"
+echo ""
+echo "Note: For iOS, you may need to:"
+echo "1. Replace 'YourAppName' in the path with your actual app name"
+echo "2. Clean and rebuild your Xcode project"
+echo ""
+echo "For Android:"
+echo "1. You can customize the background color in: $ANDROID_RES/values/ic_launcher_background.xml"
+echo "2. Make sure your app's build.gradle includes icon configurations:"
+echo 'android {'
+echo '    defaultConfig {'
+echo '        applicationIcon = "@mipmap/ic_launcher"'
+echo '        roundIcon = "@mipmap/ic_launcher_round"'
+echo '    }'
