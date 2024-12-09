@@ -83,7 +83,7 @@ const DietScreen = ({ navigation }: DietScreenProps) => {
           deleteEntry && (
             <View>
               <Text>Delete entry?</Text>
-              <Text>{deleteEntry?.toString()}</Text>
+              <Text>{deleteEntry.name + ' ' + deleteEntry.macros.calories}</Text>
               <Button title="DELETE" onPress={() => handleDeleteEntry(deleteEntry._id)} />
             </View>
           )
