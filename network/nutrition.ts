@@ -26,7 +26,7 @@ export const getFoodItemByUpc = async (upc: string): Promise<any> => {
 export const searchFoodItemByText = async (searchQuery: string, options = {}) => {
   const {
     page = 1,
-    pageSize = 24,
+    pageSize = 10,
     locale = 'world'
   } = options;
 

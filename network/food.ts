@@ -21,10 +21,11 @@ export async function getFood(id: string): Promise<FoodEntry> {
   return response.json();
 }
 
-export async function deleteFood(id: string): Promise<void> {
-  await fetch(`${VITALE_BOX_URL}/food/${id}`, {
+export async function deleteFood(id: string): Promise<any> {
+  const response = await fetch(`${VITALE_BOX_URL}/food/${id}`, {
     method: 'DELETE',
   });
+  return response.json();
 }
 
 export async function getFoodByUnixTime(unixTime: number): Promise<FoodEntry[]> {

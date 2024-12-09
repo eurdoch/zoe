@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { useModal } from '../modals/ModalContext';
@@ -12,21 +13,24 @@ interface DietLogScreenProps {
 const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { showModal } = useModal();
   const handleSearchByText = async () => {
     if (searchText) {
+      setIsLoading(true);
       try {
         const result = await searchFoodItemByText(searchText);
         setFoodOptions(result.products);
       } catch (error: any) {
         showToastError(error.toString());
+      } finally {
+        setIsLoading(false);
       }
     }
   }
   const handleFoodOptionPress = async (option: any) => {
     showModal(<MacroCalculator productResponse={option} />)
   }
-  // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
   return (
     <View style={styles.container}>
       <View style={styles.searchBar}>
@@ -41,13 +45,19 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
           <MaterialCommunityIcons name="magnify" size={24} color="white" />
         </TouchableOpacity>
       </View>
-      <ScrollView>
-        {foodOptions.map((option, index) => (
-          <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
-            <FoodOptionComponent option={option} />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <ScrollView>
+          {foodOptions.map((option, index) => (
+            <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
+              <FoodOptionComponent option={option} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
       <TouchableOpacity style={styles.barcodeIcon} onPress={() => navigation.navigate('BarcodeScanner')}>
         <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
       </TouchableOpacity>
@@ -83,6 +93,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     alignSelf: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 export default DietLogScreen;
