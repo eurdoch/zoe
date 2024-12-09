@@ -45,7 +45,7 @@ export default function foodRoutes(foodCollection) {
         res.status(404).json({ error: 'Item not found' });
         return;
       }
-      res.json({ message: 'Item deleted successfully' });
+      res.json(result);
     } catch (err) {
       res.status(500).json({ error: 'Failed to delete item' });
     }
