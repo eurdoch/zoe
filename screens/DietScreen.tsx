@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import FloatingActionButton from '../components/FloatingActionButton';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { showToastError, showToastInfo } from '../utils';
+import CustomModal from '../CustomModal';
 interface DietScreenProps {
   navigation: any;
 }
 const DietScreen = ({ navigation }: DietScreenProps) => {
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([])
   const [totalCalories, setTotalCalories] = useState<number | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   // TODO make sure this works when item is logged``
-  useEffect(() => {
+
+  const loadData = () => {
     const today = Math.floor(Date.now() / 1000);
     getFoodByUnixTime(today).then(entries => {
       let count = 0;
@@ -21,12 +26,32 @@ const DietScreen = ({ navigation }: DietScreenProps) => {
       setTotalCalories(count);
       setFoodEntries(entries);
     });
-  }, []);
+  }
+
+  useEffect(() => {
+      const unsubscribe = navigation.addListener('focus', () => {
+        loadData();
+      });
+
+      return unsubscribe;
+  }, [navigation]);
 
   const handleDeleteEntry = (id: string) => {
     deleteFood(id).then(result => {
-      console.log(result);
+      if (result.acknowledged) {
+        showToastInfo('Food entry deleted.');
+        loadData();
+      } else {
+        showToastError('Food entry could not be deleted, try again.');
+      }
     });
+    setModalVisible(false);
+    setDeleteEntry(null);
+  }
+
+  const checkDelete = (entry: FoodEntry) => {
+    setDeleteEntry(entry);
+    setModalVisible(true);
   }
 
   // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
@@ -42,7 +67,7 @@ const DietScreen = ({ navigation }: DietScreenProps) => {
             <Text style={styles.boldFont}>{entry.name}</Text>
             <View style={styles.rightSection}>
               <Text style={{fontSize: 18}}>{entry.macros.calories}</Text>
-              <TouchableOpacity onPress={() => handleDeleteEntry(entry._id)}>
+              <TouchableOpacity onPress={() => checkDelete(entry)}>
                 <MaterialCommunityIcons name="delete" size={18} />
               </TouchableOpacity>
             </View>
@@ -50,6 +75,20 @@ const DietScreen = ({ navigation }: DietScreenProps) => {
         ))}
       </ScrollView>
       <FloatingActionButton onPress={() => navigation.navigate('DietLog')} />
+      <CustomModal
+        visible={modalVisible}
+        setVisible={setModalVisible}
+      >
+        { 
+          deleteEntry && (
+            <View>
+              <Text>Delete entry?</Text>
+              <Text>{deleteEntry?.toString()}</Text>
+              <Button title="DELETE" onPress={() => handleDeleteEntry(deleteEntry._id)} />
+            </View>
+          )
+        }
+      </CustomModal>
     </View>
   );
 };

@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
-import { useModal } from '../modals/ModalContext';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
+import CustomModal from '../CustomModal';
 interface DietLogScreenProps {
   navigation: any;
 }
@@ -14,7 +14,8 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { showModal } = useModal();
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [option, setOption] = useState<any>({});
   const handleSearchByText = async () => {
     if (searchText) {
       setIsLoading(true);
@@ -29,39 +30,48 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
     }
   }
   const handleFoodOptionPress = async (option: any) => {
-    showModal(<MacroCalculator productResponse={option} />)
+    setOption(option);
+    setModalVisible(true);
   }
   return (
-    <View style={styles.container}>
-      <View style={styles.searchBar}>
-        <TextInput
-          style={styles.input}
-          onChangeText={setSearchText}
-          value={searchText}
-          placeholder="Search for food"
-          onSubmitEditing={handleSearchByText}
-        />
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearchByText}>
-          <MaterialCommunityIcons name="magnify" size={24} color="white" />
+    <>
+      <View style={styles.container}>
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.input}
+            onChangeText={setSearchText}
+            value={searchText}
+            placeholder="Search for food"
+            onSubmitEditing={handleSearchByText}
+          />
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearchByText}>
+            <MaterialCommunityIcons name="magnify" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" />
+          </View>
+        ) : (
+          <ScrollView>
+            {foodOptions.map((option, index) => (
+              <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
+                <FoodOptionComponent option={option} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+        <TouchableOpacity style={styles.barcodeIcon} onPress={() => navigation.navigate('BarcodeScanner')}>
+          <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
         </TouchableOpacity>
       </View>
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
-        </View>
-      ) : (
-        <ScrollView>
-          {foodOptions.map((option, index) => (
-            <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
-              <FoodOptionComponent option={option} />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
-      <TouchableOpacity style={styles.barcodeIcon} onPress={() => navigation.navigate('BarcodeScanner')}>
-        <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
-      </TouchableOpacity>
-    </View>
+      <CustomModal
+        visible={modalVisible}
+        setVisible={setModalVisible}
+      >
+        <MacroCalculator navigation={navigation} setModalVisible={setModalVisible} productResponse={option} />
+      </CustomModal>
+    </>
   );
 };
 const styles = StyleSheet.create({

@@ -11,10 +11,11 @@ import { showToastError, showToastInfo } from '../utils';
 import ProductResponse from '../types/ProductResponse';
 import Food from '../types/FoodEntry';
 import { postFood } from '../network/food';
-import { useModal } from '../modals/ModalContext';
 
 interface MacroCalculatorProps {
   productResponse: ProductResponse;
+  setModalVisible: any;
+  navigation: any;
 }
 
 const UNITS = [
@@ -27,11 +28,12 @@ const UNITS = [
 ];
 
 const MacroCalculator: React.FC<MacroCalculatorProps> = ({
+  navigation,
   productResponse,
+  setModalVisible,
 }) => {
   const [servingAmount, setServingAmount] = useState<string>('100');
   const [servingUnit, setServingUnit] = useState<string>('g');
-  const { hideModal } = useModal();
 
   // Conversion factors to grams
   const unitConversions: { [key: string]: number } = {
@@ -71,9 +73,9 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
     };
     const result = await postFood(newFood);
     if (result.acknowledged) {
-      hideModal();
+      setModalVisible(false);
       showToastInfo('Food added.');
-      // TODO navigate awayu
+      navigation.goBack();
     } else {
       showToastError('Food could not be added, try again.');
     }

@@ -5,7 +5,7 @@ interface CustomModalProps {
   children: React.ReactNode;
   visible: boolean;
   animationType?: 'none' | 'slide' | 'fade';
-  setVisible: (visible: boolean) => void;
+  setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const CustomModal = ({ children, visible, setVisible, animationType = 'fade' }: CustomModalProps) => {
   const screenWidth = Dimensions.get('window').width;
