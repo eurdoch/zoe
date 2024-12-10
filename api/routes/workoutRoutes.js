@@ -40,9 +40,10 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.put('/', async (req, res) => {
     try {
+      const { _id, ...updateData } = req.body;  // Separate _id from the rest of the data
       const result = await workoutCollection.updateOne(
-        { _id: new ObjectId(req.body._id) },
-        { $set: req.body }
+        { _id: new ObjectId(_id) },
+        { $set: updateData }
       );
       res.status(200).json(result);
     } catch (err) {
