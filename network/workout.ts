@@ -30,7 +30,7 @@ export async function deleteWorkout(id: string): Promise<any> {
   return response.json();
 }
 export async function updateWorkout(workoutEntry: WorkoutEntry): Promise<any> {
-  const response = await fetch(`${VITALE_BOX_URL}/workout/${workoutEntry._id}`, {
+  const response = await fetch(`${VITALE_BOX_URL}/workout`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

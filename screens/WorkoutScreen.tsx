@@ -2,11 +2,10 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
-import { getWorkout } from '../network/workout';
-import { convertFromDatabaseFormat } from '../utils';
+import { getWorkout, updateWorkout } from '../network/workout';
+import { convertFromDatabaseFormat, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { Button } from 'react-native-paper';
 interface WorkoutScreenProps {
   navigation: any;
   route: any;
@@ -14,8 +13,7 @@ interface WorkoutScreenProps {
 const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [workoutEntry, setWorkoutEntry] = useState<WorkoutEntry | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPressOut={() => setIsEditMode(prev => !prev)}>
@@ -24,11 +22,22 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       )
     })
   }, [navigation]);
-
+  const handleDelete = (index: number) => {
+    if (workoutEntry) {
+      const newExercises = [...workoutEntry.exercises];
+      newExercises.splice(index, 1);
+      const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
+      console.log(newWorkoutEntry);
+      updateWorkout(newWorkoutEntry).then(updatedWorkout => {
+        console.log(updatedWorkout);
+        setWorkoutEntry(newWorkoutEntry);
+        showToastInfo('Exercise removed.');
+      }).catch(console.log);
+    }
+  }
   useEffect(() => {
     getWorkout(route.params.workout._id).then(w => setWorkoutEntry(w));
   }, []);
-
   const handleLogExercise = (exerciseName: string) => {
     navigation.navigate('ExerciseLog', { name: exerciseName })
   }
@@ -41,7 +50,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
               <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
             </TouchableOpacity>
             {isEditMode && (
-              <TouchableOpacity style={styles.deleteButton}>
+              <TouchableOpacity onPress={() => handleDelete(index)} style={styles.deleteButton}>
                 <MaterialCommunityIcons name="delete" size={24} color="red" />
               </TouchableOpacity>
             )}
