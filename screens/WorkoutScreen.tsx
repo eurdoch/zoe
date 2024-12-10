@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout } from '../network/workout';
 import { convertFromDatabaseFormat } from '../utils';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface WorkoutScreenProps {
   navigation: any;
@@ -11,6 +12,21 @@ interface WorkoutScreenProps {
 
 const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [workoutEntry, setWorkoutEntry] = useState<WorkoutEntry | null>(null);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View>
+          <TouchableOpacity
+            onPress={() => {}}
+            style={{ marginHorizontal: 10 }}
+          >
+            <MaterialCommunityIcons name="pencil" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
 
   useEffect(() => {
     getWorkout(route.params.workout._id).then(w => setWorkoutEntry(w));

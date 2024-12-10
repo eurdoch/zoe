@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -18,16 +19,13 @@ import { PaperProvider } from 'react-native-paper';
 import SupplementScreen from './screens/SupplementsScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import AnalysisScreen from './screens/Analysis';
-
 type RootStackParamList = {
   Home: undefined;
   ExerciseLog: undefined;
   Exercise: { title: string };
   Diet: undefined;
 };
-
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
 const App = () => {
   return (
     <ModalProvider>
@@ -90,7 +88,9 @@ const App = () => {
             <Stack.Screen
               name="Workout"
               component={WorkoutScreen}
-              options={({ route }) => ({ title: convertFromDatabaseFormat(route.params?.workout.name) })}
+              options={({ route }) => ({ 
+                title: convertFromDatabaseFormat(route.params?.workout.name),
+              })}
             />
             <Stack.Screen
               name="Weight"
@@ -128,5 +128,4 @@ const App = () => {
     </ModalProvider>
   );
 };
-
 export default App;
