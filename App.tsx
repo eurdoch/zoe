@@ -15,7 +15,7 @@ import StartWorkoutScreen from './screens/StartWorkoutScreen';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
-import { PaperProvider } from 'react-native-paper';
+import { Button, PaperProvider } from 'react-native-paper';
 import SupplementScreen from './screens/SupplementsScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import AnalysisScreen from './screens/Analysis';
