@@ -17,7 +17,7 @@ export default function exerciseRoutes(exerciseCollection) {
     const id = req.query.id;
     const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
     try {
-      console.log('/exercise/ GET request received with query:', query);
+      console.log('/exercise GET request received with query:', query);
       const exercise = await exerciseCollection.findOne(query);
       res.json(exercise);
     } catch (err) {
@@ -38,7 +38,7 @@ export default function exerciseRoutes(exerciseCollection) {
   });
   router.post('/', async (req, res) => {
     try {
-      console.log('/exercise/ POST request received with body:', req.body);
+      console.log('/exercise POST request received with body:', req.body);
       const result = await exerciseCollection.insertOne(req.body);
       const insertedExercise = await exerciseCollection.findOne({ _id: result.insertedId });
       res.status(201).json(insertedExercise);
