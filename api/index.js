@@ -46,6 +46,7 @@ async function connectToDatabase() {
     });
 
     app.post('/webhook', (req, res) => {
+      console.log('Webhook received', req.body);
       const signature = req.headers['x-hub-signature-256'];
 
       try {
