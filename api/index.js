@@ -8,6 +8,7 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 
+console.log("debug");
 const app = express();
 const port = 3000;
 
