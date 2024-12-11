@@ -1,5 +1,5 @@
 import express from 'express';
-import crypto from 'crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { exec } from 'child_process';
 import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
