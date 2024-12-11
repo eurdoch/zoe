@@ -4,7 +4,7 @@ const router = express.Router();
 export default function workoutRoutes(workoutCollection) {
   router.post('/', async (req, res) => {
     try {
-      console.log(`POST /workout`, req.method);
+      console.log(`POST /workout`, req.body);
       const result = await workoutCollection.insertOne(req.body);
       res.status(201).json(result);
     } catch (err) {
@@ -13,7 +13,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.get('/:id', async (req, res) => {
     try {
-      console.log(`GET /workout/:id`, req.method);
+      console.log(`GET /workout/:id`);
       const workout = await workoutCollection.findOne({ _id: new ObjectId(req.params.id) });
       if (workout) {
         res.json(workout);
@@ -26,7 +26,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.get('/', async (req, res) => {
     try {
-      console.log(`GET /workout`, req.method);
+      console.log(`GET /workout`);
       const workouts = await workoutCollection.find({}).toArray();
       res.json(workouts);
     } catch (err) {
@@ -35,7 +35,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.delete('/:id', async (req, res) => {
     try {
-      console.log(`DELETE /workout/:id`, req.method);
+      console.log(`DELETE /workout/:id`);
       const result = await workoutCollection.deleteOne({ _id: new ObjectId(req.params.id) });
       res.status(200).json(result);
     } catch (err) {
@@ -44,7 +44,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.put('/', async (req, res) => {
     try {
-      console.log(`PUT /workout`, req.method);
+      console.log(`PUT /workout`);
       const { _id, ...updateData } = req.body;  // Separate _id from the rest of the data
       const result = await workoutCollection.updateOne(
         { _id: new ObjectId(_id) },
