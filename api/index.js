@@ -29,20 +29,31 @@ async function connectToDatabase() {
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
     const repoPath = '/home/ubuntu/vitale';
 
+    const verifySignature = (payload, signature) => {
+      const hash = createHmac('sha256', WEBHOOK_SECRET)
+        .update(JSON.stringify(payload))
+        .digest('hex');
+      const calculatedSignature = `sha256=${hash}`;
+      
+      return timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(calculatedSignature)
+      );
+    };
+
     app.get('/', (req, res) => {
       res.send('Ping a da pong');
     });
 
     app.post('/webhook', (req, res) => {
       const signature = req.headers['x-hub-signature-256'];
-      const hash = crypto
-        .createHmac('sha256', WEBHOOK_SECRET)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
-      const calculatedSignature = `sha256=${hash}`;
 
-      if (signature !== calculatedSignature) {
-        return res.status(401).send('Invalid signature');
+      try {
+        if (!verifySignature(req.body, signature)) {
+          return res.status(401).send("invalid signature");
+        }
+      } catch (err) {
+        return res.status(401).send("signature verification failed");
       }
 
       if (req.body.ref === 'refs/heads/main') {
