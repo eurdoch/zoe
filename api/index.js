@@ -61,7 +61,7 @@ async function connectToDatabase() {
         return res.status(401).send("signature verification failed");
       }
 
-      if (req.body.ref === 'refs/heads/main') {
+      if (req.body.ref === 'refs/heads/master') {
         exec(`cd ${repoPath} && git pull origin master`, (error, stdout, stderr) => {
           if (error) {
             console.error(`Error: ${error}`);
