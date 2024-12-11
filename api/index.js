@@ -24,8 +24,37 @@ async function connectToDatabase() {
     const weightCollection = database.collection('weight');
     const supplementCollection = database.collection('supplement');
 
+    const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+    const repoPath = '/home/ubuntu/vitale';
+
     app.get('/', (req, res) => {
       res.send('Ping a da pong');
+    });
+
+    app.post('/webhook', (req, res) => {
+      const signature = req.headers['x-hub-signature-256'];
+      const hash = crypto
+        .createHmac('sha256', WEBHOOK_SECRET)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+      const calculatedSignature = `sha256=${hash}`;
+
+      if (signature !== calculatedSignature) {
+        return res.status(401).send('Invalid signature');
+      }
+
+      if (req.body.ref === 'refs/heads/main') {
+        exec(`cd ${repoPath} && git pull origin main`, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error: ${error}`);
+            return res.status(500).send(error);
+          }
+          console.log(`Pull successful: ${stdout}`);
+          res.status(200).send('Pull successful');
+        });
+      } else {
+        res.status(200).send('Not main branch, no action taken');
+      }
     });
 
     app.use('/exercise', exerciseRoutes(exerciseCollection));
