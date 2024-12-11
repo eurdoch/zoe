@@ -4,7 +4,7 @@ const router = express.Router();
 export default function exerciseRoutes(exerciseCollection) {
   router.get('/names', async (req, res) => {
     try {
-      console.log('/exercise/names GET request received');
+      console.log('GET /exercise/names');
       const exerciseNames = await exerciseCollection.distinct('name');
       res.json(exerciseNames);
     } catch (err) {
@@ -17,7 +17,7 @@ export default function exerciseRoutes(exerciseCollection) {
     const id = req.query.id;
     const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
     try {
-      console.log('/exercise GET request received with query:', query);
+      console.log(`GET /exercise?${new URLSearchParams(query)}`);
       const exercise = await exerciseCollection.findOne(query);
       res.json(exercise);
     } catch (err) {
@@ -28,7 +28,7 @@ export default function exerciseRoutes(exerciseCollection) {
   router.get('/:name', async (req, res) => {
     const name = req.params.name;
     try {
-      console.log(`/exercise/${name} GET request received`);
+      console.log(`GET /exercise/${name}`);
       const exercises = await exerciseCollection.find({ name }).toArray();
       res.json(exercises);
     } catch (err) {
@@ -38,7 +38,7 @@ export default function exerciseRoutes(exerciseCollection) {
   });
   router.post('/', async (req, res) => {
     try {
-      console.log('/exercise POST request received with body:', req.body);
+      console.log('POST /exercise');
       const result = await exerciseCollection.insertOne(req.body);
       const insertedExercise = await exerciseCollection.findOne({ _id: result.insertedId });
       res.status(201).json(insertedExercise);
@@ -50,7 +50,7 @@ export default function exerciseRoutes(exerciseCollection) {
   router.delete('/:id', async (req, res) => {
     try {
       const id = new ObjectId(req.params.id);
-      console.log(`/exercise/${req.params.id} DELETE request received`);
+      console.log(`DELETE /exercise/${req.params.id}`);
       const query = { _id: id };
       const result = await exerciseCollection.deleteOne(query);
       res.json({ deletedCount: result.deletedCount });

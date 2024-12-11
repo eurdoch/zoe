@@ -4,11 +4,11 @@ const router = express.Router();
 export default function foodRoutes(foodCollection) {
   router.post('/', async (req, res) => {
     try {
-      console.log('food POST /', req.body);
+      console.log('POST /food', req.body);
       const result = await foodCollection.insertOne(req.body);
       res.status(201).json(result);
     } catch (err) {
-      console.error('POST / error', err);
+      console.error('POST /food error', err);
       res.status(500).json({ error: 'Failed to create item' });
     }
   });
@@ -16,14 +16,14 @@ export default function foodRoutes(foodCollection) {
     try {
       const item = await foodCollection.findOne({ _id: new ObjectId(req.params.id) });
       if (!item) {
-        console.log('food GET /:id not found', req.params.id);
+        console.log('GET /food/:id not found', req.params.id);
         res.status(404).json({ error: 'Item not found' });
         return;
       }
-      console.log('food GET /:id', item);
+      console.log('GET /food/:id', item);
       res.json(item);
     } catch (err) {
-      console.error('GET /:id error', err);
+      console.error('GET /food/:id error', err);
       res.status(500).json({ error: 'Failed to get item' });
     }
   });
@@ -33,10 +33,10 @@ export default function foodRoutes(foodCollection) {
       const startOfDay = new Date(unixTime).setHours(0, 0, 0, 0);
       const endOfDay = new Date(unixTime).setHours(23, 59, 59, 999);
       const items = await foodCollection.find({ createdAt: { $gte: startOfDay, $lte: endOfDay } }).toArray();
-      console.log('food GET /', items.length, 'items');
+      console.log('GET /food', items.length, 'items');
       res.json(items);
     } catch (err) {
-      console.error('GET / error', err);
+      console.error('GET /food error', err);
       res.status(500).json({ error: 'Failed to get items' });
     }
   });
@@ -44,14 +44,14 @@ export default function foodRoutes(foodCollection) {
     try {
       const result = await foodCollection.deleteOne({ _id: new ObjectId(req.params.id) });
       if (result.deletedCount === 0) {
-        console.log('food DELETE /:id not found', req.params.id);
+        console.log('DELETE /food/:id not found', req.params.id);
         res.status(404).json({ error: 'Item not found' });
         return;
       }
-      console.log('food DELETE /:id', result);
+      console.log('DELETE /food/:id', result);
       res.json(result);
     } catch (err) {
-      console.error('DELETE /:id error', err);
+      console.error('DELETE /food/:id error', err);
       res.status(500).json({ error: 'Failed to delete item' });
     }
   });
