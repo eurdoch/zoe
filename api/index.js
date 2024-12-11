@@ -46,7 +46,7 @@ async function connectToDatabase() {
     });
 
     app.get('/test', (req, res) => {
-      res.send('test succeeeded you absolute genius')
+      res.send('test succeeeded you absolute frickin genius')
     });
 
     app.post('/webhook', (req, res) => {
