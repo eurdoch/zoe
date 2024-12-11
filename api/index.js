@@ -1,4 +1,6 @@
 import express from 'express';
+import crypto from 'crypto';
+import { exec } from 'child_process';
 import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
