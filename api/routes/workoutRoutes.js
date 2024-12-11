@@ -1,10 +1,11 @@
+
 import express from 'express';
 import { ObjectId } from 'mongodb';
 const router = express.Router();
 export default function workoutRoutes(workoutCollection) {
   router.post('/', async (req, res) => {
     try {
-      console.log('POST /');
+      console.log('/workout');
       const result = await workoutCollection.insertOne(req.body);
       res.status(201).json(result);
     } catch (err) {
@@ -13,7 +14,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.get('/:id', async (req, res) => {
     try {
-      console.log('GET /:id');
+      console.log('/workout/:id');
       const workout = await workoutCollection.findOne({ _id: new ObjectId(req.params.id) });
       if (workout) {
         res.json(workout);
@@ -26,7 +27,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.get('/', async (req, res) => {
     try {
-      console.log('GET /');
+      console.log('/workout');
       const workouts = await workoutCollection.find({}).toArray();
       res.json(workouts);
     } catch (err) {
@@ -35,7 +36,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.delete('/:id', async (req, res) => {
     try {
-      console.log('DELETE /:id');
+      console.log('/workout/:id');
       const result = await workoutCollection.deleteOne({ _id: new ObjectId(req.params.id) });
       res.status(200).json(result);
     } catch (err) {
@@ -44,7 +45,7 @@ export default function workoutRoutes(workoutCollection) {
   });
   router.put('/', async (req, res) => {
     try {
-      console.log('PUT /');
+      console.log('/workout');
       const { _id, ...updateData } = req.body;  // Separate _id from the rest of the data
       const result = await workoutCollection.updateOne(
         { _id: new ObjectId(_id) },

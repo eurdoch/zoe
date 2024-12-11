@@ -4,7 +4,7 @@ const router = express.Router();
 export default function foodRoutes(foodCollection) {
   router.post('/', async (req, res) => {
     try {
-      console.log('POST /', req.body);
+      console.log('food POST /', req.body);
       const result = await foodCollection.insertOne(req.body);
       res.status(201).json(result);
     } catch (err) {
@@ -16,11 +16,11 @@ export default function foodRoutes(foodCollection) {
     try {
       const item = await foodCollection.findOne({ _id: new ObjectId(req.params.id) });
       if (!item) {
-        console.log('GET /:id not found', req.params.id);
+        console.log('food GET /:id not found', req.params.id);
         res.status(404).json({ error: 'Item not found' });
         return;
       }
-      console.log('GET /:id', item);
+      console.log('food GET /:id', item);
       res.json(item);
     } catch (err) {
       console.error('GET /:id error', err);
@@ -33,7 +33,7 @@ export default function foodRoutes(foodCollection) {
       const startOfDay = new Date(unixTime).setHours(0, 0, 0, 0);
       const endOfDay = new Date(unixTime).setHours(23, 59, 59, 999);
       const items = await foodCollection.find({ createdAt: { $gte: startOfDay, $lte: endOfDay } }).toArray();
-      console.log('GET /', items.length, 'items');
+      console.log('food GET /', items.length, 'items');
       res.json(items);
     } catch (err) {
       console.error('GET / error', err);
@@ -44,11 +44,11 @@ export default function foodRoutes(foodCollection) {
     try {
       const result = await foodCollection.deleteOne({ _id: new ObjectId(req.params.id) });
       if (result.deletedCount === 0) {
-        console.log('DELETE /:id not found', req.params.id);
+        console.log('food DELETE /:id not found', req.params.id);
         res.status(404).json({ error: 'Item not found' });
         return;
       }
-      console.log('DELETE /:id', result);
+      console.log('food DELETE /:id', result);
       res.json(result);
     } catch (err) {
       console.error('DELETE /:id error', err);

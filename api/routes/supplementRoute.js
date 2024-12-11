@@ -4,7 +4,7 @@ const router = express.Router();
 export default function supplementRoutes(supplementCollection) {
   router.get('/names', async (req, res) => {
     try {
-      console.log('/names GET request received');
+      console.log('supplement/names GET request received');
       const supplementNames = await supplementCollection.distinct('name');
       res.json(supplementNames);
     } catch (err) {
@@ -14,7 +14,7 @@ export default function supplementRoutes(supplementCollection) {
   });
   router.post('/', async (req, res) => {
     try {
-      console.log('/ POST request received');
+      console.log('supplement/ POST request received');
       const result = await supplementCollection.insertOne(req.body);
       res.status(201).json(result);
     } catch (err) {
@@ -24,7 +24,7 @@ export default function supplementRoutes(supplementCollection) {
   });
   router.delete('/:id', async (req, res) => {
     try {
-      console.log('/ DELETE request received');
+      console.log('supplement/ DELETE request received');
       const result = await supplementCollection.deleteOne({ _id: new ObjectId(req.params.id) });
       if (result.deletedCount === 0) {
         res.status(404).json({ error: 'Item not found' });
@@ -38,7 +38,7 @@ export default function supplementRoutes(supplementCollection) {
   });
   router.get('/', async (req, res) => {
     try {
-      console.log('/ GET request received');
+      console.log('supplement/ GET request received');
       const { startDate, endDate } = req.query;
       const query = {};
       if (startDate && endDate) {

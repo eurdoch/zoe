@@ -27,9 +27,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       const newExercises = [...workoutEntry.exercises];
       newExercises.splice(index, 1);
       const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
-      console.log(newWorkoutEntry);
       updateWorkout(newWorkoutEntry).then(updatedWorkout => {
-        console.log(updatedWorkout);
         setWorkoutEntry(newWorkoutEntry);
         showToastInfo('Exercise removed.');
       }).catch(console.log);
