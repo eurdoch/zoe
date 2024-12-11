@@ -8,7 +8,6 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 
-console.log("debug");
 const app = express();
 const port = 3000;
 
@@ -59,7 +58,7 @@ async function connectToDatabase() {
       }
 
       if (req.body.ref === 'refs/heads/main') {
-        exec(`cd ${repoPath} && git pull origin main`, (error, stdout, stderr) => {
+        exec(`cd ${repoPath} && git pull origin master`, (error, stdout, stderr) => {
           if (error) {
             console.error(`Error: ${error}`);
             return res.status(500).send(error);
@@ -68,7 +67,7 @@ async function connectToDatabase() {
           res.status(200).send('Pull successful');
         });
       } else {
-        res.status(200).send('Not main branch, no action taken');
+        res.status(200).send('Not master branch, no action taken');
       }
     });
 
