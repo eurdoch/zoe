@@ -1,3 +1,4 @@
+
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
@@ -17,11 +18,11 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPressOut={() => setIsEditMode(prev => !prev)}>
-          <MaterialCommunityIcons name="pencil" size={24} />
+          <MaterialCommunityIcons name={isEditMode ? "close" : "pencil"} size={24} />
         </TouchableOpacity>
       )
     })
-  }, [navigation]);
+  }, [navigation, isEditMode]);
   const handleDelete = (index: number) => {
     if (workoutEntry) {
       const newExercises = [...workoutEntry.exercises];
