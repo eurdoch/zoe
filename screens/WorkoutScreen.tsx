@@ -1,4 +1,3 @@
-
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
@@ -6,6 +5,7 @@ import { getWorkout, updateWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
 interface WorkoutScreenProps {
   navigation: any;
   route: any;
@@ -44,6 +44,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       <ScrollView contentContainerStyle={styles.container}>
         {workoutEntry?.exercises.map((exerciseName, index) => (
           <View key={index} style={styles.entryContainer}>
+            <BouncyCheckbox />
             <TouchableOpacity onPress={() => handleLogExercise(exerciseName)}>
               <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
             </TouchableOpacity>
@@ -73,7 +74,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 8,
     flexDirection: 'row',
-    alignItems: 'center',
   },
   entryText: {
     fontSize: 18,
