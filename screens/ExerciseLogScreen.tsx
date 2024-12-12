@@ -144,25 +144,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   return (
     <SafeAreaView style={styles.container}>
-      { data && selectedItem && (
-        <ScatterPlot
-          onDataPointClick={handleDataPointClick}
-          datasets={[data]}
-          title={selectedItem.label}
-          zoomAndPanEnabled={false}
-        />
-      )}
-      { 
-        selectedItem && (
-          <View>
-            <KeyboardAwareForm
-              inputs={exerciseLogInputs}
-              onSubmit={handleAddDataPoint}
-              submitButtonText="Add"
-            />
-          </View>
-        )
-      }
       <Dropdown
         style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
         placeholderStyle={styles.placeholderStyle}
@@ -195,6 +176,24 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           }
         }}
       />
+      { data && selectedItem && (
+        <ScatterPlot
+          onDataPointClick={handleDataPointClick}
+          datasets={[data]}
+          zoomAndPanEnabled={false}
+        />
+      )}
+      { 
+        selectedItem && (
+          <View>
+            <KeyboardAwareForm
+              inputs={exerciseLogInputs}
+              onSubmit={handleAddDataPoint}
+              submitButtonText="Add"
+            />
+          </View>
+        )
+      }
     </SafeAreaView>
   );
 }
