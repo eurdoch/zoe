@@ -121,7 +121,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
             labelField="label"
             valueField="value"
             searchPlaceholder="Search..."
-            placeholder={!isFocus ? 'Select exercise' : '...'}
+            placeholder={!isFocus ? 'Select supplement' : '...'}
             value={selectedItem === undefined ? '' : selectedItem.value}
             onFocus={() => setIsFocus(true)}
             onBlur={() => setIsFocus(false)}
