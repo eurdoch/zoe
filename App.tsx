@@ -6,8 +6,6 @@ import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
-import { ModalProvider } from './modals/ModalContext';
-import GlobalModal from './modals/GlobalModal';
 import Toast from 'react-native-toast-message';
 import DietLogScreen from './screens/DietLogScreen';
 import CreateWorkoutScreen from './screens/CreateWorkoutScreen';
@@ -15,7 +13,7 @@ import StartWorkoutScreen from './screens/StartWorkoutScreen';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
-import { Button, PaperProvider } from 'react-native-paper';
+import { PaperProvider } from 'react-native-paper';
 import SupplementScreen from './screens/SupplementsScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import AnalysisScreen from './screens/Analysis';
@@ -28,7 +26,6 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const App = () => {
   return (
-    <ModalProvider>
       <PaperProvider>
         <NavigationContainer>
           <Stack.Navigator
@@ -121,11 +118,9 @@ const App = () => {
               }}
             />
           </Stack.Navigator>
-          <GlobalModal />
         </NavigationContainer>
         <Toast />
       </PaperProvider>
-    </ModalProvider>
   );
 };
 export default App;

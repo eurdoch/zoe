@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button, Dimensions, StyleSheet, TextInput, View } from "react-native";
 import { convertToDatabaseFormat } from "../utils";
-import { useModal } from "../modals/ModalContext";
 import Toast from "react-native-toast-message";
 import DropdownItem from "../types/DropdownItem";
 import DataPoint from "../types/DataPoint";
@@ -11,11 +10,11 @@ interface NewExerciseModalContentProps {
   setExercises: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
   setData: React.Dispatch<React.SetStateAction<DataPoint[]>>;
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, setData }: NewExerciseModalContentProps) => {
+const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, setData, setModalVisible }: NewExerciseModalContentProps) => {
   const [value, setValue] = useState<string>('');
-  const { hideModal } = useModal();
 
   const handleAddNewExerciseOption = () => {
     if (value.trim().length > 0) {
@@ -27,7 +26,7 @@ const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, set
       setSelectedItem(newExerciseOption);
       setValue('');
       setData([]);
-      hideModal();
+      setModalVisible(false);
     } else {
       Toast.show({ type: 'error', text1: 'Whoops!', text2: 'Please enter a valid exercise name.'});
     }

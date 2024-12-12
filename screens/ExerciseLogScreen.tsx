@@ -10,11 +10,12 @@ import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, sho
 import DropdownItem from '../types/DropdownItem';
 import DataPoint from '../types/DataPoint';
 import Toast from 'react-native-toast-message'
-import { useModal } from '../modals/ModalContext';
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import { Dropdown } from 'react-native-element-dropdown';
+import CustomModal from '../CustomModal';
+import ExerciseEntry from '../types/ExerciseEntry';
 interface ExerciseLogScreenProps {
   route: any;
 }
@@ -29,7 +30,9 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
-  const { showModal } = useModal();
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalKey, setModalKey] = useState<string | null>(null);
+  const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const dropdownItems = [
     {
       value: 'new_exercise',
@@ -128,7 +131,9 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
-      showModal(<ExerciseModalContent reloadData={reloadData} entry={m} />)
+      setCurrentExercisePoint(m);
+      setModalKey('exerciseContent');
+      setModalVisible(true);
     });
   }
   return (
@@ -151,14 +156,8 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         onBlur={() => setIsFocus(false)}
         onChange={item => {
           if (item.value === "new_exercise") {
-            showModal(
-              <NewExerciseModalContent
-                setData={setData}
-                setExercises={setExercises}
-                exercises={exercises}
-                setSelectedItem={setSelectedItem}
-              />
-            );
+            setModalKey("newExercise");
+            setModalVisible(true);
           } else {
             setSelectedItem(item);
             handleSelect(item);
@@ -183,6 +182,18 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           </View>
         )
       }
+      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
+        { modalKey && modalKey === "newExercise" ? 
+          <NewExerciseModalContent
+            setData={setData}
+            setExercises={setExercises}
+            exercises={exercises}
+            setSelectedItem={setSelectedItem}
+            setModalVisible={setModalVisible}
+          /> :
+          currentExercisePoint && <ExerciseModalContent reloadData={reloadData} entry={currentExercisePoint} />
+        }
+      </CustomModal>
     </SafeAreaView>
   );
 }

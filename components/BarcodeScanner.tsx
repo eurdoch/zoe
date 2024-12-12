@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-camera";
 import { getFoodItemByUpc } from "../network/nutrition";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { useModal } from "../modals/ModalContext";
 import { transformToProductResponse } from "../transform";
-import MacroCalculator from "./MacroCalculator";
 import NetworkError from "../errors/NetworkError";
+import { showToastError } from "../utils";
 
 interface BarcodeScannerProps {
   navigation: any;
@@ -15,7 +14,6 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
   const [cameraActive, setCameraActive] = useState<boolean>(true);
   const camera = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
-  const { showModal } = useModal();
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
 
@@ -27,11 +25,12 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
         try {
           const item = await getFoodItemByUpc(upc);
           const productResponse = transformToProductResponse(item);
-          showModal(<MacroCalculator productResponse={productResponse} />)
+          // TODO pass productResponse back to caller and display modal there
+          //showModal(<MacroCalculator productResponse={productResponse} />)
           setCameraActive(false);
         } catch(err: any) {
           if (err instanceof NetworkError) {
-            showModal(<View><Text>Product could not be found.</Text></View>)
+            showToastError("Product could not be found.");
             setCameraActive(false);
           }
         }
