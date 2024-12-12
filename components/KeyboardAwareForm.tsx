@@ -12,9 +12,9 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
+  Button,
 } from 'react-native';
-import { Button } from 'react-native-paper';
-// Interface for individual input configuration
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
   defaultValue?: string;
@@ -102,9 +102,14 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
           
           if (name === 'createdAt') {
             return (
-              <Button key={name} icon="calendar" onPress={showDatePicker}>
-                <Text>{new Date((formData[name] as number) * 1000).toLocaleString()}</Text>
-              </Button>
+              <TouchableOpacity
+                onPress={showDatePicker}
+                style={styles.dateButton}
+                key={name}
+              >
+                <MaterialCommunityIcons name="calendar" size={24} color="#007AFF" />
+                <Text>{new Date((formData[name] as number) * 1000).toLocaleDateString()}</Text>
+              </TouchableOpacity>
             )
           } else {
             return (
@@ -161,5 +166,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  }
 });
 export default KeyboardAwareForm;
