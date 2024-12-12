@@ -108,7 +108,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
                 key={name}
               >
                 <MaterialCommunityIcons name="calendar" size={24} color="#007AFF" />
-                <Text>{new Date((formData[name] as number) * 1000).toLocaleDateString()}</Text>
+                <Text style={styles.dateText}>{new Date((formData[name] as number) * 1000).toLocaleDateString()}</Text>
               </TouchableOpacity>
             )
           } else {
@@ -144,6 +144,8 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
 const styles = StyleSheet.create({
   form: {
     padding: 20,
+    display: 'flex',
+    flexDirection: 'column',
   },
   input: {
     height: 50,
@@ -153,6 +155,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 15,
     backgroundColor: '#fff',
+  },
+  dateText: {
+    fontWeight: 'bold',
+    fontSize: 20,
   },
   button: {
     backgroundColor: '#007AFF',
@@ -167,8 +173,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dateButton: {
+    gap: 5,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'center',
+    justifyContent: 'center',
     marginBottom: 15,
   }
 });
