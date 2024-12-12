@@ -15,25 +15,21 @@ import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import { Dropdown } from 'react-native-element-dropdown';
-
 interface ExerciseLogScreenProps {
   route: any;
 }
-
 interface ExerciseFormData {
   weight: string;
   reps: string;
   notes: string;
   createdAt: number;
 }
-
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [isFocus, setIsFocus] = useState<boolean>(false);
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
   const { showModal } = useModal();
-
   const dropdownItems = [
     {
       value: 'new_exercise',
@@ -41,7 +37,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }, 
     ...exercises
   ];
-
   const exerciseLogInputs = [
     {
       name: 'weight',
@@ -65,7 +60,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       isDate: true,
     },
   ];
-
   useEffect(() => {
     getExerciseNames()
       .then(names => {
@@ -88,16 +82,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         showToastError('Could not get exercises: ' + err.toString());
       }); 
   }, []);
-
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
   }
-
   const reloadData = async (name: string) => {
     setData(await getExercisesByNameAndConvertToDataPoint(name)); 
   }
-
   const handleAddDataPoint = (formData: ExerciseFormData) => {
     try {
       if (selectedItem) {
@@ -135,19 +126,17 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       console.log(err);
     }
   }
-
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
       showModal(<ExerciseModalContent reloadData={reloadData} entry={m} />)
     });
   }
-
   return (
     <SafeAreaView style={styles.container}>
       <Dropdown
         style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
         placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={styles.selectedTextStyle}
+        selectedTextStyle={[styles.selectedTextStyle, { fontWeight: 'bold', textAlign: 'center' }]}
         inputSearchStyle={styles.inputSearchStyle}
         iconStyle={styles.iconStyle}
         data={dropdownItems}
