@@ -1,20 +1,24 @@
 
 import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Button } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout } from '../network/workout';
-import { convertFromDatabaseFormat, showToastInfo } from '../utils';
+import { convertFromDatabaseFormat, showToastError, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import CustomModal from '../CustomModal';
-import { Dropdown } from 'react-native-element-dropdown';
+import ExerciseDropdown from '../components/ExerciseDropdown';
+import DropdownItem from '../types/DropdownItem';
+import { getExerciseNames } from '../network/exercise';
 interface WorkoutScreenProps {
   navigation: any;
   route: any;
 }
 const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [workoutEntry, setWorkoutEntry] = useState<WorkoutEntry | null>(null);
+  const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
+  const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   useLayoutEffect(() => {
@@ -39,10 +43,53 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   }
   useEffect(() => {
     getWorkout(route.params.workout._id).then(w => setWorkoutEntry(w));
+    getExerciseNames()
+      .then(names => {
+        const sortedNames = names
+          .sort((a, b) => a.localeCompare(b)).map(name => ({
+            label: convertFromDatabaseFormat(name),
+            value: name,
+          }));
+        setDropdownItems([
+          {
+            value: 'new_exercise',
+            label: 'Add New Exercise'
+          }, 
+          ...sortedNames
+        ]);
+      })
+      .catch(err => {
+        showToastError('Could not get exercises, please try again.');
+      });
   }, []);
   const handleLogExercise = (exerciseName: string) => {
     navigation.navigate('ExerciseLog', { name: exerciseName })
   }
+
+  const handleAddToWorkout = (_e: any) => {
+    if (selectedItem && workoutEntry) {
+      const newWorkoutEntry = {
+        ...workoutEntry,
+        exercises: [...workoutEntry.exercises, selectedItem.value]
+      };
+      updateWorkout(newWorkoutEntry).then(result => {
+        if (!result.acknowledged) {
+          showToastError('Exercise could not be added, try again.');
+        } else {
+          setWorkoutEntry(newWorkoutEntry);
+        }
+      });
+    }
+    setModalVisible(false);
+  }
+
+  const handleDropdownChange = (item: DropdownItem) => {
+    if (item.value === 'new_exercise') {
+    } else {
+      setSelectedItem(item);
+    }
+  }
+
   return (
     <>
       <ScrollView contentContainerStyle={styles.container}>
@@ -61,9 +108,11 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         ))}
       </ScrollView>
       {isEditMode && (
-        <FloatingActionButton onPress={() => {}} />
+        <FloatingActionButton onPress={() => setModalVisible(true)} />
       )}
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
+        <ExerciseDropdown onChange={handleDropdownChange} dropdownItems={dropdownItems} selectedItem={selectedItem} />
+        <Button title="Add Exercise" onPress={handleAddToWorkout}/>
       </CustomModal>
     </>
   );
