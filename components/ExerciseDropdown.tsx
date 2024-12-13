@@ -2,38 +2,13 @@ import { useEffect, useState } from 'react';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
 import { StyleSheet } from 'react-native';
-import { getExerciseNames } from '../network/exercise';
-import { convertFromDatabaseFormat, showToastError } from '../utils';
 interface ExerciseDropdownProps {
   onChange: (item: DropdownItem) => void;
   selectedItem: DropdownItem | undefined;
+  dropdownItems: DropdownItem[];
 }
-const ExerciseDropdown = ({ onChange, selectedItem }: ExerciseDropdownProps) => {
+const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDropdownProps) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
-  const [exercises, setExercises] = useState<DropdownItem[]>([])
-  const dropdownItems = [
-    {
-      value: 'new_exercise',
-      label: 'Add New Exercise'
-    }, 
-    ...exercises
-  ];
-
-  useEffect(() => {
-    getExerciseNames()
-      .then(names => {
-        const sortedNames = names
-          .sort((a, b) => a.localeCompare(b)).map(name => ({
-            label: convertFromDatabaseFormat(name),
-            value: name,
-          }));
-        setExercises(sortedNames);
-      })
-      .catch(err => {
-        showToastError('Could not get exercises, please try again.');
-      });
-  })
-
   return (
     <Dropdown
       style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}

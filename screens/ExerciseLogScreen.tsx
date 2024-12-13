@@ -27,6 +27,7 @@ interface ExerciseFormData {
 }
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
+  const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [data, setData] = useState<DataPoint[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalKey, setModalKey] = useState<string | null>(null);
@@ -54,8 +55,28 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       isDate: true,
     },
   ];
-  
+
+  const dropdownItems = [
+    {
+      value: 'new_exercise',
+      label: 'Add New Exercise'
+    }, 
+    ...exercises
+  ];
+
   useEffect(() => {
+    getExerciseNames()
+      .then(names => {
+        const sortedNames = names
+          .sort((a, b) => a.localeCompare(b)).map(name => ({
+            label: convertFromDatabaseFormat(name),
+            value: name,
+          }));
+        setExercises(sortedNames);
+      })
+      .catch(err => {
+        showToastError('Could not get exercises, please try again.');
+      });
     if (route.params && route.params.name) {
       const item = {
         label: convertFromDatabaseFormat(route.params.name),
@@ -130,6 +151,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   return (
     <SafeAreaView style={styles.container}>
       <ExerciseDropdown 
+        dropdownItems={dropdownItems}
         onChange={onDropdownChange} 
         selectedItem={selectedItem}
       />
