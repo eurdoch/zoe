@@ -1,6 +1,5 @@
-
 import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Button } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Button, TextInput } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, showToastError, showToastInfo } from '../utils';
@@ -21,6 +20,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [newExerciseName, setNewExerciseName] = useState<string>('');
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -65,31 +65,41 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const handleLogExercise = (exerciseName: string) => {
     navigation.navigate('ExerciseLog', { name: exerciseName })
   }
-
   const handleAddToWorkout = (_e: any) => {
     if (selectedItem && workoutEntry) {
-      const newWorkoutEntry = {
-        ...workoutEntry,
-        exercises: [...workoutEntry.exercises, selectedItem.value]
-      };
-      updateWorkout(newWorkoutEntry).then(result => {
-        if (!result.acknowledged) {
-          showToastError('Exercise could not be added, try again.');
-        } else {
-          setWorkoutEntry(newWorkoutEntry);
-        }
-      });
+      if (selectedItem.value === 'new_exercise') {
+        const newWorkoutEntry = {
+          ...workoutEntry,
+          exercises: [...workoutEntry.exercises, newExerciseName]
+        };
+        setWorkoutEntry(newWorkoutEntry);
+      } else {
+        const newWorkoutEntry = {
+          ...workoutEntry,
+          exercises: [...workoutEntry.exercises, selectedItem.value]
+        };
+        updateWorkout(newWorkoutEntry).then(result => {
+          if (!result.acknowledged) {
+            showToastError('Exercise could not be added, try again.');
+          } else {
+            setWorkoutEntry(newWorkoutEntry);
+          }
+        });
+      }
     }
     setModalVisible(false);
   }
-
   const handleDropdownChange = (item: DropdownItem) => {
     if (item.value === 'new_exercise') {
+      setSelectedItem({
+        value: 'new_exercise',
+        label: 'Add New Exercise',
+      });
     } else {
       setSelectedItem(item);
+      setNewExerciseName('');
     }
   }
-
   return (
     <>
       <ScrollView contentContainerStyle={styles.container}>
@@ -111,8 +121,17 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         <FloatingActionButton onPress={() => setModalVisible(true)} />
       )}
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <ExerciseDropdown onChange={handleDropdownChange} dropdownItems={dropdownItems} selectedItem={selectedItem} />
-        <Button title="Add Exercise" onPress={handleAddToWorkout}/>
+        {selectedItem && selectedItem.value === 'new_exercise' ? (
+          <TextInput
+            style={styles.input}
+            value={newExerciseName}
+            onChangeText={setNewExerciseName}
+            placeholder="Enter new exercise name"
+          />
+        ) : (
+          <ExerciseDropdown onChange={handleDropdownChange} dropdownItems={dropdownItems} selectedItem={selectedItem} />
+        )}
+        <Button title="Add Exercise" onPress={handleAddToWorkout} />
       </CustomModal>
     </>
   );
@@ -136,6 +155,15 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginLeft: 16,
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#000000',
+    borderRadius: 5,
+    padding: 10,
+    paddingLeft: 15,
+    marginVertical: 8,
   },
 });
 export default WorkoutScreen;
