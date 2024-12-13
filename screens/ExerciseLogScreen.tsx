@@ -13,9 +13,9 @@ import Toast from 'react-native-toast-message'
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
-import { Dropdown } from 'react-native-element-dropdown';
 import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
+import ExerciseDropdown from '../components/ExerciseDropdown';
 interface ExerciseLogScreenProps {
   route: any;
 }
@@ -26,7 +26,6 @@ interface ExerciseFormData {
   createdAt: number;
 }
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
-  const [isFocus, setIsFocus] = useState<boolean>(false);
   const [exercises, setExercises] = useState<DropdownItem[]>([])
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [data, setData] = useState<DataPoint[]>([]);
@@ -136,33 +135,23 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       setModalVisible(true);
     });
   }
+
+  const onDropdownChange = (item: DropdownItem) => {
+    if (item.value === "new_exercise") {
+      setModalKey("newExercise");
+      setModalVisible(true);
+    } else {
+      setSelectedItem(item);
+      handleSelect(item);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <Dropdown
-        style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-        placeholderStyle={styles.placeholderStyle}
-        selectedTextStyle={[styles.selectedTextStyle, { fontWeight: 'bold', textAlign: 'center' }]}
-        inputSearchStyle={styles.inputSearchStyle}
-        iconStyle={styles.iconStyle}
-        data={dropdownItems}
-        search
-        maxHeight={300}
-        labelField="label"
-        valueField="value"
-        placeholder={!isFocus ? 'Select exercise' : '...'}
-        searchPlaceholder="Search..."
-        value={selectedItem === undefined ? '' : selectedItem.value}
-        onFocus={() => setIsFocus(true)}
-        onBlur={() => setIsFocus(false)}
-        onChange={item => {
-          if (item.value === "new_exercise") {
-            setModalKey("newExercise");
-            setModalVisible(true);
-          } else {
-            setSelectedItem(item);
-            handleSelect(item);
-          }
-        }}
+      <ExerciseDropdown 
+        dropdownItems={dropdownItems} 
+        onChange={onDropdownChange} 
+        selectedItem={selectedItem}
       />
       { data && selectedItem && (
         <ScatterPlot
@@ -204,13 +193,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     padding: 20,
   },
-  dropdown: {
-      height: 50,
-      borderColor: 'gray',
-      borderWidth: 0.5,
-      borderRadius: 8,
-      paddingHorizontal: 8,
-  },
   label: {
     position: 'absolute',
     backgroundColor: 'white',
@@ -220,19 +202,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     fontSize: 14,
   },
-  placeholderStyle: {
-    fontSize: 16,
-  },
-  selectedTextStyle: {
-    fontSize: 16,
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
-  }
 });
 export default ExerciseLogScreen;

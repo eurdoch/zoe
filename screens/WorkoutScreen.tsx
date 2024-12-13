@@ -8,6 +8,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FloatingActionButton from '../components/FloatingActionButton';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import CustomModal from '../CustomModal';
+import { Dropdown } from 'react-native-element-dropdown';
 interface WorkoutScreenProps {
   navigation: any;
   route: any;
@@ -15,6 +16,7 @@ interface WorkoutScreenProps {
 const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [workoutEntry, setWorkoutEntry] = useState<WorkoutEntry | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -60,6 +62,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       </ScrollView>
       {isEditMode && (
         <FloatingActionButton onPress={() => {}} />
+      )}
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
       </CustomModal>
     </>
