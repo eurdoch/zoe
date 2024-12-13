@@ -7,6 +7,7 @@ import { convertFromDatabaseFormat, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import CustomModal from '../CustomModal';
 interface WorkoutScreenProps {
   navigation: any;
   route: any;
@@ -59,7 +60,8 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       </ScrollView>
       {isEditMode && (
         <FloatingActionButton onPress={() => {}} />
-      )}
+      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
+      </CustomModal>
     </>
   );
 };

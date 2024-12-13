@@ -15,7 +15,6 @@ import { postFood } from '../network/food';
 interface MacroCalculatorProps {
   productResponse: ProductResponse;
   setModalVisible: any;
-  navigation: any;
 }
 
 const UNITS = [
@@ -28,7 +27,6 @@ const UNITS = [
 ];
 
 const MacroCalculator: React.FC<MacroCalculatorProps> = ({
-  navigation,
   productResponse,
   setModalVisible,
 }) => {
@@ -75,7 +73,6 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
     if (result.acknowledged) {
       setModalVisible(false);
       showToastInfo('Food added.');
-      navigation.goBack();
     } else {
       showToastError('Food could not be added, try again.');
     }

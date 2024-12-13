@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
@@ -8,14 +8,21 @@ import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
 import CustomModal from '../CustomModal';
 interface DietLogScreenProps {
+  route: any;
   navigation: any;
 }
-const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
+const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [option, setOption] = useState<any>({});
+
+  useEffect(() => {
+    setOption(route.params?.productResponse);
+    setModalVisible(true);
+  }, [route.params?.productResponse]);
+
   const handleSearchByText = async () => {
     if (searchText) {
       setIsLoading(true);
@@ -69,7 +76,7 @@ const DietLogScreen = ({ navigation }: DietLogScreenProps) => {
         visible={modalVisible}
         setVisible={setModalVisible}
       >
-        <MacroCalculator navigation={navigation} setModalVisible={setModalVisible} productResponse={option} />
+        <MacroCalculator setModalVisible={setModalVisible} productResponse={option} />
       </CustomModal>
     </>
   );

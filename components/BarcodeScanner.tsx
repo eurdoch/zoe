@@ -25,8 +25,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
         try {
           const item = await getFoodItemByUpc(upc);
           const productResponse = transformToProductResponse(item);
-          // TODO pass productResponse back to caller and display modal there
-          //showModal(<MacroCalculator productResponse={productResponse} />)
+          navigation.navigate({ name: 'DietLog', params: { productResponse: productResponse }});
           setCameraActive(false);
         } catch(err: any) {
           if (err instanceof NetworkError) {
