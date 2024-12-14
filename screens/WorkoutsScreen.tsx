@@ -4,12 +4,13 @@ import WorkoutEntry from '../types/WorkoutEntry';
 import { deleteWorkout, getWorkouts } from '../network/workout';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError, showToastInfo } from '../utils';
+import FloatingActionButton from '../components/FloatingActionButton';
 
-interface StartWorkoutScreenProps {
+interface WorkoutsScreenProps {
   navigation: any;
 }
 
-const StartWorkoutScreen = ({ navigation }: StartWorkoutScreenProps) => {
+const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([]);
 
   useEffect(() => {
@@ -32,18 +33,22 @@ const StartWorkoutScreen = ({ navigation }: StartWorkoutScreenProps) => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {workoutEntries.map(entry => (
-        <View style={styles.row} key={entry._id}>
-          <TouchableOpacity onPress={() => handleStartWorkout(entry)} style={styles.entryContainer}> 
-            <Text style={styles.entryText}>{entry.name}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDeleteWorkout(entry)}> 
-            <MaterialCommunityIcons name="delete" size={20}/>
-          </TouchableOpacity>
-        </View>
-      ))}
-    </ScrollView>
+    <>
+      <ScrollView contentContainerStyle={styles.container}>
+        {workoutEntries.map(entry => (
+          <View style={styles.row} key={entry._id}>
+            <TouchableOpacity onPress={() => handleStartWorkout(entry)} style={styles.entryContainer}> 
+              <Text style={styles.entryText}>{entry.name}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDeleteWorkout(entry)}> 
+              <MaterialCommunityIcons name="delete" size={20}/>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
+      <FloatingActionButton onPress={() => navigation.navigate('CreateWorkout')} />
+
+    </>
   );
 };
 
@@ -89,4 +94,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StartWorkoutScreen;
+export default WorkoutsScreen;

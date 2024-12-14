@@ -8,7 +8,7 @@ import DietScreen from './screens/DietScreen';
 import Toast from 'react-native-toast-message';
 import DietLogScreen from './screens/DietLogScreen';
 import CreateWorkoutScreen from './screens/CreateWorkoutScreen';
-import StartWorkoutScreen from './screens/StartWorkoutScreen';
+import WorkoutsScreen from './screens/WorkoutsScreen.tsx';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
@@ -75,10 +75,10 @@ const App = () => {
               }}
             />
             <Stack.Screen
-              name="StartWorkout"
-              component={StartWorkoutScreen}
+              name="Workouts"
+              component={WorkoutsScreen}
               options={{
-                title: "Start Workout",
+                title: "Workouts",
               }}
             />
             <Stack.Screen
