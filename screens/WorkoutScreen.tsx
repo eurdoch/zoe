@@ -105,8 +105,8 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       <ScrollView contentContainerStyle={styles.container}>
         {workoutEntry?.exercises.map((exerciseName, index) => (
           <View key={index} style={styles.entryContainer}>
-	    { !isEditMode && <BouncyCheckbox /> }
-            <TouchableOpacity onPress={() => handleLogExercise(exerciseName)}>
+	          { !isEditMode && <BouncyCheckbox /> }
+            <TouchableOpacity onPress={!isEditMode ? () => handleLogExercise(exerciseName) : () => {}}>
               <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
             </TouchableOpacity>
             {isEditMode && (
@@ -159,8 +159,6 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#000000',
-    borderRadius: 5,
     padding: 10,
     paddingLeft: 15,
     marginVertical: 8,
