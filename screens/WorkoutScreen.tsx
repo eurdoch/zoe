@@ -43,7 +43,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       const newExercises = [...workoutEntry.exercises];
       newExercises.splice(index, 1);
       const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
-      updateWorkout(newWorkoutEntry).then(updatedWorkout => {
+      updateWorkout(newWorkoutEntry).then(_updatedWorkout => {
         setWorkoutEntry(newWorkoutEntry);
         showToastInfo('Exercise removed.');
       }).catch(console.log);
@@ -68,6 +68,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       })
       .catch(err => {
         showToastError('Could not get exercises, please try again.');
+        console.log(err);
       });
   }, []);
 
@@ -76,12 +77,10 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   }
 
   const handleAddToWorkout = (_e: any) => {
-    setIsEditMode(false);
-    setSelectedItem(undefined);
     if (selectedItem && workoutEntry) {
       const newWorkoutEntry = {
         ...workoutEntry,
-        exercises: [...workoutEntry.exercises, selectedItem.value === 'new_exercise' ? newExerciseName : selectedItem.value]
+        exercises: [...workoutEntry.exercises, selectedItem.value === 'new_exercise' ? convertToDatabaseFormat(newExerciseName) : selectedItem.value]
       };
       updateWorkout(newWorkoutEntry).then(result => {
         if (!result.acknowledged) {
@@ -91,6 +90,9 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         }
       });
     }
+    setIsEditMode(false);
+    setSelectedItem(undefined);
+    setNewExerciseName('');
     setModalVisible(false);
   }
 

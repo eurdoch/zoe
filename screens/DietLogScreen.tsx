@@ -76,7 +76,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         visible={modalVisible}
         setVisible={setModalVisible}
       >
-        <MacroCalculator setModalVisible={setModalVisible} productResponse={option} />
+        { modalVisible && <MacroCalculator setModalVisible={setModalVisible} productResponse={option} />}
       </CustomModal>
     </>
   );
