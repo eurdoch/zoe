@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Button, TextInput } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
-import { getWorkout, updateWorkout } from '../network/workout';
+import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, showToastError, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -26,7 +26,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       headerRight: () => (
         <View style={styles.rightHeader}>
           {isEditMode && (
-            <TouchableOpacity onPressOut={() => {}}>
+            <TouchableOpacity onPressOut={() => deleteWorkout(route.params.workout._id).then(() => navigation.goBack())}>
               <MaterialCommunityIcons name="delete" size={24} />
             </TouchableOpacity>
           )}
@@ -37,6 +37,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       )
     })
   }, [navigation, isEditMode]);
+
   const handleDelete = (index: number) => {
     if (workoutEntry) {
       const newExercises = [...workoutEntry.exercises];

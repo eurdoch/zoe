@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
-import { deleteWorkout, getWorkouts } from '../network/workout';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { showToastError, showToastInfo } from '../utils';
+import { getWorkouts } from '../network/workout';
 import FloatingActionButton from '../components/FloatingActionButton';
+import {useFocusEffect} from '@react-navigation/native';
 
 interface WorkoutsScreenProps {
   navigation: any;
@@ -13,23 +12,16 @@ interface WorkoutsScreenProps {
 const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([]);
 
-  useEffect(() => {
-    getWorkouts().then(ws => setWorkoutEntries(ws));
-  }, []);
+  // For navigation to and back to
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = getWorkouts().then(ws => setWorkoutEntries(ws));
+      return () => unsubscribe;
+    }, [])
+  );
 
   const handleStartWorkout = (entry: WorkoutEntry) => {
     navigation.navigate('Workout', { workout: entry })
-  }
-
-  const handleDeleteWorkout = async (entry: WorkoutEntry) => {
-    const result = await deleteWorkout(entry._id);
-    if (result.acknowledged) {
-      const updatedWorkouts = await getWorkouts();
-      setWorkoutEntries(updatedWorkouts);
-      showToastInfo("Workout deleted.");
-    } else {
-      showToastError("Workout could not be deleted. Try again.");
-    }
   }
 
   return (
