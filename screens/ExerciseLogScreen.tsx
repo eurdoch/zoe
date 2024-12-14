@@ -62,7 +62,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   useEffect(() => {
     getExerciseNames()
       .then(names => {
-        if (route.params.isNewExercise) {
+        if (route.params.name && !names.includes(route.params.name)) {
           names.push(route.params.name);
         }
         const sortedItems = names
