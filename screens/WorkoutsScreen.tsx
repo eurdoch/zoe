@@ -40,9 +40,6 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
             <TouchableOpacity onPress={() => handleStartWorkout(entry)} style={styles.entryContainer}> 
               <Text style={styles.entryText}>{entry.name}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteWorkout(entry)}> 
-              <MaterialCommunityIcons name="delete" size={20}/>
-            </TouchableOpacity>
           </View>
         ))}
       </ScrollView>

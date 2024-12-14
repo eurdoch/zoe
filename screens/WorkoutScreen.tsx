@@ -24,9 +24,16 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPressOut={() => setIsEditMode(prev => !prev)}>
-          <MaterialCommunityIcons name={isEditMode ? "close" : "pencil"} size={24} />
-        </TouchableOpacity>
+        <View style={styles.rightHeader}>
+          {isEditMode && (
+            <TouchableOpacity onPressOut={() => {}}>
+              <MaterialCommunityIcons name="delete" size={24} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPressOut={() => setIsEditMode(prev => !prev)}>
+            <MaterialCommunityIcons name={isEditMode ? "close" : "pencil"} size={24} />
+          </TouchableOpacity>
+        </View>
       )
     })
   }, [navigation, isEditMode]);
@@ -105,7 +112,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       <ScrollView contentContainerStyle={styles.container}>
         {workoutEntry?.exercises.map((exerciseName, index) => (
           <View key={index} style={styles.entryContainer}>
-	          { !isEditMode && <BouncyCheckbox /> }
+            { !isEditMode && <BouncyCheckbox /> }
             <TouchableOpacity onPress={!isEditMode ? () => handleLogExercise(exerciseName) : () => {}}>
               <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
             </TouchableOpacity>
@@ -163,5 +170,9 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     marginVertical: 8,
   },
+  rightHeader: {
+    flexDirection: 'row',
+    gap: 10,
+  }
 });
 export default WorkoutScreen;
