@@ -43,7 +43,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
       exercises: selectedExercises,
     });
     if (result.acknowledged) {
-      navigation.navigate('Workouts');
+      navigation.pop(1);
     } else {
       Toast.show({
         type: 'error',
