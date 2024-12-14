@@ -62,7 +62,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   useEffect(() => {
     getExerciseNames()
       .then(names => {
-        if (route.params.name && !names.includes(route.params.name)) {
+        if (route.params?.name && !names.includes(route.params.name)) {
           names.push(route.params.name);
         }
         const sortedItems = names
@@ -80,6 +80,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       })
       .catch(err => {
         showToastError('Could not get exercises, please try again.');
+        console.log(err);
       });
     if (route.params && route.params.name) {
       const item = {
