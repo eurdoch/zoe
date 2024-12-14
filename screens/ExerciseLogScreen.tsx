@@ -25,54 +25,58 @@ interface ExerciseFormData {
   notes: string;
   createdAt: number;
 }
+
+const exerciseLogInputs = [
+  {
+    name: 'weight',
+    placeholder: 'Weight',
+    keyboardType: 'numeric' as const,
+    defaultValue: '',
+  },
+  {
+    name: 'reps', 
+    placeholder: 'Reps',
+    keyboardType: 'numeric' as const,
+    defaultValue: '',
+  },
+  {
+    name: 'notes',
+    placeholder: 'Notes',
+    defaultValue: '',
+  },
+  {
+    name: 'createdAt',
+    isDate: true,
+  },
+];
+
+
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
-  const [exercises, setExercises] = useState<DropdownItem[]>([])
+  const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [data, setData] = useState<DataPoint[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
-  const exerciseLogInputs = [
-    {
-      name: 'weight',
-      placeholder: 'Weight',
-      keyboardType: 'numeric' as const,
-      defaultValue: '',
-    },
-    {
-      name: 'reps', 
-      placeholder: 'Reps',
-      keyboardType: 'numeric' as const,
-      defaultValue: '',
-    },
-    {
-      name: 'notes',
-      placeholder: 'Notes',
-      defaultValue: '',
-    },
-    {
-      name: 'createdAt',
-      isDate: true,
-    },
-  ];
-
-  const dropdownItems = [
-    {
-      value: 'new_exercise',
-      label: 'Add New Exercise'
-    }, 
-    ...exercises
-  ];
-
+  
   useEffect(() => {
     getExerciseNames()
       .then(names => {
-        const sortedNames = names
+        if (route.params.isNewExercise) {
+          names.push(route.params.name);
+        }
+        const sortedItems = names
           .sort((a, b) => a.localeCompare(b)).map(name => ({
             label: convertFromDatabaseFormat(name),
             value: name,
           }));
-        setExercises(sortedNames);
+        setDropdownItems([
+          {
+            value: 'new_exercise',
+            label: 'Add New Exercise'
+          }, 
+          ...sortedItems
+        ]);
       })
       .catch(err => {
         showToastError('Could not get exercises, please try again.');
@@ -177,12 +181,18 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         { modalKey && modalKey === "newExercise" ? 
           <NewExerciseModalContent
             setData={setData}
-            setExercises={setExercises}
-            exercises={exercises}
+            setDropdownItems={setDropdownItems}
+            dropdownItems={dropdownItems}
             setSelectedItem={setSelectedItem}
             setModalVisible={setModalVisible}
           /> :
-          currentExercisePoint && <ExerciseModalContent reloadData={reloadData} entry={currentExercisePoint} />
+          currentExercisePoint && (
+            <ExerciseModalContent
+              setModalVisible={setModalVisible}
+              reloadData={reloadData}
+              entry={currentExercisePoint}
+            />
+          )
         }
       </CustomModal>
     </SafeAreaView>

@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Button, TextInput } from 'react-native';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
-import { convertFromDatabaseFormat, showToastError, showToastInfo } from '../utils';
+import { convertFromDatabaseFormat, convertToDatabaseFormat, showToastError, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
@@ -70,33 +70,30 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         showToastError('Could not get exercises, please try again.');
       });
   }, []);
+
   const handleLogExercise = (exerciseName: string) => {
     navigation.navigate('ExerciseLog', { name: exerciseName })
   }
+
   const handleAddToWorkout = (_e: any) => {
+    setIsEditMode(false);
+    setSelectedItem(undefined);
     if (selectedItem && workoutEntry) {
-      if (selectedItem.value === 'new_exercise') {
-        const newWorkoutEntry = {
-          ...workoutEntry,
-          exercises: [...workoutEntry.exercises, newExerciseName]
-        };
-        setWorkoutEntry(newWorkoutEntry);
-      } else {
-        const newWorkoutEntry = {
-          ...workoutEntry,
-          exercises: [...workoutEntry.exercises, selectedItem.value]
-        };
-        updateWorkout(newWorkoutEntry).then(result => {
-          if (!result.acknowledged) {
-            showToastError('Exercise could not be added, try again.');
-          } else {
-            setWorkoutEntry(newWorkoutEntry);
-          }
-        });
-      }
+      const newWorkoutEntry = {
+        ...workoutEntry,
+        exercises: [...workoutEntry.exercises, selectedItem.value === 'new_exercise' ? newExerciseName : selectedItem.value]
+      };
+      updateWorkout(newWorkoutEntry).then(result => {
+        if (!result.acknowledged) {
+          showToastError('Exercise could not be added, try again.');
+        } else {
+          setWorkoutEntry(newWorkoutEntry);
+        }
+      });
     }
     setModalVisible(false);
   }
+
   const handleDropdownChange = (item: DropdownItem) => {
     if (item.value === 'new_exercise') {
       setSelectedItem({
@@ -108,6 +105,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       setNewExerciseName('');
     }
   }
+
   return (
     <>
       <ScrollView contentContainerStyle={styles.container}>
@@ -139,7 +137,10 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         ) : (
           <ExerciseDropdown onChange={handleDropdownChange} dropdownItems={dropdownItems} selectedItem={selectedItem} />
         )}
-        <Button title="Add Exercise" onPress={handleAddToWorkout} />
+        <Button 
+          title="Add Exercise" 
+          onPress={handleAddToWorkout} 
+        />
       </CustomModal>
     </>
   );

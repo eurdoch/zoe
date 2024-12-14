@@ -6,14 +6,14 @@ import DropdownItem from "../types/DropdownItem";
 import DataPoint from "../types/DataPoint";
 
 interface NewExerciseModalContentProps {
-  exercises: DropdownItem[];
-  setExercises: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
+  dropdownItems: DropdownItem[];
+  setDropdownItems: React.Dispatch<React.SetStateAction<DropdownItem[]>>;
   setSelectedItem: React.Dispatch<React.SetStateAction<DropdownItem | undefined>>;
   setData: React.Dispatch<React.SetStateAction<DataPoint[]>>;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, setData, setModalVisible }: NewExerciseModalContentProps) => {
+const NewExerciseModalContent = ({ dropdownItems, setDropdownItems, setSelectedItem, setData, setModalVisible }: NewExerciseModalContentProps) => {
   const [value, setValue] = useState<string>('');
 
   const handleAddNewExerciseOption = () => {
@@ -22,7 +22,7 @@ const NewExerciseModalContent = ({ exercises, setExercises, setSelectedItem, set
         label: value,
         value: convertToDatabaseFormat(value),
       };
-      setExercises([...exercises, newExerciseOption]);
+      setDropdownItems([...dropdownItems, newExerciseOption]);
       setSelectedItem(newExerciseOption);
       setValue('');
       setData([]);
