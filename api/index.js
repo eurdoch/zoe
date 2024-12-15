@@ -7,6 +7,7 @@ import foodRoutes from './routes/foodRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
+import nutritionParserRoutes from './routes/nutritionLabelParser.js';
 
 const app = express();
 const port = 3000;
@@ -45,10 +46,6 @@ async function connectToDatabase() {
       res.send('Ping a da pong');
     });
 
-    app.get('/test', (req, res) => {
-      res.send('Ping a da pong');
-    });
-
     app.post('/webhook', (req, res) => {
       console.log('Webhook received');
       const signature = req.headers['x-hub-signature-256'];
@@ -80,10 +77,12 @@ async function connectToDatabase() {
     app.use('/workout', workoutRoutes(workoutCollection));
     app.use('/weight', weightRoutes(weightCollection));
     app.use('/supplement', supplementRoutes(supplementCollection));
+    app.use('/nutritionimg', nutritionParserRoutes());
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
     });
+
   } catch (err) {
     console.error('Error connecting to database:', err);
   }
