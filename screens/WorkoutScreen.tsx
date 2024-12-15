@@ -113,7 +113,6 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       <ScrollView contentContainerStyle={styles.container}>
         {workoutEntry?.exercises.map((exerciseName, index) => (
           <View key={index} style={styles.entryContainer}>
-            { !isEditMode && <BouncyCheckbox /> }
             <TouchableOpacity onPress={!isEditMode ? () => handleLogExercise(exerciseName) : () => {}}>
               <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
             </TouchableOpacity>
