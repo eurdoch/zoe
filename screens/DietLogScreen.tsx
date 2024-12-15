@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,8 +20,10 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [option, setOption] = useState<any>({});
 
   useEffect(() => {
-    setOption(route.params?.productResponse);
-    setModalVisible(true);
+    if (route.params?.productResponse) {
+      setOption(route.params?.productResponse);
+      setModalVisible(true);
+    }
   }, [route.params?.productResponse]);
 
   const handleSearchByText = async () => {
@@ -79,8 +81,9 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         visible={modalVisible}
         setVisible={setModalVisible}
       >
-        { modalVisible && <MacroCalculator setModalVisible={setModalVisible} productResponse={option} />}
+        { modalVisible && <MacroCalculator setModalVisible={setModalVisible} productResponse={option} /> }
       </CustomModal>
+
     </>
   );
 };
