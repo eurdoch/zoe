@@ -63,7 +63,7 @@ async function connectToDatabase() {
       }
 
       if (req.body.ref === 'refs/heads/master') {
-        exec(`cd ${repoPath} && git pull origin master`, (error, stdout, stderr) => {
+        exec(`cd ${repoPath} && git pull origin master && cd /home/ubuntu && pm2 reload ecosystem.config.js`, (error, stdout, stderr) => {
           if (error) {
             console.error(`Error: ${error}`);
             return res.status(500).send(error);
