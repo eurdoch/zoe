@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, Dimensions, TextInput, Button } from 'react-native';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
@@ -8,13 +7,33 @@ import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToa
 import CustomModal from '../CustomModal';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
+
+const options = [
+    { label: "unit", value: "" },
+    { label: "mg", value: "mg" },
+    { label: "tablet", value: "tablet" },
+    { label: "capsule", value: "capsule" },
+    { label: "ml", value: "ml" },
+    { label: "UI", value: "UI" }
+  ]
+
+const longestOptionLabel = options.reduce(
+  (longest, option) =>
+    option.label.length > longest.length
+      ? option.label
+      : longest,
+  ""
+);
+
 interface SupplementScreenProps {}
+
 interface Option {
   label: string;
   value: string;
 }
+
 const SupplementScreen: React.FC<SupplementScreenProps> = () => {
-  const [supplements, setSupplements] = useState<DropdownItem[]>([]);
+  const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [isFocus, setIsFocus] = useState<boolean>(false);
   const [supplementEntries, setSupplementEntries] = useState<SupplementEntry[]>([]);
@@ -22,16 +41,10 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
   const [amount, setAmount] = useState<string>("");
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const [newSupplementName, setNewSupplementName] = useState<string>("");
+
   const loadData = () => {
     getSupplement().then(entries => setSupplementEntries(entries));
   }
-  const dropdownItems = [
-    {
-      value: 'new_supplement',
-      label: 'Add New Supplement'
-    }, 
-    ...supplements,
-  ];
 
   useEffect(() => {
     if (!modalVisible) {
@@ -49,12 +62,19 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
           label: convertFromDatabaseFormat(name),
           value: name,
         }));
-        setSupplements(items);
+        setDropdownItems([
+          {
+            value: 'new_supplement',
+            label: 'Add New Supplement'
+          }, 
+          ...items
+        ]);
       })
       .catch(err => {
         showToastError('Could not get supplements: ' + err.toString());
       });
   }, []);
+
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
     if (!isNaN(parsedAmount)) {
@@ -79,15 +99,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
       showToastError('Supplement amount must be a number.');
     }
   }
-  const options = [
-    { label: "unit", value: "" },
-    { label: "mg", value: "mg" },
-    { label: "tablet", value: "tablet" },
-    { label: "capsule", value: "capsule" },
-    { label: "ml", value: "ml" },
-    { label: "UI", value: "UI" }
-  ]
-  const longestOptionLabel = options.reduce((longest, option) => option.label.length > longest.length ? option.label : longest, "");
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {
@@ -148,6 +160,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
     </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

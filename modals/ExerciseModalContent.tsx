@@ -5,12 +5,15 @@ import { formatTime, showToastError } from '../utils';
 import ExerciseEntry from '../types/ExerciseEntry';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { deleteExerciseById } from '../network/exercise';
+
 interface Props {
   entry: ExerciseEntry;
   reloadData: (name: string) => void;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
 const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisible }) => {
+
   const handleDeleteExercise = (_e: any) => {
     deleteExerciseById(entry._id).then(() => {
       reloadData(entry.name);
@@ -46,4 +49,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 });
+
 export default ExerciseModalContent;

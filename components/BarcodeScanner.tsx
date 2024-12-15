@@ -88,6 +88,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     </View>
   );
 }
+
 export default BarcodeScanner;
 
 const styles = StyleSheet.create({

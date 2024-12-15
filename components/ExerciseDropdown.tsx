@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
 import { StyleSheet } from 'react-native';
+
 interface ExerciseDropdownProps {
   onChange: (item: DropdownItem) => void;
   selectedItem: DropdownItem | undefined;
   dropdownItems: DropdownItem[];
 }
+
 const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDropdownProps) => {
   const [isFocus, setIsFocus] = useState<boolean>(false);
+
   return (
     <Dropdown
       style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
@@ -30,6 +33,7 @@ const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDro
     />
   )
 }
+
 export default ExerciseDropdown;
 
 const styles = StyleSheet.create({

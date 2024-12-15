@@ -3,11 +3,12 @@ import { ScrollView, View, Text, StyleSheet, Switch } from 'react-native';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseNames } from '../network/exercise';
 import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, mapWeightEntriesToDataPoint } from '../utils';
-import { getSupplement } from '../network/supplement';
 import { getWeight } from '../network/weight';
+
 interface AnalysisScreenProps {
   navigation: any;
 }
+
 const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ navigation }) => {
   const [selectedDatasets, setSelectedDatasets] = useState<any>([]);
   const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({});

@@ -13,7 +13,14 @@ interface NewExerciseModalContentProps {
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const NewExerciseModalContent = ({ dropdownItems, setDropdownItems, setSelectedItem, setData, setModalVisible }: NewExerciseModalContentProps) => {
+const NewExerciseModalContent = ({
+  dropdownItems,
+  setDropdownItems,
+  setSelectedItem,
+  setData,
+  setModalVisible
+}: NewExerciseModalContentProps) => {
+
   const [value, setValue] = useState<string>('');
 
   const handleAddNewExerciseOption = () => {

@@ -12,20 +12,22 @@ import WorkoutsScreen from './screens/WorkoutsScreen.tsx';
 import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
-import { PaperProvider } from 'react-native-paper';
 import SupplementScreen from './screens/SupplementsScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import AnalysisScreen from './screens/Analysis';
+
 type RootStackParamList = {
   Home: undefined;
   ExerciseLog: undefined;
   Exercise: { title: string };
   Diet: undefined;
 };
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
 const App = () => {
   return (
-      <PaperProvider>
+      <>
         <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
@@ -119,7 +121,8 @@ const App = () => {
           </Stack.Navigator>
         </NavigationContainer>
         <Toast />
-      </PaperProvider>
+      </>
   );
 };
+
 export default App;

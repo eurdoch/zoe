@@ -16,9 +16,11 @@ import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
+
 interface ExerciseLogScreenProps {
   route: any;
 }
+
 interface ExerciseFormData {
   weight: string;
   reps: string;
@@ -49,7 +51,6 @@ const exerciseLogInputs = [
     isDate: true,
   },
 ];
-
 
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
@@ -91,13 +92,16 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       handleSelect(item);
     }
   }, []);
+
   const handleSelect = async (item: DropdownItem) => {
     const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
     setData(dataPoints);
   }
+
   const reloadData = async (name: string) => {
     setData(await getExercisesByNameAndConvertToDataPoint(name)); 
   }
+
   const handleAddDataPoint = (formData: ExerciseFormData) => {
     try {
       if (selectedItem) {
@@ -135,6 +139,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       console.log(err);
     }
   }
+
   const handleDataPointClick = (point: DataPoint) => {
     getExerciseById(point.label!).then(m => {
       setCurrentExercisePoint(m);
@@ -199,6 +204,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -6,9 +6,11 @@ import FloatingActionButton from '../components/FloatingActionButton';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
+
 interface DietScreenProps {
   navigation: any;
 }
+
 const DietScreen = ({ navigation }: DietScreenProps) => {
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([])
   const [totalCalories, setTotalCalories] = useState<number | null>(null);

@@ -1,4 +1,4 @@
-export default interface Food {
+export default interface FoodEntry {
   _id: string;
   brand: string;
   categories: string[];

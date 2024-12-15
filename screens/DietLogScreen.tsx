@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { searchFoodItemByText } from '../network/nutrition';
@@ -7,10 +6,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
 import CustomModal from '../CustomModal';
+
 interface DietLogScreenProps {
   route: any;
   navigation: any;
 }
+
 const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
@@ -36,10 +37,12 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
       }
     }
   }
+
   const handleFoodOptionPress = async (option: any) => {
     setOption(option);
     setModalVisible(true);
   }
+
   return (
     <>
       <View style={styles.container}>
@@ -81,6 +84,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
     </>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -117,4 +121,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
 export default DietLogScreen;

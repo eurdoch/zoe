@@ -1,12 +1,13 @@
-
 import React from 'react';
 import { NavigationProp } from '@react-navigation/native';
-import { StyleSheet, Button, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '../components/Menu';
+
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
 };
+
 const menuItems = [
   {
     label: "Exercise",
@@ -29,6 +30,7 @@ const menuItems = [
     screenName: "Analysis"
   }
 ]
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
@@ -39,6 +41,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

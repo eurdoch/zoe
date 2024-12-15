@@ -12,17 +12,19 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
-  Button,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
   defaultValue?: string;
   isDate?: boolean;
 }
+
 interface FormData {
   [key: string]: string | number;
 }
+
 interface KeyboardAwareFormProps {
   inputs: InputConfig[];
   onSubmit?: (data: FormData) => void;
@@ -32,10 +34,12 @@ interface KeyboardAwareFormProps {
   buttonStyle?: StyleProp<ViewStyle>;
   buttonTextStyle?: StyleProp<TextStyle>;
 }
+
 // Type for input refs
 type InputRefs = {
   [key: string]: TextInput | null;
 };
+
 const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({ 
   inputs = [], 
   onSubmit, 
@@ -53,6 +57,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       [input.name]: input.defaultValue || (input.name === 'createdAt' ? Math.floor(new Date().getTime() / 1000) : ''),
     }), {})
   );
+
   // Handle form submission
   const handleSubmit = (): void => {
     onSubmit?.(formData);
@@ -61,6 +66,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       [input.name]: input.isDate ? Math.floor(new Date().getTime() / 1000) : '',
     }), {}));
   };
+
   // Update form data
   const updateFormData = (field: string, value: string | number): void => {
     setFormData(prev => ({
@@ -68,6 +74,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       [field]: value,
     }));
   };
+
   // Function to focus next input
   const focusNextInput = (currentIndex: number): void => {
     const nextInput = inputs[currentIndex + 1];
@@ -77,11 +84,13 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       handleSubmit();
     }
   };
+
   const onChange = (_event: any, selectedDate?: Date) => {
     if (selectedDate) {
       updateFormData('createdAt', Math.floor(selectedDate.getTime() / 1000));
     }
   };
+
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
       value: new Date(formData.createdAt as number * 1000),
@@ -91,6 +100,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
       display: 'default'
     });
   };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -141,6 +151,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
     </KeyboardAvoidingView>
   );
 };
+
 const styles = StyleSheet.create({
   form: {
     padding: 20,
@@ -180,4 +191,5 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   }
 });
+
 export default KeyboardAwareForm;

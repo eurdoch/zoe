@@ -5,15 +5,16 @@ import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, showToastError, showToastInfo } from '../utils';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FloatingActionButton from '../components/FloatingActionButton';
-import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import CustomModal from '../CustomModal';
 import ExerciseDropdown from '../components/ExerciseDropdown';
 import DropdownItem from '../types/DropdownItem';
 import { getExerciseNames } from '../network/exercise';
+
 interface WorkoutScreenProps {
   navigation: any;
   route: any;
 }
+
 const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [workoutEntry, setWorkoutEntry] = useState<WorkoutEntry | null>(null);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
@@ -21,12 +22,13 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.rightHeader}>
           {isEditMode && (
-            <TouchableOpacity onPressOut={() => deleteWorkout(route.params.workout._id).then(() => navigation.goBack())}>
+            <TouchableOpacity onPress={handleDelete}>
               <MaterialCommunityIcons name="delete" size={24} />
             </TouchableOpacity>
           )}
@@ -38,7 +40,11 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     })
   }, [navigation, isEditMode]);
 
-  const handleDelete = (index: number) => {
+  const handleDelete = () => {
+    deleteWorkout(route.params.workout._id).then(() => navigation.goBack());
+  }
+
+  const handleDeleteExercise = (index: number) => {
     if (workoutEntry) {
       const newExercises = [...workoutEntry.exercises];
       newExercises.splice(index, 1);
@@ -49,6 +55,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       }).catch(console.log);
     }
   }
+
   useEffect(() => {
     getWorkout(route.params.workout._id).then(w => setWorkoutEntry(w));
     getExerciseNames()
@@ -117,7 +124,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
               <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
             </TouchableOpacity>
             {isEditMode && (
-              <TouchableOpacity onPress={() => handleDelete(index)} style={styles.deleteButton}>
+              <TouchableOpacity onPress={() => handleDeleteExercise(index)} style={styles.deleteButton}>
                 <MaterialCommunityIcons name="delete" size={24} color="red" />
               </TouchableOpacity>
             )}
@@ -179,3 +186,4 @@ const styles = StyleSheet.create({
   }
 });
 export default WorkoutScreen;
+

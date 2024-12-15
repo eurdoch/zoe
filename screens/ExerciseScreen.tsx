@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Menu from '../components/Menu';
+
 interface ExerciseScreenProps {
   navigation: any;
 }
+
 const menuItems = [
   {
     label: "Log",
@@ -13,7 +15,8 @@ const menuItems = [
     label: "Workouts",
     screenName: "Workouts",
   },
-]
+];
+
 const ExerciseScreen: React.FC<ExerciseScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.container}>
@@ -21,6 +24,7 @@ const ExerciseScreen: React.FC<ExerciseScreenProps> = ({ navigation }) => {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -31,4 +35,5 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 });
+
 export default ExerciseScreen;

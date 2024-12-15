@@ -9,7 +9,7 @@ import {
 import { Dropdown } from 'react-native-element-dropdown';
 import { showToastError, showToastInfo } from '../utils';
 import ProductResponse from '../types/ProductResponse';
-import Food from '../types/FoodEntry';
+import Food from '../types/Food';
 import { postFood } from '../network/food';
 
 interface MacroCalculatorProps {
