@@ -1,5 +1,5 @@
 import express from 'express';
-import {extractNutritionInfo} from './bedrock';
+import {extractNutritionInfo} from '../bedrock.js';
 const router = express.Router();
 
 export default function nutritionLabelParserRoutes() {
