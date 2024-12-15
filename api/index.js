@@ -47,7 +47,7 @@ async function connectToDatabase() {
     });
 
     app.get('/test', (req, res) => {
-      res.send('Test endpoint');
+      res.send('Test endpoint, check check');
     });
 
     app.post('/webhook', (req, res) => {
