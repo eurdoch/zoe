@@ -9,6 +9,20 @@ interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
 }
 
+const getBase64SizeInMB = (base64String: string): number => {
+  // Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
+  const base64WithoutPrefix = base64String.replace(/^data:.+;base64,/, '');
+  
+  // Calculate size in bytes
+  const sizeInBytes = Math.ceil(base64WithoutPrefix.length * 0.75);
+  
+  // Convert to MB (divide by 1024 twice)
+  const sizeInMB = sizeInBytes / (1024 * 1024);
+  
+  // Round to 2 decimal places
+  return Number(sizeInMB.toFixed(2));
+};
+
 const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const [cameraActive, setCameraActive] = useState<boolean>(true);
   const camera = useRef(null);
@@ -32,18 +46,25 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   }, []);
 
   const takePhoto = async () => {
-    const photo = await camera.current.takePhoto();
-    const result = await fetch(`file://${photo.path}`);
-    const data = await result.blob();
-    const base64Data = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(data);
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-    const nutritionData = await getNutritionLabelImgInfo(base64Data as string);
-    console.log(nutritionData);
+    try {
+      const photo = await camera.current.takePhoto();
+      const result = await fetch(`file://${photo.path}`);
+      const data = await result.blob();
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(data);
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+      console.log(getBase64SizeInMB(base64Data as string));
+      const nutritionData = await getNutritionLabelImgInfo(base64Data as string);
+      console.log(nutritionData);
+    } catch (error) {
+      console.error(error);
+    }
+
   };
+
 
   if (!hasPermission) {
     return (
