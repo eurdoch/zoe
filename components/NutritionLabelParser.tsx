@@ -16,8 +16,8 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [nutritionResponse, setNutritionResponse] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
 
   useEffect(() => {
     if (!cameraActive) {
@@ -36,6 +36,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const takePhoto = async () => {
     try {
       setLoading(true);
+      setCaptureDisabled(true);
       const photo = await camera.current.takePhoto();
       const result = await fetch(`file://${photo.path}`);
       const data = await result.blob();
@@ -49,12 +50,12 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       const rawImageString = stringData.slice(23);
       const nutritionData = await getNutritionLabelImgInfo(rawImageString);
       console.log(nutritionData);
-      setNutritionResponse(nutritionData);
-      setModalVisible(true);
       setLoading(false);
+      setCaptureDisabled(false);
     } catch (error) {
       console.error(error);
       setLoading(false);
+      setCaptureDisabled(false);
     }
   };
 
@@ -85,12 +86,16 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
         photo={true}
       />
       <View style={styles.controls}>
-        <TouchableOpacity style={[styles.button, styles.captureButton]} onPress={takePhoto}>
+        <TouchableOpacity
+          style={[styles.button, captureDisabled ? styles.disabledCaptureButton : styles.captureButton]}
+          onPress={takePhoto}
+          disabled={captureDisabled}
+        >
           <Text style={styles.buttonText}>Capture</Text>
         </TouchableOpacity>
       </View>
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <Text>{ nutritionResponse && nutritionResponse }</Text>
+        <Text>hello</Text>
       </CustomModal>
     </View>
   )
@@ -132,6 +137,9 @@ const styles = StyleSheet.create({
   },
   captureButton: {
     backgroundColor: 'white',
+  },
+  disabledCaptureButton: {
+    backgroundColor: 'gray',
   },
   buttonText: {
     color: 'black',
