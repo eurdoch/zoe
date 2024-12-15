@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity} from "react-native";
+import {StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Dimensions} from "react-native";
 import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomModal from "../CustomModal";
@@ -17,6 +17,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const device = Object.values(devices).find(d => d.position === 'back');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [nutritionResponse, setNutritionResponse] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!cameraActive) {
@@ -34,6 +35,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
 
   const takePhoto = async () => {
     try {
+      setLoading(true);
       const photo = await camera.current.takePhoto();
       const result = await fetch(`file://${photo.path}`);
       const data = await result.blob();
@@ -46,14 +48,15 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       const stringData = base64Data as string;
       const rawImageString = stringData.slice(23);
       const nutritionData = await getNutritionLabelImgInfo(rawImageString);
+      console.log(nutritionData);
       setNutritionResponse(nutritionData);
       setModalVisible(true);
+      setLoading(false);
     } catch (error) {
       console.error(error);
+      setLoading(false);
     }
-
   };
-
 
   if (!hasPermission) {
     return (
@@ -73,6 +76,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
 
   return (
     <View style={styles.container}>
+      {loading && <ActivityIndicator size="large" color="#fff" style={styles.activityIndicator} />}
       <Camera
         ref={camera}
         style={StyleSheet.absoluteFill}
@@ -97,6 +101,8 @@ export default NutritionLabelParser;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: Dimensions.get("window").height,
+    width: Dimensions.get("window").width,
   },
   textContainer: {
     justifyContent: 'center',
@@ -142,6 +148,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     marginVertical: 10,
+  },
+  activityIndicator: {
+    position: 'absolute',
+    zIndex: 1,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
