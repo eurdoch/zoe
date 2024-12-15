@@ -6,6 +6,7 @@
   "author": "George Balch",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.712.0",
     "express": "^4.21.1",
     "mongodb": "^6.11.0"
   }

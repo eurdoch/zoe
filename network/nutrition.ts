@@ -3,6 +3,8 @@ import MacroInfo from "../types/MacroInfo";
 import MacrosByServing from "../types/MacrosByServing";
 import ProductResponse from "../types/ProductResponse";
 
+const VITALE_BOX_URL = "https://directto.link";
+
 export const getFoodItemByUpc = async (upc: string): Promise<any> => {
   const response = await fetch(
     `https://world.openfoodfacts.org/api/v2/product/${upc}?fields=brands,categories_tags,code,image_url,product_name,nutriments,quantity`
@@ -226,3 +228,17 @@ export async function getMacros(upc: string): Promise<MacroInfo> {
     );
   }
 }
+
+export async function getNutritionLabelImgInfo(base64ImageString: string): Promise<any> {
+  const response = await fetch(`${VITALE_BOX_URL}/nutritionimg`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      base64ImageString,
+    }),
+  });
+  return response.json();
+}
+

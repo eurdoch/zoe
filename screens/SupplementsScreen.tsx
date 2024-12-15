@@ -25,14 +25,16 @@ const longestOptionLabel = options.reduce(
   ""
 );
 
-interface SupplementScreenProps {}
+interface SupplementScreenProps {
+  navigation: any;
+}
 
 interface Option {
   label: string;
   value: string;
 }
 
-const SupplementScreen: React.FC<SupplementScreenProps> = () => {
+const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: SupplementScreenProps) => {
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [isFocus, setIsFocus] = useState<boolean>(false);
@@ -156,6 +158,13 @@ const SupplementScreen: React.FC<SupplementScreenProps> = () => {
           />
         </View>
         <Button title="Add" onPress={handleAddSupplement} />
+        <Button 
+          title="Nutrition Label Parser" 
+          onPress={() => {
+            setModalVisible(false);
+            navigation.navigate('NutritionLabelParser')
+          }} 
+        />
       </CustomModal>
     </ScrollView>
   );
@@ -294,4 +303,6 @@ const styles = StyleSheet.create({
     height: 50,
   },
 });
+
 export default SupplementScreen;
+
