@@ -239,7 +239,6 @@ export async function getNutritionLabelImgInfo(base64ImageString: string): Promi
       base64ImageString,
     }),
   });
-  console.log(response);
   return response.json();
 }
 

@@ -7,7 +7,7 @@ export default function nutritionLabelParserRoutes() {
   router.post('/', async (req, res) => {
     try {
       const { base64ImageString } = req.body;
-      const prompt = "Return a JSON list of the nutrition info.";
+      const prompt = "Return response as JSON list of objects containing information.";
       const result = await extractNutritionInfo(base64ImageString, prompt);
       res.status(201).json(result);
     } catch (err) {

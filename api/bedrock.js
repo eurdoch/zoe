@@ -57,7 +57,7 @@ class BedrockService {
         new TextDecoder().decode(response.body)
       );
 
-      return responseBody.completion;
+      return responseBody.content[0].text;
 
     } catch (error) {
       console.error("Error processing request:", error);

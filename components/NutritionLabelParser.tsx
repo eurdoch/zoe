@@ -56,8 +56,9 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
         reader.onloadend = () => resolve(reader.result);
         reader.onerror = error => reject(error);
       });
-      console.log(getBase64SizeInMB(base64Data as string));
-      const nutritionData = await getNutritionLabelImgInfo(base64Data as string);
+      const stringData = base64Data as string;
+      const rawImageString = stringData.slice(23);
+      const nutritionData = await getNutritionLabelImgInfo(rawImageString);
       console.log(nutritionData);
     } catch (error) {
       console.error(error);
