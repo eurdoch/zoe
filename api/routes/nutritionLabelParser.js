@@ -4,6 +4,7 @@ const router = express.Router();
 
 export default function nutritionLabelParserRoutes() {
 
+  // TODO retry on failure up to 3 times
   router.post('/', async (req, res) => {
     try {
       const { base64ImageString } = req.body;
@@ -11,8 +12,8 @@ export default function nutritionLabelParserRoutes() {
       const result = await extractNutritionInfo(base64ImageString, prompt);
       res.status(201).json(result);
     } catch (err) {
-      console.error('POST /supplement error:', err);
-      res.status(500).json({ error: 'Failed to create item' });
+      console.error('POST /nutritionimg error:', err);
+      res.status(500).json({ error: 'Failed to extract nutrition info.' });
     }
   });
 
