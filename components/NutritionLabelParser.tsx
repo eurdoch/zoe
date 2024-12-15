@@ -9,20 +9,6 @@ interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
 }
 
-const getBase64SizeInMB = (base64String: string): number => {
-  // Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
-  const base64WithoutPrefix = base64String.replace(/^data:.+;base64,/, '');
-  
-  // Calculate size in bytes
-  const sizeInBytes = Math.ceil(base64WithoutPrefix.length * 0.75);
-  
-  // Convert to MB (divide by 1024 twice)
-  const sizeInMB = sizeInBytes / (1024 * 1024);
-  
-  // Round to 2 decimal places
-  return Number(sizeInMB.toFixed(2));
-};
-
 const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const [cameraActive, setCameraActive] = useState<boolean>(true);
   const camera = useRef(null);
@@ -30,6 +16,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [nutritionResponse, setNutritionResponse] = useState<string>('');
 
   useEffect(() => {
     if (!cameraActive) {
@@ -59,7 +46,8 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       const stringData = base64Data as string;
       const rawImageString = stringData.slice(23);
       const nutritionData = await getNutritionLabelImgInfo(rawImageString);
-      console.log(nutritionData);
+      setNutritionResponse(nutritionData);
+      setModalVisible(true);
     } catch (error) {
       console.error(error);
     }
@@ -98,7 +86,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
         </TouchableOpacity>
       </View>
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <Text>placeholder</Text>
+        <Text>{ nutritionResponse && nutritionResponse }</Text>
       </CustomModal>
     </View>
   )
