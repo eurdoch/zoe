@@ -21,28 +21,35 @@ class BedrockService {
   async processImageAndPrompt(
     imageBase64,
     prompt,
-    options = {}
   ) {
-    const defaultParams = {
-      max_tokens: 2048,
-      temperature: 0.7,
-      top_p: 0.9,
-      ...options
-    };
-
-    const input = {
-      prompt: `<image>${imageBase64}</image>
-${prompt}`,
-      image_base64: imageBase64,
-      ...defaultParams
-    };
-
     try {
       const command = new InvokeModelCommand({
         modelId: config.MODEL_ID,
         contentType: "application/json",
         accept: "application/json",
-        body: JSON.stringify(input)
+        body: JSON.stringify({
+          "anthropic_version": "bedrock-2023-05-31",
+          "max_tokens": 2048,
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image",
+                  "source": {
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": imageBase64,
+                  }
+                },
+                {
+                  "type": "text",
+                  "text": prompt,
+                }
+              ]
+            }
+          ]
+        }),
       });
 
       const response = await this.client.send(command);
