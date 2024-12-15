@@ -46,6 +46,10 @@ async function connectToDatabase() {
       res.send('Ping a da pong');
     });
 
+    app.get('/test', (req, res) => {
+      res.send('Test endpoint');
+    });
+
     app.post('/webhook', (req, res) => {
       console.log('Webhook received');
       const signature = req.headers['x-hub-signature-256'];
