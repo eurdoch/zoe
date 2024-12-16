@@ -35,8 +35,9 @@ export default function foodRoutes(foodCollection) {
   router.get('/', async (req, res) => {
     try {
       const unixTime = parseInt(req.query.unixTime);
-      const startOfDay = new Date(unixTime).setHours(0, 0, 0, 0);
-      const endOfDay = new Date(unixTime).setHours(23, 59, 59, 999);
+      const startOfDay = new Date(unixTime * 1000).setHours(0, 0, 0, 0) / 1000;
+      const endOfDay = new Date(unixTime * 1000).setHours(23, 59, 59, 999) / 1000;
+
       const items = await foodCollection.find({ createdAt: { $gte: startOfDay, $lte: endOfDay } }).toArray();
       console.log('GET /food', items.length, 'items');
       res.json(items);
