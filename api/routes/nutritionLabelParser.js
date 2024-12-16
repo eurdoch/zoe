@@ -12,7 +12,8 @@ export default function nutritionLabelParserRoutes() {
       const prompt = "Return as JSON with keys \"nutritional_info\" and \"serving_size\" where nutritional_info is a list of JSON objects containing keys \"name\", \"amount_per_serving\" and \"unit\". Only return the JSON.";
       logger.info('POST /nutritionimg'); // Log before extraction
       const result = await extractNutritionInfo(base64ImageString, prompt);
-      res.status(201).json(result);
+      const resultJson = JSON.parse(result);
+      res.status(201).json(resultJson);
     } catch (err) {
       logger.error('POST /nutritionimg error:', err); // Log error
       res.status(500).json({ error: 'Failed to extract nutrition info.' });
