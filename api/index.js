@@ -44,7 +44,7 @@ async function connectToDatabase() {
     };
 
     app.get('/', (req, res) => {
-      res.send('Ping a da pong');
+      res.send('Ping pong');
     });
 
     app.post('/webhook', (req, res) => {
