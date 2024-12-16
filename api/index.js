@@ -45,7 +45,7 @@ async function connectToDatabase() {
     app.get('/', (req, res) => {
       res.send('Ping a da pong');
     });
-    app.get('/tester', (req, res) => {
+    app.get('/testerino', (req, res) => {
       res.send('Ping a da pong');
     });
 
