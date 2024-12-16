@@ -43,8 +43,8 @@ async function connectToDatabase() {
       );
     };
 
-    app.get('/', (req, res) => {
-      res.send('Ping pong');
+    app.get('/ping', (req, res) => {
+      res.send('Pong');
     });
 
     app.post('/webhook', (req, res) => {
