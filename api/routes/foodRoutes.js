@@ -1,7 +1,10 @@
 import express from 'express';
 import { ObjectId } from 'mongodb';
+
 const router = express.Router();
+
 export default function foodRoutes(foodCollection) {
+
   router.post('/', async (req, res) => {
     try {
       console.log('POST /food', req.body);
@@ -12,6 +15,7 @@ export default function foodRoutes(foodCollection) {
       res.status(500).json({ error: 'Failed to create item' });
     }
   });
+
   router.get('/:id', async (req, res) => {
     try {
       const item = await foodCollection.findOne({ _id: new ObjectId(req.params.id) });
@@ -27,6 +31,7 @@ export default function foodRoutes(foodCollection) {
       res.status(500).json({ error: 'Failed to get item' });
     }
   });
+
   router.get('/', async (req, res) => {
     try {
       const unixTime = parseInt(req.query.unixTime);
@@ -40,6 +45,7 @@ export default function foodRoutes(foodCollection) {
       res.status(500).json({ error: 'Failed to get items' });
     }
   });
+
   router.delete('/:id', async (req, res) => {
     try {
       const result = await foodCollection.deleteOne({ _id: new ObjectId(req.params.id) });
@@ -55,5 +61,6 @@ export default function foodRoutes(foodCollection) {
       res.status(500).json({ error: 'Failed to delete item' });
     }
   });
+
   return router;
 }
