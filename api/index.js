@@ -55,9 +55,11 @@ async function connectToDatabase() {
 
       try {
         if (!verifySignature(req.body, signature)) {
+          console.err("Invalid signature");
           return res.status(401).send("invalid signature");
         }
       } catch (err) {
+        console.err("Signature verification failed");
         return res.status(401).send("signature verification failed");
       }
 
