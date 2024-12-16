@@ -35,8 +35,9 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
         loadData();
-        if (route.params?.nutritionData) {
-          setNutritionInfo(route.params.nutritionData);
+        if (route.params?.nutritionInfo) {
+          console.log(JSON.stringify(route.params.nutritionInfo, null, 2))
+          setNutritionInfo(route.params.nutritionInfo);
           setDeleteEntry(null);
           setModalVisible(true);
         }

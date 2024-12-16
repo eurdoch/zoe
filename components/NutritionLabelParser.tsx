@@ -38,7 +38,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
     try {
       setLoading(true);
       setCaptureDisabled(true);
-      const photo = await camera.current.takePhoto();
+      const photo = await camera.current?.takePhoto();
       const result = await fetch(`file://${photo.path}`);
       const data = await result.blob();
       const base64Data = await new Promise((resolve, reject) => {
@@ -49,12 +49,11 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       });
       const stringData = base64Data as string;
       const rawImageString = stringData.slice(23);
-      const nutritionData = await getNutritionLabelImgInfo(rawImageString);
-      console.log(nutritionData["serving_size"]);
-      if (nutritionData) {
+      const nutritionInfo = await getNutritionLabelImgInfo(rawImageString);
+      if (nutritionInfo) {
         navigation.popTo(
           'Diet',
-          { nutritionData },
+          { nutritionInfo },
         );
       }
       setLoading(false);
