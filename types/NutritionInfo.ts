@@ -1,10 +1,6 @@
-interface NutritionData {
-  name: string;
-  amount_per_serving: number,
-  unit: string;
-}
+import NutritionData from "./NutritionData";
 
 export default interface NutritionInfo {
   nutritional_info: NutritionData[], 
-  serving_size: string | number;
+  serving_size: string;
 }

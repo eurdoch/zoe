@@ -50,6 +50,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       const stringData = base64Data as string;
       const rawImageString = stringData.slice(23);
       const nutritionInfo = await getNutritionLabelImgInfo(rawImageString);
+      console.log(nutritionInfo);
       if (nutritionInfo) {
         navigation.popTo(
           'Diet',

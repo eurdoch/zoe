@@ -1,9 +1,8 @@
-import Food from "../types/Food";
 import FoodEntry from "../types/FoodEntry";
 
 const VITALE_BOX_URL = "https://directto.link";
 
-export async function postFood(food: Food): Promise<any> {
+export async function postFood(food: any): Promise<any> {
   const response = await fetch(`${VITALE_BOX_URL}/food`, {
     method: 'POST',
     headers: {

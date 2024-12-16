@@ -7,6 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
+import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 
 interface DietScreenProps {
   navigation: any;
@@ -23,6 +24,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const loadData = () => {
     const today = Math.floor(Date.now() / 1000);
     getFoodByUnixTime(today).then(entries => {
+      console.log('entries', entries);
       let count = 0;
       entries.forEach(entry => {
         count += entry.macros.calories;
@@ -36,7 +38,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       const unsubscribe = navigation.addListener('focus', () => {
         loadData();
         if (route.params?.nutritionInfo) {
-          console.log(JSON.stringify(route.params.nutritionInfo, null, 2))
           setNutritionInfo(route.params.nutritionInfo);
           setDeleteEntry(null);
           setModalVisible(true);
@@ -100,7 +101,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
         {
           nutritionInfo && (
-            <Text>{nutritionInfo.toString()}</Text>
+            <MacroByLabelCalculator loadDat={loadData} setModalVisible={setModalVisible} nutritionInfo={nutritionInfo} />
           ) 
         }
       </CustomModal>
