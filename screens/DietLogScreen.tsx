@@ -73,9 +73,14 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             ))}
           </ScrollView>
         )}
-        <TouchableOpacity style={styles.barcodeIcon} onPress={() => navigation.navigate('BarcodeScanner')}>
-          <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
-        </TouchableOpacity>
+        <View style={styles.iconTray}>
+          <TouchableOpacity onPress={() => navigation.navigate('BarcodeScanner')}>
+            <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('NutritionLabelParser')}>
+            <MaterialCommunityIcons name="alpha-n-box" size={60} color="black" />
+          </TouchableOpacity>
+        </View>
       </View>
       <CustomModal
         visible={modalVisible}
@@ -113,10 +118,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
   },
-  barcodeIcon: {
+  iconTray: {
     position: 'absolute',
     bottom: 20,
     alignSelf: 'center',
+    flexDirection: 'row',
+    gap: 20,
   },
   loadingContainer: {
     flex: 1,

@@ -4,6 +4,7 @@ import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomModal from "../CustomModal";
 import {getNutritionLabelImgInfo} from "../network/nutrition";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
@@ -49,7 +50,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       const stringData = base64Data as string;
       const rawImageString = stringData.slice(23);
       const nutritionData = await getNutritionLabelImgInfo(rawImageString);
-      console.log(nutritionData);
+      //navigation
       setLoading(false);
       setCaptureDisabled(false);
     } catch (error) {
@@ -94,6 +95,9 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
           <Text style={styles.buttonText}>Capture</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => setCameraActive(false)}>
+        <Icon name="close" size={30} color="#fff" />
+      </TouchableOpacity>
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         <Text>hello</Text>
       </CustomModal>
@@ -150,6 +154,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     padding: 10,
     borderRadius: 10,
+    position: 'absolute',
+    top: 40,
+    right: 20,
   },
   input: {
     height: 40,
