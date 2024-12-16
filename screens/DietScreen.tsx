@@ -6,17 +6,19 @@ import FloatingActionButton from '../components/FloatingActionButton';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
+import NutritionInfo from '../types/NutritionInfo';
 
 interface DietScreenProps {
   navigation: any;
+  route: any;
 }
 
-const DietScreen = ({ navigation }: DietScreenProps) => {
+const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([])
   const [totalCalories, setTotalCalories] = useState<number | null>(null);
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  // TODO make sure this works when item is logged``
+  const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo | null>(null);
 
   const loadData = () => {
     const today = Math.floor(Date.now() / 1000);
@@ -33,6 +35,11 @@ const DietScreen = ({ navigation }: DietScreenProps) => {
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
         loadData();
+        if (route.params?.nutritionData) {
+          setNutritionInfo(route.params.nutritionData);
+          setDeleteEntry(null);
+          setModalVisible(true);
+        }
       });
 
       return unsubscribe;
@@ -89,6 +96,11 @@ const DietScreen = ({ navigation }: DietScreenProps) => {
               <Button title="DELETE" onPress={() => handleDeleteEntry(deleteEntry._id)} />
             </View>
           )
+        }
+        {
+          nutritionInfo && (
+            <Text>{nutritionInfo.toString()}</Text>
+          ) 
         }
       </CustomModal>
     </View>
