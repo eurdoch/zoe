@@ -8,6 +8,7 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
+import 'dotenv/config';
 
 const app = express();
 const port = 3000;
