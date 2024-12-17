@@ -1,9 +1,8 @@
 import {useEffect, useRef, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Dimensions} from "react-native";
+import {StyleSheet, Text, View, TouchableOpacity, Dimensions} from "react-native";
 import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomModal from "../CustomModal";
-import {getNutritionLabelImgInfo} from "../network/nutrition";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 interface NavigationProps {
@@ -17,7 +16,6 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
 
   useEffect(() => {
@@ -36,32 +34,15 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
 
   const takePhoto = async () => {
     try {
-      setLoading(true);
       setCaptureDisabled(true);
       const photo = await camera.current?.takePhoto();
-      const result = await fetch(`file://${photo.path}`);
-      const data = await result.blob();
-      const base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(data);
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-      const stringData = base64Data as string;
-      const rawImageString = stringData.slice(23);
-      const nutritionInfo = await getNutritionLabelImgInfo(rawImageString);
-      console.log(nutritionInfo);
-      if (nutritionInfo) {
-        navigation.popTo(
-          'Diet',
-          { nutritionInfo },
-        );
-      }
-      setLoading(false);
+      navigation.popTo(
+        'DietLog',
+        { photo },
+      );
       setCaptureDisabled(false);
     } catch (error) {
       console.error(error);
-      setLoading(false);
       setCaptureDisabled(false);
     }
   };
@@ -84,7 +65,6 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
 
   return (
     <View style={styles.container}>
-      {loading && <ActivityIndicator size="large" color="#fff" style={styles.activityIndicator} />}
       <Camera
         ref={camera}
         style={StyleSheet.absoluteFill}

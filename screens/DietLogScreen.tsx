@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
-import { searchFoodItemByText } from '../network/nutrition';
+import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError } from '../utils';
@@ -18,13 +19,41 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [option, setOption] = useState<any>({});
+  const [isModalLoading, setIsModalLoading] = useState(false);
 
   useEffect(() => {
-    if (route.params?.productResponse) {
-      setOption(route.params?.productResponse);
-      setModalVisible(true);
-    }
-  }, [route.params?.productResponse]);
+      const unsubscribe = navigation.addListener('focus', () => {
+        console.log(route);
+        if (route.params?.photo) {
+          setIsModalLoading(true);
+          setModalVisible(true);
+          fetch(`file://${route.params?.photo.path}`)
+            .then(result => result.blob())
+            .then(data => new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.readAsDataURL(data);
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = error => reject(error);
+            }))
+            .then(base64Data => {
+              const stringData = base64Data as string;
+              const rawImageString = stringData.slice(23);
+              return getNutritionLabelImgInfo(rawImageString);
+            })
+            .then(nutritionInfo => {
+              console.log(nutritionInfo);
+            })
+            .catch(error => {
+              console.log(error);
+              showToastError("Could not get nutrition info.");
+              setIsModalLoading(false);
+              setModalVisible(false);
+            });
+        }
+      });
+
+      return unsubscribe;
+  }, [navigation]);
 
   const handleSearchByText = async () => {
     if (searchText) {
@@ -86,7 +115,13 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         visible={modalVisible}
         setVisible={setModalVisible}
       >
-        { modalVisible && <MacroCalculator setModalVisible={setModalVisible} productResponse={option} /> }
+        {isModalLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" />
+          </View>
+        ) : (
+          modalVisible && <MacroCalculator setModalVisible={setModalVisible} productResponse={option} />
+        )}
       </CustomModal>
 
     </>
@@ -133,3 +168,4 @@ const styles = StyleSheet.create({
 });
 
 export default DietLogScreen;
+

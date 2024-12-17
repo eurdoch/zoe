@@ -5,6 +5,7 @@ type MacroNutrients = {
   protein: number;
   carbs: number;
   fat: number;
+  fiber: number;
 }
 
 export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number): MacroNutrients {
@@ -19,7 +20,8 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
     calories: 0,
     protein: 0,
     carbs: 0,
-    fat: 0
+    fat: 0,
+    fiber: 0
   };
   
   // Map nutrients to corresponding macro properties
@@ -37,6 +39,9 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
       case 'Total Fat':
         macros.fat = nutrient.amount_per_serving * multiplier;
         break;
+      case 'Fiber':
+        macros.fiber = nutrient.amount_per_serving * multiplier;
+        break;
     }
   });
   
@@ -45,7 +50,8 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
     calories: Math.round(macros.calories * 10) / 10,
     protein: Math.round(macros.protein * 10) / 10,
     carbs: Math.round(macros.carbs * 10) / 10,
-    fat: Math.round(macros.fat * 10) / 10
+    fat: Math.round(macros.fat * 10) / 10,
+    fiber: Math.round(macros.fiber * 10) / 10
   };
 }
 
