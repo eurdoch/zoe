@@ -25,7 +25,10 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
         try {
           const item = await getFoodItemByUpc(upc);
           const productResponse = transformToProductResponse(item);
-          navigation.navigate({ name: 'DietLog', params: { productResponse: productResponse }});
+          navigation.popTo(
+            'DietLog',
+            { productResponse }
+          );
           setCameraActive(false);
         } catch(err: any) {
           if (err instanceof NetworkError) {

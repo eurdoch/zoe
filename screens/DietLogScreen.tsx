@@ -1,12 +1,13 @@
-
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
+import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
+import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import CustomModal from '../CustomModal';
+import NutritionInfo from '../types/NutritionInfo';
 
 interface DietLogScreenProps {
   route: any;
@@ -15,9 +16,11 @@ interface DietLogScreenProps {
 
 const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [searchText, setSearchText] = useState('');
+  const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo>({});
   const [foodOptions, setFoodOptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalContent, setModalContent] = useState<string>('product');
   const [option, setOption] = useState<any>({});
   const [isModalLoading, setIsModalLoading] = useState(false);
 
@@ -25,6 +28,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
       const unsubscribe = navigation.addListener('focus', () => {
         console.log(route);
         if (route.params?.photo) {
+          setModalContent('image');
           setIsModalLoading(true);
           setModalVisible(true);
           fetch(`file://${route.params?.photo.path}`)
@@ -40,8 +44,11 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
               const rawImageString = stringData.slice(23);
               return getNutritionLabelImgInfo(rawImageString);
             })
-            .then(nutritionInfo => {
-              console.log(nutritionInfo);
+            .then(nInfo => {
+              setNutritionInfo(nInfo);
+              setIsModalLoading(true);
+              setModalContent('image');
+              setModalVisible(true);
             })
             .catch(error => {
               console.log(error);
@@ -49,6 +56,10 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
               setIsModalLoading(false);
               setModalVisible(false);
             });
+        } else if (route.params?.productResponse) {
+          setOption(route.params?.productResponse);
+          setModalContent('product');
+          setModalVisible(true);
         }
       });
 
@@ -70,6 +81,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   }
 
   const handleFoodOptionPress = async (option: any) => {
+    setModalContent('product');
     setOption(option);
     setModalVisible(true);
   }
@@ -115,15 +127,26 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         visible={modalVisible}
         setVisible={setModalVisible}
       >
-        {isModalLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" />
-          </View>
-        ) : (
-          modalVisible && <MacroCalculator setModalVisible={setModalVisible} productResponse={option} />
-        )}
+        {
+          isModalLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" />
+            </View>
+          ) : (
+            <>
+              {modalContent === 'product' && (
+                <MacroCalculator
+                  setModalVisible={setModalVisible}
+                  productResponse={option}
+                />
+              )}
+              {modalContent === 'image' && (
+                <MacroByLabelCalculator setModalVisible={setModalVisible} nutritionInfo={nutritionInfo} />
+              )}
+            </>
+          )
+        }
       </CustomModal>
-
     </>
   );
 };
