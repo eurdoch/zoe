@@ -22,6 +22,7 @@ type RootStackParamList = {
   ExerciseLog: undefined;
   Exercise: { title: string };
   Diet: undefined;
+  DietLog: { productResponse?: any, photo?: any },
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -110,13 +111,6 @@ const App = () => {
               component={BarcodeScanner}
               options={{
                 headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="Analysis"
-              component={AnalysisScreen}
-              options={{
-                title: "Analysis"
               }}
             />
             <Stack.Screen

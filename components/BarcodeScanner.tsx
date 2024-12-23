@@ -22,14 +22,11 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     onCodeScanned: async (codes) => {
       const upc = codes[0].value;
       if (upc) {
+        setCameraActive(false);
         try {
           const item = await getFoodItemByUpc(upc);
           const productResponse = transformToProductResponse(item);
-          navigation.popTo(
-            'DietLog',
-            { productResponse }
-          );
-          setCameraActive(false);
+          navigation.popTo('DietLog', { productResponse: productResponse });
         } catch(err: any) {
           if (err instanceof NetworkError) {
             showToastError("Product could not be found.");
@@ -39,12 +36,6 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
       }
     }
   });
-
-  useEffect(() => {
-    if (!cameraActive) {
-      navigation.goBack();
-    }
-  }, [cameraActive]);
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -70,6 +61,11 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     );
   }
 
+  const closeCamera = () => {
+    setCameraActive(true);
+    navigation.goBack();
+  }
+
   return (
     <View style={StyleSheet.absoluteFill}>
       <Camera
@@ -83,7 +79,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
       <View style={styles.controls}>
         <TouchableOpacity
           style={styles.cancelButton}
-          onPress={() => setCameraActive(false)}
+          onPress={closeCamera}
         >
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>

@@ -1,3 +1,4 @@
+// TODO staged for deletion
 import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, Switch } from 'react-native';
 import ScatterPlot from '../ScatterPlot';

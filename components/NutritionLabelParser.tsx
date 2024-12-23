@@ -39,6 +39,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       navigation.popTo(
         'DietLog',
         { photo },
+        true,
       );
       setCaptureDisabled(false);
     } catch (error) {

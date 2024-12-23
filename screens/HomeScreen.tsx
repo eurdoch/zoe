@@ -25,10 +25,6 @@ const menuItems = [
     label: "Supplements",
     screenName: "Supplement",
   },
-  {
-    label: "Analysis",
-    screenName: "Analysis"
-  }
 ]
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
