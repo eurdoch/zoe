@@ -14,7 +14,6 @@ import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
 import SupplementScreen from './screens/SupplementsScreen';
 import BarcodeScanner from './components/BarcodeScanner';
-import AnalysisScreen from './screens/Analysis';
 import NutritionLabelParser from './components/NutritionLabelParser.tsx';
 
 type RootStackParamList = {
