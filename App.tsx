@@ -19,6 +19,7 @@ import { Realm, RealmProvider } from '@realm/react';
 import ExerciseEntry from './types/ExerciseEntry.ts';
 import WorkoutEntry from './types/WorkoutEntry.ts';
 import WeightEntry from './types/WeightEntry.ts';
+import 'react-native-get-random-values';
 
 type RootStackParamList = {
   Home: undefined;

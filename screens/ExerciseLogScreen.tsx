@@ -101,7 +101,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }
 
   const reloadData = async (name: string) => {
-    setData(await getExercisesByNameAndConvertToDataPoint(name)); 
+    setData(await getExercisesByNameAndConvertToDataPoint(name, realm)); 
   }
 
   const handleAddDataPoint = (formData: ExerciseFormData) => {
