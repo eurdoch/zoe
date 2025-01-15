@@ -2,56 +2,7 @@ import { Realm } from '@realm/react';
 import Exercise from "../types/Exercise";
 import ExerciseEntry from "../types/ExerciseEntry";
 
-// Define the Realm schema for Exercise
-class ExerciseSchema extends Realm.Object<Exercise> {
-  name!: string;
-  weight!: number;
-  reps!: number;
-  createdAt!: number;
-  notes!: string;
-
-  static schema = {
-    name: 'Exercise',
-    properties: {
-      name: 'string',
-      weight: 'double',
-      reps: 'int',
-      createdAt: 'int',
-      notes: 'string',
-    },
-  };
-}
-
-// Define the Realm schema for ExerciseEntry
-class ExerciseEntrySchema extends Realm.Object<ExerciseEntry> {
-  _id!: string;
-  name!: string;
-  weight!: number;
-  reps!: number;
-  createdAt!: number;
-  notes!: string;
-
-  static schema = {
-    name: 'ExerciseEntry',
-    primaryKey: '_id',
-    properties: {
-      _id: 'string',
-      name: 'string',
-      weight: 'double',
-      reps: 'int',
-      createdAt: 'int',
-      notes: 'string',
-    },
-  };
-}
-
-// Initialize Realm
-const realm = new Realm({
-  schema: [ExerciseSchema, ExerciseEntrySchema],
-  schemaVersion: 1,
-});
-
-export async function postExercise(exercise: Exercise): Promise<ExerciseEntry> {
+export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
     let result: ExerciseEntry;
     realm.write(() => {
@@ -68,7 +19,7 @@ export async function postExercise(exercise: Exercise): Promise<ExerciseEntry> {
   }
 }
 
-export async function getExerciseNames(): Promise<string[]> {
+export async function getExerciseNames(realm: Realm): Promise<string[]> {
   try {
     const exercises = realm.objects<ExerciseEntry>('ExerciseEntry');
     const uniqueNames = new Set(exercises.map(exercise => exercise.name));
@@ -79,7 +30,7 @@ export async function getExerciseNames(): Promise<string[]> {
   }
 }
 
-export async function getExerciseDataByName(name: string): Promise<ExerciseEntry[]> {
+export async function getExerciseDataByName(name: string, realm: Realm): Promise<ExerciseEntry[]> {
   try {
     const exercises = realm.objects<ExerciseEntry>('ExerciseEntry')
       .filtered('name == $0', name);
@@ -90,7 +41,7 @@ export async function getExerciseDataByName(name: string): Promise<ExerciseEntry
   }
 }
 
-export async function getExerciseById(id: string): Promise<ExerciseEntry> {
+export async function getExerciseById(id: string, realm: Realm): Promise<ExerciseEntry> {
   try {
     const exercise = realm.objectForPrimaryKey<ExerciseEntry>('ExerciseEntry', id);
     if (!exercise) {
@@ -103,7 +54,7 @@ export async function getExerciseById(id: string): Promise<ExerciseEntry> {
   }
 }
 
-export async function deleteExerciseById(id: string): Promise<void> {
+export async function deleteExerciseById(id: string, realm: Realm): Promise<void> {
   try {
     realm.write(() => {
       const exercise = realm.objectForPrimaryKey<ExerciseEntry>('ExerciseEntry', id);
@@ -117,9 +68,3 @@ export async function deleteExerciseById(id: string): Promise<void> {
   }
 }
 
-// Clean up realm when app is closed
-export function closeRealm() {
-  if (!realm.isClosed) {
-    realm.close();
-  }
-}

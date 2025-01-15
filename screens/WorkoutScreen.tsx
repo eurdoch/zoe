@@ -9,6 +9,7 @@ import CustomModal from '../CustomModal';
 import ExerciseDropdown from '../components/ExerciseDropdown';
 import DropdownItem from '../types/DropdownItem';
 import { getExerciseNames } from '../network/exercise';
+import { useRealm } from '@realm/react';
 
 interface WorkoutScreenProps {
   navigation: any;
@@ -22,6 +23,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
+  const realm = useRealm();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -41,7 +43,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   }, [navigation, isEditMode]);
 
   const handleDelete = () => {
-    deleteWorkout(route.params.workout._id).then(() => navigation.goBack());
+    deleteWorkout(route.params.workout._id, realm).then(() => navigation.goBack());
   }
 
   const handleDeleteExercise = (index: number) => {
@@ -49,7 +51,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       const newExercises = [...workoutEntry.exercises];
       newExercises.splice(index, 1);
       const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
-      updateWorkout(newWorkoutEntry).then(_updatedWorkout => {
+      updateWorkout(newWorkoutEntry, realm).then(_updatedWorkout => {
         setWorkoutEntry(newWorkoutEntry);
         showToastInfo('Exercise removed.');
       }).catch(console.log);
@@ -57,8 +59,8 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   }
 
   useEffect(() => {
-    getWorkout(route.params.workout._id).then(w => setWorkoutEntry(w));
-    getExerciseNames()
+    getWorkout(route.params.workout._id, realm).then(w => setWorkoutEntry(w));
+    getExerciseNames(realm)
       .then(names => {
         const sortedNames = names
           .sort((a, b) => a.localeCompare(b)).map(name => ({
@@ -89,7 +91,8 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         ...workoutEntry,
         exercises: [...workoutEntry.exercises, selectedItem.value === 'new_exercise' ? convertToDatabaseFormat(newExerciseName) : selectedItem.value]
       };
-      updateWorkout(newWorkoutEntry).then(result => {
+      // TODO change ot reflect to Realm return results
+      updateWorkout(newWorkoutEntry, realm).then(result => {
         if (!result.acknowledged) {
           showToastError('Exercise could not be added, try again.');
         } else {

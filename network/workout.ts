@@ -2,47 +2,7 @@ import { Realm } from '@realm/react';
 import Workout from "../types/Workout";
 import WorkoutEntry from "../types/WorkoutEntry";
 
-// Define the Realm schema for Workout
-class WorkoutSchema extends Realm.Object<Workout> {
-  name!: string;
-  exercises!: string[];
-  
-  static schema = {
-    name: 'Workout',
-    embedded: true,
-    properties: {
-      name: 'string',
-      exercises: 'string[]',
-    },
-  };
-}
-
-// Define the Realm schema for WorkoutEntry
-class WorkoutEntrySchema extends Realm.Object<WorkoutEntry> {
-  _id!: string;
-  name!: string;
-  exercises!: string[];
-  date!: Date;
-
-  static schema = {
-    name: 'WorkoutEntry',
-    primaryKey: '_id',
-    properties: {
-      _id: 'string',
-      name: 'string',
-      exercises: 'string[]',
-      date: 'date',
-    },
-  };
-}
-
-// Initialize Realm
-const realm = new Realm({
-  schema: [WorkoutSchema, WorkoutEntrySchema],
-  schemaVersion: 1,
-});
-
-export async function postWorkout(workout: Workout): Promise<WorkoutEntry> {
+export async function postWorkout(workout: Workout, realm: Realm): Promise<WorkoutEntry> {
   try {
     let result: WorkoutEntry;
     realm.write(() => {
@@ -61,7 +21,7 @@ export async function postWorkout(workout: Workout): Promise<WorkoutEntry> {
   }
 }
 
-export async function getWorkout(id: string): Promise<WorkoutEntry | null> {
+export async function getWorkout(id: string, realm: Realm): Promise<WorkoutEntry | null> {
   try {
     const workoutEntry = realm.objectForPrimaryKey<WorkoutEntry>('WorkoutEntry', id);
     if (!workoutEntry) return null;
@@ -77,7 +37,7 @@ export async function getWorkout(id: string): Promise<WorkoutEntry | null> {
   }
 }
 
-export async function getWorkouts(): Promise<WorkoutEntry[]> {
+export async function getWorkouts(realm: Realm): Promise<WorkoutEntry[]> {
   try {
     const workouts = realm.objects<WorkoutEntry>('WorkoutEntry');
     return Array.from(workouts).map(workout => ({
@@ -92,7 +52,7 @@ export async function getWorkouts(): Promise<WorkoutEntry[]> {
   }
 }
 
-export async function deleteWorkout(id: string): Promise<void> {
+export async function deleteWorkout(id: string, realm: Realm): Promise<void> {
   try {
     realm.write(() => {
       const workoutEntry = realm.objectForPrimaryKey<WorkoutEntry>('WorkoutEntry', id);
@@ -106,7 +66,7 @@ export async function deleteWorkout(id: string): Promise<void> {
   }
 }
 
-export async function updateWorkout(workoutEntry: WorkoutEntry): Promise<WorkoutEntry> {
+export async function updateWorkout(workoutEntry: WorkoutEntry, realm: Realm): Promise<WorkoutEntry> {
   try {
     realm.write(() => {
       realm.create<WorkoutEntry>(
@@ -127,9 +87,3 @@ export async function updateWorkout(workoutEntry: WorkoutEntry): Promise<Workout
   }
 }
 
-// Clean up realm when app is closed
-export function closeRealm() {
-  if (!realm.isClosed) {
-    realm.close();
-  }
-}

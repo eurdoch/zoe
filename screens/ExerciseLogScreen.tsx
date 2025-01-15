@@ -16,6 +16,7 @@ import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
+import { useRealm } from '@realm/react';
 
 interface ExerciseLogScreenProps {
   route: any;
@@ -59,9 +60,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
+  const realm = useRealm();
   
   useEffect(() => {
-    getExerciseNames()
+    getExerciseNames(realm)
       .then(names => {
         if (route.params?.name && !names.includes(route.params.name)) {
           names.push(route.params.name);
@@ -121,7 +123,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             createdAt: formData.createdAt,
             notes: formData.notes,
           }
-          postExercise(newExercise)
+          postExercise(newExercise, realm)
             .then(insertedEntry => {
               if (insertedEntry._id) {
                 reloadData(insertedEntry.name);
@@ -141,7 +143,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }
 
   const handleDataPointClick = (point: DataPoint) => {
-    getExerciseById(point.label!).then(m => {
+    getExerciseById(point.label!, realm).then(m => {
       setCurrentExercisePoint(m);
       setModalKey('exerciseContent');
       setModalVisible(true);

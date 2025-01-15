@@ -4,18 +4,20 @@ import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkouts } from '../network/workout';
 import FloatingActionButton from '../components/FloatingActionButton';
 import {useFocusEffect} from '@react-navigation/native';
+import { useRealm } from '@realm/react';
 
 interface WorkoutsScreenProps {
   navigation: any;
 }
 
 const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
+  const realm = useRealm();
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([]);
 
   // For navigation to and back to
   useFocusEffect(
     useCallback(() => {
-      const unsubscribe = getWorkouts().then(ws => setWorkoutEntries(ws));
+      const unsubscribe = getWorkouts(realm).then(ws => setWorkoutEntries(ws));
       return () => unsubscribe;
     }, [])
   );
