@@ -61,7 +61,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const realm = useRealm();
-  
+
   useEffect(() => {
     getExerciseNames(realm)
       .then(names => {
@@ -96,7 +96,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }, []);
 
   const handleSelect = async (item: DropdownItem) => {
-    const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value);
+    const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value, realm);
     setData(dataPoints);
   }
 
