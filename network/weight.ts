@@ -7,8 +7,8 @@ export async function postWeight(weight: Weight, realm: Realm): Promise<WeightEn
 
   realm.write(() => {
     newWeightEntry = realm.create<WeightEntry>('WeightEntry', {
-      _id: new Realm.BSON.ObjectId(),
-      weight: weight.value,
+      _id: new Realm.BSON.ObjectId().toString(),
+      value: weight.value,
       createdAt: weight.createdAt,
     });
   });
@@ -24,14 +24,14 @@ export async function getWeight(startDate?: number, endDate?: number, realm: Rea
       .filtered('createdAt >= $0 AND createdAt <= $1', startDate, endDate)
       .map(w => ({ 
         _id: w._id,
-        weight: w.weight, 
+        value: w.value, 
         createdAt: w.createdAt 
       }));
   } else {
     weights = realm.objects<WeightEntry>('WeightEntry')
       .map(w => ({ 
         _id: w._id, 
-        weight: w.weight, 
+        value: w.value, 
         createdAt: w.createdAt 
       }));
   }
@@ -39,7 +39,7 @@ export async function getWeight(startDate?: number, endDate?: number, realm: Rea
   return weights;
 }
 
-export async function deleteWeight(id: Realm.BSON.ObjectId, realm: Realm): Promise<void> {
+export async function deleteWeight(id: string, realm: Realm): Promise<void> {
   const weightToDelete = realm.objectForPrimaryKey<WeightEntry>('WeightEntry', id);
 
   if (weightToDelete) {

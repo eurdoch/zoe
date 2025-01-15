@@ -6,14 +6,17 @@ import { mapWeightEntriesToDataPoint, showToastError, showToastInfo } from '../u
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
 import CustomModal from '../CustomModal';
+import { useRealm } from '@realm/react';
 
 const WeightScreen = () => {
   const [data, setData] = useState<DataPoint[]>([]);
   const [weight, setWeight] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const realm = useRealm();
 
   const loadData = () => {
-    getWeight().then(result => {
+    getWeight(undefined, undefined, realm).then(result => {
+      console.log(result);
       setData(mapWeightEntriesToDataPoint(result));
     });
   }
@@ -24,7 +27,7 @@ const WeightScreen = () => {
       const result = await postWeight({
         value: parsedWeight,
         createdAt: Math.floor(Date.now() / 1000),
-      });
+      }, realm);
       if (result.acknowledged) {
         showToastInfo('Weight added.');
         loadData();

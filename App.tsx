@@ -72,16 +72,16 @@ class ExerciseEntrySchema extends Realm.Object<ExerciseEntry> {
 
 // Define the Realm schema for WeightEntry
 class WeightEntrySchema extends Realm.Object<WeightEntry> {
-  _id!: Realm.BSON.ObjectId;
-  weight!: number;
+  _id!: string;
+  value!: number;
   createdAt!: number;
 
   static schema = {
     name: 'WeightEntry',
     primaryKey: '_id',
     properties: {
-      _id: 'objectId',
-      weight: 'double',
+      _id: 'string',
+      value: 'double',
       createdAt: 'int',
     },
   };
@@ -90,21 +90,22 @@ class WeightEntrySchema extends Realm.Object<WeightEntry> {
 const App = () => {
   return (
     <RealmProvider
+      deleteRealmIfMigrationNeeded={__DEV__}
       schema={[
         ExerciseEntrySchema,
         WorkoutEntrySchema,
         WeightEntrySchema,
       ]}
-      schemaVersion={4} // Increment the version number
-      migration={(oldRealm, newRealm) => {
-        // If you're deleting the date field completely
-        oldRealm.objects('WorkoutEntry').forEach(oldObject => {
-          const newObject = newRealm.objects('WorkoutEntry').filtered('_id == $0', oldObject._id)[0];
-          if (newObject) {
-            // Handle migration of other fields if needed
-          }
-        });
-      }}
+      schemaVersion={1} // Increment the version number
+      //migration={(oldRealm, newRealm) => {
+      //  // If you're deleting the date field completely
+      //  oldRealm.objects('WorkoutEntry').forEach(oldObject => {
+      //    const newObject = newRealm.objects('WorkoutEntry').filtered('_id == $0', oldObject._id)[0];
+      //    if (newObject) {
+      //      // Handle migration of other fields if needed
+      //    }
+      //  });
+      //}}
     >
         <NavigationContainer>
           <Stack.Navigator

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationProp } from '@react-navigation/native';
-import { Button, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Menu from '../components/Menu';
 
@@ -44,6 +44,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   //    }
   //    
   //    const serverData = await response.json();
+  //    console.log(serverData);
 
   //    // 3. Write all data to Realm
   //    realm.write(() => {
@@ -55,7 +56,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   //        
   //        // Create or update in Realm
   //        realm.create('WorkoutEntry', item);
-  //        console.log('Susccessfully downloaded workout edntry to local storage.');
+  //        console.log('Susccessfully downloaded wweight edntry to local storage.');
   //      });
   //    });
   //  } catch (error) {
