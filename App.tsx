@@ -18,6 +18,7 @@ import NutritionLabelParser from './components/NutritionLabelParser.tsx';
 import { Realm, RealmProvider } from '@realm/react';
 import ExerciseEntry from './types/ExerciseEntry.ts';
 import WorkoutEntry from './types/WorkoutEntry.ts';
+import WeightEntry from './types/WeightEntry.ts';
 
 type RootStackParamList = {
   Home: undefined;
@@ -69,14 +70,32 @@ class ExerciseEntrySchema extends Realm.Object<ExerciseEntry> {
   };
 }
 
+// Define the Realm schema for WeightEntry
+class WeightEntrySchema extends Realm.Object<WeightEntry> {
+  _id!: Realm.BSON.ObjectId;
+  weight!: number;
+  createdAt!: number;
+
+  static schema = {
+    name: 'WeightEntry',
+    primaryKey: '_id',
+    properties: {
+      _id: 'objectId',
+      weight: 'double',
+      createdAt: 'int',
+    },
+  };
+}
+
 const App = () => {
   return (
     <RealmProvider
       schema={[
-      ExerciseEntrySchema,
-      WorkoutEntrySchema,
+        ExerciseEntrySchema,
+        WorkoutEntrySchema,
+        WeightEntrySchema,
       ]}
-      schemaVersion={2} // Increment the version number
+      schemaVersion={4} // Increment the version number
       migration={(oldRealm, newRealm) => {
         // If you're deleting the date field completely
         oldRealm.objects('WorkoutEntry').forEach(oldObject => {
