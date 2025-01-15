@@ -16,7 +16,7 @@ export async function postWeight(weight: Weight, realm: Realm): Promise<WeightEn
   return newWeightEntry!;
 }
 
-export async function getWeight(startDate?: number, endDate?: number, realm: Realm): Promise<WeightEntry[]> {
+export async function getWeight(realm: Realm, startDate?: number, endDate?: number): Promise<WeightEntry[]> {
   let weights: WeightEntry[];
 
   if (startDate !== undefined && endDate !== undefined) {

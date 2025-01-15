@@ -15,8 +15,7 @@ const WeightScreen = () => {
   const realm = useRealm();
 
   const loadData = () => {
-    getWeight(undefined, undefined, realm).then(result => {
-      console.log(result);
+    getWeight(realm).then(result => {
       setData(mapWeightEntriesToDataPoint(result));
     });
   }
@@ -24,18 +23,18 @@ const WeightScreen = () => {
   const handleAddWeight = async (_e: any) => {
     const parsedWeight = parseFloat(weight);
     if (!isNaN(parsedWeight)) {
-      const result = await postWeight({
-        value: parsedWeight,
-        createdAt: Math.floor(Date.now() / 1000),
-      }, realm);
-      if (result.acknowledged) {
-        showToastInfo('Weight added.');
+      try {
+        await postWeight({
+          value: parsedWeight,
+          createdAt: Math.floor(Date.now() / 1000),
+        }, realm);
+        showToastInfo("Weight added.");
         loadData();
-      } else {
+        setModalVisible(false);
+        setWeight("");
+      } catch {
         showToastError('Weight could not be added, try again.');
       }
-      setModalVisible(false);
-      setWeight("");
     } else {
       showToastError('Weight must be a number.')
     }
