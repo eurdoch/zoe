@@ -5,6 +5,7 @@ import { formatTime, showToastError } from '../utils';
 import ExerciseEntry from '../types/ExerciseEntry';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { deleteExerciseById } from '../network/exercise';
+import { useRealm } from '@realm/react';
 
 interface Props {
   entry: ExerciseEntry;
@@ -13,9 +14,10 @@ interface Props {
 }
 
 const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisible }) => {
+  const realm = useRealm();
 
   const handleDeleteExercise = (_e: any) => {
-    deleteExerciseById(entry._id).then(() => {
+    deleteExerciseById(entry._id, realm).then(() => {
       reloadData(entry.name);
       setModalVisible(false);
     }).catch(err => {
