@@ -13,10 +13,11 @@ const menuItems = [
     label: "Exercise",
     screenName: "Exercise",
   },
-  {
-    label: "Diet",
-    screenName: "Diet",
-  },
+  // TODO broken for now
+  //{
+  //  label: "Diet",
+  //  screenName: "Diet",
+  //},
   {
     label: "Weight",
     screenName: "Weight",
