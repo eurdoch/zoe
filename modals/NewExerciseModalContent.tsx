@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dimensions, StyleSheet, TextInput, View } from "react-native";
+import { Button, StyleSheet, TextInput, View } from "react-native";
 import { convertToDatabaseFormat } from "../utils";
 import Toast from "react-native-toast-message";
 import DropdownItem from "../types/DropdownItem";
@@ -45,9 +45,13 @@ const NewExerciseModalContent = ({
         placeholder="Enter new exercise name"
         value={value}
         onChangeText={(text) => setValue(text)}
-        style={[styles.modalInput, { width: Dimensions.get("window").width * 0.8 }]}
+        style={styles.input}
       />
-      <Button title="Add" onPress={handleAddNewExerciseOption} />
+      <Button
+        title="Add"
+        onPress={handleAddNewExerciseOption}
+        color="#007AFF"
+      />
     </View>
   );
 }
@@ -55,12 +59,13 @@ const NewExerciseModalContent = ({
 export default NewExerciseModalContent;
 
 const styles = StyleSheet.create({
-  modalInput: {
+  input: {
     borderWidth: 1,
-    borderColor: 'gray',
+    borderColor: '#CCCCCC',
     padding: 10,
     marginBottom: 10,
     borderRadius: 5,
     fontSize: 16,
   },
 });
+
