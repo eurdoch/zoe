@@ -118,7 +118,8 @@ const App = () => {
               name="Home"
               component={HomeScreen}
               options={{
-                title: "Home"
+                title: "zoe",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
