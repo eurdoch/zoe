@@ -126,7 +126,8 @@ const App = () => {
               name="ExerciseLog"
               component={ExerciseLogScreen}
               options={{
-                title: "Log"
+                title: "log",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
@@ -147,21 +148,24 @@ const App = () => {
               name="Exercise"
               component={ExerciseScreen}
               options={{
-                title: "Exercise",
+                title: "exercise",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
               name="CreateWorkout"
               component={CreateWorkoutScreen}
               options={{
-                title: "Create Workout",
+                title: "create workout",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
               name="Workouts"
               component={WorkoutsScreen}
               options={{
-                title: "Workouts",
+                title: "workouts",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
@@ -175,14 +179,16 @@ const App = () => {
               name="Weight"
               component={WeightScreen}
               options={{
-                title: "Weight",
+                title: "weight",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
               name="Supplement"
               component={SupplementScreen}
               options={{
-                title: "Supplements",
+                title: "supplements",
+                headerTitleAlign: "center",
               }}
             />
             <Stack.Screen
