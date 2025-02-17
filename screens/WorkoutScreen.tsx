@@ -25,12 +25,16 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [newExerciseName, setNewExerciseName] = useState<string>('');
   const realm = useRealm();
 
+  const handleDeleteWorkout = () => {
+    deleteWorkout(route.params.workout._id, realm).then(() => navigation.goBack());
+  }
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.rightHeader}>
           {isEditMode && (
-            <TouchableOpacity onPress={handleDelete}>
+            <TouchableOpacity onPressOut={handleDeleteWorkout}>
               <MaterialCommunityIcons name="delete" size={24} />
             </TouchableOpacity>
           )}
@@ -41,10 +45,6 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       )
     })
   }, [navigation, isEditMode]);
-
-  const handleDelete = () => {
-    deleteWorkout(route.params.workout._id, realm).then(() => navigation.goBack());
-  }
 
   const handleDeleteExercise = (index: number) => {
     if (workoutEntry) {

@@ -13,6 +13,7 @@ export async function postWorkout(workout: Workout, realm: Realm): Promise<Worko
         date: new Date(),
       };
       result = realm.create<WorkoutEntry>('WorkoutEntry', workoutEntry);
+      console.log(result);
     });
     return result!;
   } catch (error) {
@@ -29,7 +30,7 @@ export async function getWorkout(id: string, realm: Realm): Promise<WorkoutEntry
       _id: workoutEntry._id,
       name: workoutEntry.name,
       exercises: [...workoutEntry.exercises],
-      date: workoutEntry.date
+      createdAt: workoutEntry.createdAt,
     };
   } catch (error) {
     console.error('Error getting workout:', error);
@@ -44,7 +45,7 @@ export async function getWorkouts(realm: Realm): Promise<WorkoutEntry[]> {
       _id: workout._id,
       name: workout.name,
       exercises: [...workout.exercises],
-      date: workout.date
+      createdAt: workout.createdAt,
     }));
   } catch (error) {
     console.error('Error getting workouts:', error);
@@ -56,6 +57,7 @@ export async function deleteWorkout(id: string, realm: Realm): Promise<void> {
   try {
     realm.write(() => {
       const workoutEntry = realm.objectForPrimaryKey<WorkoutEntry>('WorkoutEntry', id);
+      console.log('deleteEntry: ', workoutEntry);
       if (workoutEntry) {
         realm.delete(workoutEntry);
       }
@@ -75,9 +77,9 @@ export async function updateWorkout(workoutEntry: WorkoutEntry, realm: Realm): P
           _id: workoutEntry._id,
           name: workoutEntry.name,
           exercises: workoutEntry.exercises,
-          date: workoutEntry.date
+          createdAt: workoutEntry.createdAt,
         },
-        'modified'
+        Realm.UpdateMode.Modified,
       );
     });
     return workoutEntry;

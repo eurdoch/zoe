@@ -4,6 +4,7 @@ import { getExerciseNames } from '../network/exercise';
 import { convertFromDatabaseFormat } from '../utils';
 import { postWorkout } from '../network/workout';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { useRealm } from '@realm/react';
 
 interface CreateWorkoutScreenProps {
   navigation: any;
@@ -13,9 +14,10 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [availableExercises, setAvailableExercises] = useState<string[]>([]);
   const [workoutName, setWorkoutName] = useState<string>('');
+  const realm = useRealm();
 
   useEffect(() => {
-    getExerciseNames().then((names: string[]) => {
+    getExerciseNames(realm).then((names: string[]) => {
       setAvailableExercises(names);
     });
   });
@@ -38,11 +40,14 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
       return;
     }
 
+    console.log(selectedExercises);
+    console.log(workoutName);
     const result = await postWorkout({
       name: workoutName,
       exercises: selectedExercises,
-    });
-    if (result.acknowledged) {
+      createdAt: Date.now(),
+    }, realm);
+    if (result.exercises === selectedExercises) {
       navigation.pop(1);
     } else {
       Toast.show({
