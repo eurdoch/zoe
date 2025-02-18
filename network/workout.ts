@@ -13,7 +13,6 @@ export async function postWorkout(workout: Workout, realm: Realm): Promise<Worko
         date: new Date(),
       };
       result = realm.create<WorkoutEntry>('WorkoutEntry', workoutEntry);
-      console.log(result);
     });
     return result!;
   } catch (error) {

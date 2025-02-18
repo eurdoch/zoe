@@ -40,14 +40,13 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
       return;
     }
 
-    console.log(selectedExercises);
-    console.log(workoutName);
     const result = await postWorkout({
       name: workoutName,
       exercises: selectedExercises,
       createdAt: Date.now(),
     }, realm);
-    if (result.exercises === selectedExercises) {
+    if (result.name === workoutName && 
+        JSON.stringify(result.exercises) === JSON.stringify(selectedExercises)) {
       navigation.pop(1);
     } else {
       Toast.show({
