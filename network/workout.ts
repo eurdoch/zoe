@@ -56,7 +56,6 @@ export async function deleteWorkout(id: string, realm: Realm): Promise<void> {
   try {
     realm.write(() => {
       const workoutEntry = realm.objectForPrimaryKey<WorkoutEntry>('WorkoutEntry', id);
-      console.log('deleteEntry: ', workoutEntry);
       if (workoutEntry) {
         realm.delete(workoutEntry);
       }

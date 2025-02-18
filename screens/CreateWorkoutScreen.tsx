@@ -48,6 +48,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     if (result.name === workoutName && 
         JSON.stringify(result.exercises) === JSON.stringify(selectedExercises)) {
       navigation.pop(1);
+      navigation.navigate('Workout', { workout: result })
     } else {
       Toast.show({
         type: 'error',
