@@ -1,0 +1,109 @@
+.app {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.app-header {
+  text-align: center;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: #333;
+  margin: 0;
+}
+
+.app-content {
+  padding: 1rem;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  margin: 1rem 0;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.error {
+  color: #d32f2f;
+  background-color: #ffebee;
+}
+
+.chart-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-container h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+.data-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.option-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.option-group h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.option-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.option-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.chart {
+  height: 400px;
+  margin-top: 1.5rem;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .data-options {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .option-group {
+    width: 100%;
+  }
+  
+  .chart {
+    height: 300px;
+  }
+}
