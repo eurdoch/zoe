@@ -12,19 +12,27 @@ export default function exerciseRoutes(exerciseCollection) {
       res.status(500).json({ error: `Error fetching exercise names: ${err}` });
     }
   });
-  router.get('/', async (req, res) => {
-    const name = req.query.name;
-    const id = req.query.id;
-    const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
-    try {
-      console.log(`GET /exercise?${new URLSearchParams(query)}`);
+
+router.get('/', async (req, res) => {
+  const name = req.query.name;
+  const id = req.query.id;
+  const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
+  try {
+    if (Object.keys(query).length === 0) {
+      console.log('GET /exercise - fetching all exercises');
+      const exercises = await exerciseCollection.find({}).toArray();
+      res.json(exercises);
+    } else {
+      console.log(`GET /exercise?${new URLSearchParams(req.query)}`);
       const exercise = await exerciseCollection.findOne(query);
       res.json(exercise);
-    } catch (err) {
-      console.error(`Error fetching exercises: ${err}`);
-      res.status(500).json({ error: `Error fetching exercises: ${err}` });
     }
-  });
+  } catch (err) {
+    console.error(`Error fetching exercises: ${err}`);
+    res.status(500).json({ error: `Error fetching exercises: ${err}` });
+  }
+});
+
   router.get('/:name', async (req, res) => {
     const name = req.params.name;
     try {
