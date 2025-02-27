@@ -35,6 +35,7 @@ async function connectToDatabase() {
     const supplementCollection = database.collection('supplement');
 
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+    // Hardcoded repo
     const repoPath = '/home/ubuntu/zoe';
 
     const verifySignature = (payload, signature) => {
