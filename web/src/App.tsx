@@ -326,10 +326,6 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>zoe fitness dashboard</h1>
-      </header>
-      
       <main className="app-content">
         {loading ? (
           <div className="loading">Loading data...</div>
@@ -341,11 +337,10 @@ function App() {
         ) : null}
         
         <div className="chart-container">
-          <h2>Fitness Progress</h2>
           
           <div className="chart">
             {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
