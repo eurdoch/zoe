@@ -71,18 +71,8 @@ function App() {
       setLoading(true);
       setError(null);
       
-      // Immediately set mock data so we have something to show
-      const mockWeightData = getMockWeightData();
-      const mockWorkoutData = getMockWorkoutData();
-      const mockExerciseData = getMockExerciseData();
-      
-      // Use mock data initially
-      setWeightData(mockWeightData);
-      setWorkoutData(mockWorkoutData);
-      setExerciseData(mockExerciseData);
-      
       try {
-        console.log('Attempting to fetch data from server:', API_BASE_URL);
+        console.log('Fetching data from server:', API_BASE_URL);
         
         // We'll use Promise.allSettled to try all requests even if some fail
         const [weightResponse, workoutResponse, exerciseResponse] = await Promise.allSettled([
@@ -94,28 +84,34 @@ function App() {
         // Process weight data if successful
         if (weightResponse.status === 'fulfilled' && weightResponse.value.ok) {
           const jsonData = await weightResponse.value.json();
-          console.log('Received weight data:', jsonData);
-          if (Array.isArray(jsonData) && jsonData.length > 0) {
+          console.log('Successfully received weight data');
+          if (Array.isArray(jsonData)) {
             setWeightData(jsonData);
           }
+        } else {
+          console.warn('Failed to fetch weight data');
         }
         
         // Process workout data if successful
         if (workoutResponse.status === 'fulfilled' && workoutResponse.value.ok) {
           const jsonData = await workoutResponse.value.json();
-          console.log('Received workout data:', jsonData);
-          if (Array.isArray(jsonData) && jsonData.length > 0) {
+          console.log('Successfully received workout data');
+          if (Array.isArray(jsonData)) {
             setWorkoutData(jsonData);
           }
+        } else {
+          console.warn('Failed to fetch workout data');
         }
         
         // Process exercise data if successful
         if (exerciseResponse.status === 'fulfilled' && exerciseResponse.value.ok) {
           const jsonData = await exerciseResponse.value.json();
-          console.log('Received exercise data:', jsonData);
-          if (Array.isArray(jsonData) && jsonData.length > 0) {
+          console.log('Successfully received exercise data');
+          if (Array.isArray(jsonData)) {
             setExerciseData(jsonData);
           }
+        } else {
+          console.warn('Failed to fetch exercise data');
         }
         
         // Check if any requests failed
@@ -125,12 +121,11 @@ function App() {
         );
         
         if (anyFailed) {
-          console.warn('Some or all API requests failed, using mock data');
-          setError('Could not fetch all data from server. Using mock data for visualization.');
+          setError('Could not fetch all data from server. Some data may be missing.');
         }
       } catch (err: any) {
         console.error('Error fetching data:', err);
-        setError(err.message || 'Failed to fetch data from server. Using mock data.');
+        setError(err.message || 'Failed to fetch data from server.');
       } finally {
         setLoading(false);
       }
@@ -148,21 +143,6 @@ function App() {
         exerciseDataCount: exerciseData.length,
         dataOptions
       });
-      
-      // If we don't have any data yet, use mock data for immediate visualization
-      if (weightData.length === 0 && workoutData.length === 0 && exerciseData.length === 0) {
-        console.log('No real data available, generating mock data');
-        const mockWeightData = getMockWeightData();
-        const mockWorkoutData = getMockWorkoutData();
-        const mockExerciseData = getMockExerciseData();
-        
-        setWeightData(mockWeightData);
-        setWorkoutData(mockWorkoutData);
-        setExerciseData(mockExerciseData);
-        
-        // Return early - the next effect run will handle the mock data
-        return;
-      }
       
       const dataPoints = new Map<string, ChartDataPoint>();
       
@@ -251,11 +231,6 @@ function App() {
   const getUniqueExerciseNames = (): string[] => {
     const names = new Set<string>();
     exerciseData.forEach(entry => names.add(entry.name));
-    
-    // Make sure we have at least these default exercises for the mock data
-    const defaultExercises = ['Squats', 'Bench Press', 'Deadlift'];
-    defaultExercises.forEach(name => names.add(name));
-    
     return Array.from(names);
   };
   
@@ -281,38 +256,7 @@ function App() {
     }
   }, [exerciseData]);
 
-  // Mock data generators for development
-  const getMockWeightData = (): WeightEntry[] => {
-    const now = Date.now();
-    return Array.from({ length: 10 }, (_, i) => ({
-      _id: `weight_${i}`,
-      value: 70 + Math.random() * 10,
-      createdAt: now - (9 - i) * 86400000 // days in ms
-    }));
-  };
-
-  const getMockWorkoutData = (): WorkoutEntry[] => {
-    const now = Date.now();
-    return Array.from({ length: 8 }, (_, i) => ({
-      _id: `workout_${i}`,
-      name: `Workout ${i+1}`,
-      exercises: ['Squats', 'Bench Press', 'Deadlift'].slice(0, Math.floor(Math.random() * 3) + 1),
-      createdAt: now - (7 - i) * 86400000 // days in ms
-    }));
-  };
-
-  const getMockExerciseData = (): ExerciseEntry[] => {
-    const now = Date.now();
-    const exercises = ['Squats', 'Bench Press', 'Deadlift'];
-    return Array.from({ length: 15 }, (_, i) => ({
-      _id: `exercise_${i}`,
-      name: exercises[i % 3],
-      weight: 50 + Math.random() * 50,
-      reps: Math.floor(Math.random() * 10) + 5,
-      createdAt: now - Math.floor(i / 3) * 86400000, // days in ms
-      notes: ''
-    }));
-  };
+  // No mock data generators - using only real server data
 
   return (
     <div className="app">
@@ -382,39 +326,49 @@ function App() {
                   <Tooltip />
                   <Legend />
                   
-                  {/* Always show weight data for debugging */}
-                  <Line 
-                    type="monotone" 
-                    dataKey="weight" 
-                    stroke="#8884d8" 
-                    name="Weight (kg)" 
-                    dot={{ strokeWidth: 2 }} 
-                  />
-                  
-                  <Line 
-                    type="monotone" 
-                    dataKey="workouts" 
-                    stroke="#82ca9d" 
-                    name="Workouts" 
-                    dot={{ strokeWidth: 2 }} 
-                  />
-                  
-                  {/* Display available exercise data */}
-                  {getUniqueExerciseNames().slice(0, 3).map((name, index) => (
+                  {dataOptions.weight && (
                     <Line 
-                      key={name}
                       type="monotone" 
-                      dataKey={name} 
-                      stroke={['#ff7300', '#387908', '#e91e63'][index % 3]} 
-                      name={`${name} (kg)`} 
+                      dataKey="weight" 
+                      stroke="#8884d8" 
+                      name="Weight (kg)" 
                       dot={{ strokeWidth: 2 }} 
                     />
-                  ))}
+                  )}
+                  
+                  {dataOptions.workouts && (
+                    <Line 
+                      type="monotone" 
+                      dataKey="workouts" 
+                      stroke="#82ca9d" 
+                      name="Workouts" 
+                      dot={{ strokeWidth: 2 }} 
+                    />
+                  )}
+                  
+                  {/* Display available exercise data */}
+                  {getUniqueExerciseNames().map((name, index) => {
+                    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (dataOptions.exercises[key as keyof typeof dataOptions.exercises]) {
+                      return (
+                        <Line 
+                          key={name}
+                          type="monotone" 
+                          dataKey={name} 
+                          stroke={`#${Math.floor(Math.random()*16777215).toString(16)}`} 
+                          name={`${name} (kg)`} 
+                          dot={{ strokeWidth: 2 }} 
+                        />
+                      );
+                    }
+                    return null;
+                  })}
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="no-data">
-                <p>No chart data available. Check console for errors.</p>
+                <p>No data available from server.</p>
+                <p>Please ensure your fitness data has been logged in the mobile app.</p>
               </div>
             )}
           </div>
