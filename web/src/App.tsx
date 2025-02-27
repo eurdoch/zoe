@@ -175,7 +175,7 @@ function App() {
       // Add weight data if enabled
       if (dataOptions.weight) {
         weightData.forEach(entry => {
-          const dateStr = new Date(entry.createdAt).toLocaleDateString();
+          const dateStr = new Date(entry.createdAt * 1000).toLocaleDateString();
           if (!dataPoints.has(dateStr)) {
             dataPoints.set(dateStr, { date: dateStr });
           }
@@ -190,7 +190,7 @@ function App() {
         const workoutCounts = new Map<string, number>();
         
         workoutData.forEach(entry => {
-          const dateStr = new Date(entry.createdAt).toLocaleDateString();
+          const dateStr = new Date(entry.createdAt * 1000).toLocaleDateString();
           const count = workoutCounts.get(dateStr) || 0;
           workoutCounts.set(dateStr, count + 1);
         });
@@ -216,7 +216,10 @@ function App() {
           return;
         }
         
-        const dateStr = new Date(entry.createdAt).toLocaleDateString();
+        // Make sure we're parsing createdAt correctly (it's in milliseconds since epoch)
+        const date = new Date(entry.createdAt * 1000); // Convert from seconds to milliseconds
+        console.log(`Exercise date for ${entry.name}: ${date.toISOString()}, from timestamp: ${entry.createdAt}`);
+        const dateStr = date.toLocaleDateString();
         
         // Calculate the value using the formula (reps * weight) / 100
         const value = (entry.reps * entry.weight) / 100;
