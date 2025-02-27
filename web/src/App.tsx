@@ -368,7 +368,9 @@ function App() {
                   <YAxis 
                     name="Value"
                     label={{ value: 'Score / Weight / Count', angle: -90, position: 'insideLeft' }}
-                    ticks={[0, 25, 50, 75, 100, 125, 150]}
+                    domain={['auto', 'auto']}
+                    allowDataOverflow={false}
+                    tickCount={6}
                   />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
