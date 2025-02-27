@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LineChart, 
-  Line, 
+  ScatterChart,
+  Scatter,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -396,30 +396,30 @@ function App() {
           <div className="chart">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                <ScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                   <Legend />
                   
                   {dataOptions.weight && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="weight" 
-                      stroke="#8884d8" 
+                    <Scatter 
                       name="Weight (kg)" 
-                      dot={{ strokeWidth: 2 }} 
+                      dataKey="weight" 
+                      fill="#8884d8" 
+                      shape="circle"
+                      line={{ stroke: '#8884d8', strokeDasharray: '5 5' }}
                     />
                   )}
                   
                   {dataOptions.workouts && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="workouts" 
-                      stroke="#82ca9d" 
+                    <Scatter 
                       name="Workouts" 
-                      dot={{ strokeWidth: 2 }} 
+                      dataKey="workouts" 
+                      fill="#82ca9d" 
+                      shape="square"
+                      line={{ stroke: '#82ca9d', strokeDasharray: '5 5' }}
                     />
                   )}
                   
@@ -427,20 +427,21 @@ function App() {
                   {getUniqueExerciseNames().map((name, index) => {
                     const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
                     if (dataOptions.exercises[key as keyof typeof dataOptions.exercises]) {
+                      const color = `#${Math.floor(Math.random()*16777215).toString(16)}`;
                       return (
-                        <Line 
+                        <Scatter 
                           key={name}
-                          type="monotone" 
+                          name={`${name} (score)`} 
                           dataKey={name} 
-                          stroke={`#${Math.floor(Math.random()*16777215).toString(16)}`} 
-                          name={`${name} (kg)`} 
-                          dot={{ strokeWidth: 2 }} 
+                          fill={color}
+                          shape="diamond"
+                          line={{ stroke: color, strokeDasharray: '5 5' }}
                         />
                       );
                     }
                     return null;
                   })}
-                </LineChart>
+                </ScatterChart>
               </ResponsiveContainer>
             ) : (
               <div className="no-data">
