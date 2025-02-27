@@ -447,8 +447,8 @@ function App() {
                       name="Workouts" 
                       dataKey="workouts" 
                       fill="#82ca9d" 
-                      shape="square"
-                      legendType="square"
+                      shape="circle"
+                      legendType="circle"
                     />
                   )}
                   
@@ -463,8 +463,8 @@ function App() {
                           name={`${formatExerciseName(name)} (score)`} 
                           dataKey={name} 
                           fill={color}
-                          shape="diamond"
-                          legendType="diamond"
+                          shape="circle"
+                          legendType="circle"
                         />
                       );
                     }
