@@ -44,42 +44,39 @@ html, body {
 .chart-container {
   background-color: white;
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Changed to row for side by side layout */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 200px; /* Leave space for options container */
+  bottom: 0; /* Take full height */
   overflow: hidden;
   padding: 0;
   margin: 0;
 }
 
 .data-options-container {
-  height: 200px;
+  width: 250px; /* Fixed width for options panel */
   overflow-y: auto;
-  border-top: 1px solid #eaeaea;
+  border-left: 1px solid #eaeaea;
   padding: 0.5rem;
   background-color: #f5f5f5;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
 }
 
 .data-options {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 1rem;
   padding: 0.5rem;
   background-color: #f5f5f5;
   border-radius: 8px;
   width: 100%;
+  height: 100%;
 }
 
 .option-group {
-  flex: 1;
-  min-width: 200px;
+  flex: 0 0 auto;
+  width: 100%;
 }
 
 .option-group h3 {
@@ -101,16 +98,15 @@ html, body {
 
 .exercise-checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.5rem;
-  max-height: 100px;
+  max-height: 300px;
   overflow-y: auto;
   padding-right: 0.5rem;
 }
 
 .chart {
   flex: 1;
-  width: 100%;
   height: 100%;
   background-color: #fff;
   overflow: hidden;
@@ -136,6 +132,17 @@ html, body {
 }
 
 @media (max-width: 768px) {
+  .chart-container {
+    flex-direction: column; /* Stack vertically on mobile */
+  }
+  
+  .data-options-container {
+    width: 100%; /* Full width on mobile */
+    height: 200px; /* Fixed height on mobile */
+    border-left: none;
+    border-top: 1px solid #eaeaea;
+  }
+  
   .data-options {
     flex-direction: column;
     gap: 0.5rem;
@@ -146,17 +153,12 @@ html, body {
   }
   
   .chart {
-    height: 300px;
+    height: calc(100vh - 200px); /* Take remaining height */
   }
   
   .app-content {
-    height: auto;
-    overflow: visible;
-  }
-  
-  .data-options-container {
-    max-height: none;
-    overflow-y: visible;
+    height: 100%;
+    overflow: hidden;
   }
   
   .exercise-checkbox-grid {
