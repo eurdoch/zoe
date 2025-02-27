@@ -292,6 +292,14 @@ function App() {
     exerciseData.forEach(entry => names.add(entry.name));
     return Array.from(names);
   };
+
+  // Format exercise name for display (wide_grip_pulldown => Wide Grip Pulldown)
+  const formatExerciseName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   
   // Make sure the dataOptions.exercises has all the exercise names
   useEffect(() => {
@@ -386,7 +394,7 @@ function App() {
                       checked={dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false} 
                       onChange={(e) => handleOptionChange(`exercises.${key}`, e.target.checked)} 
                     />
-                    {name}
+                    {formatExerciseName(name)}
                   </label>
                 );
               })}
@@ -431,7 +439,7 @@ function App() {
                       return (
                         <Scatter 
                           key={name}
-                          name={`${name} (score)`} 
+                          name={`${formatExerciseName(name)} (score)`} 
                           dataKey={name} 
                           fill={color}
                           shape="diamond"
