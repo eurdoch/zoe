@@ -20,6 +20,7 @@ import ExerciseEntry from './types/ExerciseEntry.ts';
 import WorkoutEntry from './types/WorkoutEntry.ts';
 import WeightEntry from './types/WeightEntry.ts';
 import 'react-native-get-random-values';
+import { SYNC_ENABLED } from './config';
 
 type RootStackParamList = {
   Home: undefined;
