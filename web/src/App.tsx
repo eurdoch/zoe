@@ -374,15 +374,28 @@ function App() {
                   />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
-                    formatter={(value, name, props) => {
-                      if (props.dataType === 'exercise') {
-                        return [`${value} (${props.reps} reps × ${props.weight} kg ÷ 100)`, formatExerciseName(name)];
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length > 0) {
+                        const data = payload[0].payload;
+                        const date = new Date(data.timestamp * 1000);
+                        
+                        return (
+                          <div style={{ backgroundColor: 'white', padding: '10px', border: '1px solid #ccc' }}>
+                            <p>{date.toLocaleDateString()}</p>
+                            {data.exerciseName ? (
+                              <>
+                                <p>{formatExerciseName(data.exerciseName)}</p>
+                                <p>{`${data.reps} reps × ${data.weight} kg`}</p>
+                              </>
+                            ) : data.dataType === 'weight' ? (
+                              <p>{`Weight: ${data.weight} kg`}</p>
+                            ) : (
+                              <p>Workout: {data.workoutName || "Workout"}</p>
+                            )}
+                          </div>
+                        );
                       }
-                      return [value, name];
-                    }}
-                    labelFormatter={(timestamp) => {
-                      const date = new Date(timestamp * 1000);
-                      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                      return null;
                     }}
                   />
                   <Legend />
