@@ -385,10 +385,10 @@ function App() {
                             {data.exerciseName ? (
                               <>
                                 <p>{formatExerciseName(data.exerciseName)}</p>
-                                <p>{`${data.reps} reps × ${data.weight} kg`}</p>
+                                <p>{`${data.reps} reps × ${data.weight} lbs`}</p>
                               </>
                             ) : data.dataType === 'weight' ? (
-                              <p>{`Weight: ${data.weight} kg`}</p>
+                              <p>{`Weight: ${data.weight} lbs`}</p>
                             ) : (
                               <p>Workout: {data.workoutName || "Workout"}</p>
                             )}
@@ -402,12 +402,16 @@ function App() {
                   
                   {dataOptions.weight && (
                     <Scatter 
-                      name="Weight (kg)" 
+                      name="Weight (lbs)" 
                       dataKey="weight" 
                       fill="#8884d8" 
-                      shape="circle"
                       legendType="circle"
-                      size={80}
+                      shape={(props) => {
+                        const { cx, cy } = props;
+                        return (
+                          <circle cx={cx} cy={cy} r={15} fill="#8884d8" />
+                        );
+                      }}
                     />
                   )}
                   
@@ -416,9 +420,13 @@ function App() {
                       name="Workouts" 
                       dataKey="workouts" 
                       fill="#82ca9d" 
-                      shape="circle"
                       legendType="circle"
-                      size={80}
+                      shape={(props) => {
+                        const { cx, cy } = props;
+                        return (
+                          <circle cx={cx} cy={cy} r={15} fill="#82ca9d" />
+                        );
+                      }}
                     />
                   )}
                   
@@ -433,9 +441,13 @@ function App() {
                           name={`${formatExerciseName(name)} (score)`} 
                           dataKey={name} 
                           fill={color}
-                          shape="circle"
                           legendType="circle"
-                          size={80}
+                          shape={(props) => {
+                            const { cx, cy } = props;
+                            return (
+                              <circle cx={cx} cy={cy} r={15} fill={color} />
+                            );
+                          }}
                         />
                       );
                     }
