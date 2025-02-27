@@ -74,11 +74,11 @@ function App() {
       try {
         console.log('Fetching data from server:', API_BASE_URL);
         
-        // We'll use Promise.allSettled to try all requests even if some fail
-        const [weightResponse, workoutResponse, exerciseResponse] = await Promise.allSettled([
+        // We'll use Promise.allSettled for weight and workout data
+        const [weightResponse, workoutResponse, exerciseNamesResponse] = await Promise.allSettled([
           fetch(`${API_BASE_URL}/weight`),
           fetch(`${API_BASE_URL}/workout`),
-          fetch(`${API_BASE_URL}/exercise`)
+          fetch(`${API_BASE_URL}/exercise/names`)
         ]);
         
         // Process weight data if successful
@@ -103,19 +103,45 @@ function App() {
           console.warn('Failed to fetch workout data');
         }
         
-        // Process exercise data if successful
-        if (exerciseResponse.status === 'fulfilled' && exerciseResponse.value.ok) {
-          const jsonData = await exerciseResponse.value.json();
-          console.log('Successfully received exercise data');
-          if (Array.isArray(jsonData)) {
-            setExerciseData(jsonData);
+        // Get exercise names, then fetch data for each exercise
+        if (exerciseNamesResponse.status === 'fulfilled' && exerciseNamesResponse.value.ok) {
+          const exerciseNames = await exerciseNamesResponse.value.json();
+          console.log('Successfully received exercise names:', exerciseNames);
+          
+          if (Array.isArray(exerciseNames)) {
+            // Fetch data for each exercise name
+            const exerciseDataPromises = exerciseNames.map(name => 
+              fetch(`${API_BASE_URL}/exercise/${name}`)
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`Failed to fetch data for ${name}`);
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  console.log(`Received data for ${name}:`, data);
+                  return data;
+                })
+                .catch(error => {
+                  console.warn(`Error fetching data for ${name}:`, error);
+                  return [];
+                })
+            );
+            
+            // Wait for all exercise data to be fetched
+            const exerciseDataResults = await Promise.all(exerciseDataPromises);
+            
+            // Combine all exercise data into a single array
+            const allExerciseData = exerciseDataResults.flat();
+            console.log('Combined exercise data:', allExerciseData);
+            setExerciseData(allExerciseData);
           }
         } else {
-          console.warn('Failed to fetch exercise data');
+          console.warn('Failed to fetch exercise names');
         }
         
-        // Check if any requests failed
-        const anyFailed = [weightResponse, workoutResponse, exerciseResponse].some(
+        // Check if any main requests failed
+        const anyFailed = [weightResponse, workoutResponse, exerciseNamesResponse].some(
           response => response.status === 'rejected' || 
             (response.status === 'fulfilled' && !response.value.ok)
         );
@@ -179,7 +205,10 @@ function App() {
         });
       }
       
-      // Add exercise data if enabled
+      // Group exercise data by name and date
+      const exerciseValuesByNameAndDate = new Map<string, Map<string, number[]>>();
+      
+      // Add exercise data if enabled - calculate (reps * weight) / 100 for each entry
       exerciseData.forEach(entry => {
         // Skip if the specific exercise type is disabled
         const exerciseKey = entry.name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -188,13 +217,40 @@ function App() {
         }
         
         const dateStr = new Date(entry.createdAt).toLocaleDateString();
-        if (!dataPoints.has(dateStr)) {
-          dataPoints.set(dateStr, { date: dateStr });
+        
+        // Calculate the value using the formula (reps * weight) / 100
+        const value = (entry.reps * entry.weight) / 100;
+        
+        // Initialize maps if needed
+        if (!exerciseValuesByNameAndDate.has(entry.name)) {
+          exerciseValuesByNameAndDate.set(entry.name, new Map<string, number[]>());
         }
         
-        const point = dataPoints.get(dateStr)!;
-        // Use exercise name as the key and weight as the value
-        point[entry.name] = entry.weight;
+        const dateMap = exerciseValuesByNameAndDate.get(entry.name)!;
+        if (!dateMap.has(dateStr)) {
+          dateMap.set(dateStr, []);
+        }
+        
+        // Add this value to the array for this date and exercise
+        dateMap.get(dateStr)!.push(value);
+      });
+      
+      // Now add the exercise data to chart points
+      exerciseValuesByNameAndDate.forEach((dateMap, exerciseName) => {
+        dateMap.forEach((values, dateStr) => {
+          if (!dataPoints.has(dateStr)) {
+            dataPoints.set(dateStr, { date: dateStr });
+          }
+          
+          const point = dataPoints.get(dateStr)!;
+          
+          // Use the highest value for each exercise on each date
+          // (This represents the best performance for that exercise on that day)
+          if (values.length > 0) {
+            const maxValue = Math.max(...values);
+            point[exerciseName] = maxValue;
+          }
+        });
       });
       
       // Convert map to array and sort by date
@@ -300,6 +356,24 @@ function App() {
             
             <div className="option-group">
               <h3>Exercises</h3>
+              <label>
+                <input 
+                  type="checkbox" 
+                  checked={getUniqueExerciseNames().every(name => {
+                    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false;
+                  })} 
+                  onChange={(e) => {
+                    // Apply the same checked state to all exercise options
+                    const exerciseNames = getUniqueExerciseNames();
+                    exerciseNames.forEach(name => {
+                      const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                      handleOptionChange(`exercises.${key}`, e.target.checked);
+                    });
+                  }} 
+                />
+                <strong>Select/Deselect All</strong>
+              </label>
               {getUniqueExerciseNames().map(name => {
                 const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
                 return (
