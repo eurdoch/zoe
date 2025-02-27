@@ -82,3 +82,4 @@ TODO
 # pprog config
 pprog.toml
 
+web/dist/

@@ -10,6 +10,12 @@ import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
 import 'dotenv/config';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const port = 3000;
 
@@ -42,6 +48,8 @@ async function connectToDatabase() {
         Buffer.from(calculatedSignature)
       );
     };
+
+    app.use(express.static(path.join(__dirname, '../web/dist')));
 
     app.get('/ping', (req, res) => {
       res.send('Pong');
