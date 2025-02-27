@@ -248,7 +248,7 @@ function App() {
           weight: entry.weight
         };
         
-        // Add the value under the exercise name as the key
+        // Only add the value for the specific exercise name, not for all exercises
         dataPoint[entry.name] = value;
         
         // Add this individual point to our array
@@ -341,7 +341,7 @@ function App() {
           <div className="chart">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart data={chartData} margin={{ top: 40, right: 50, left: 40, bottom: 50 }}>
+                <ScatterChart margin={{ top: 40, right: 50, left: 40, bottom: 50 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="timestamp" 
@@ -406,6 +406,7 @@ function App() {
                       dataKey="weight" 
                       fill="#8884d8" 
                       legendType="circle"
+                      data={chartData.filter(point => point.dataType === 'weight')}
                       shape={(props) => {
                         const { cx, cy } = props;
                         return (
@@ -421,6 +422,7 @@ function App() {
                       dataKey="workouts" 
                       fill="#82ca9d" 
                       legendType="circle"
+                      data={chartData.filter(point => point.dataType === 'workout')}
                       shape={(props) => {
                         const { cx, cy } = props;
                         return (
@@ -435,6 +437,10 @@ function App() {
                     const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
                     if (dataOptions.exercises[key as keyof typeof dataOptions.exercises]) {
                       const color = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+                      // Filter data points to only include this specific exercise
+                      const exerciseData = chartData.filter(point => 
+                        point.dataType === 'exercise' && point.exerciseName === name
+                      );
                       return (
                         <Scatter 
                           key={name}
@@ -442,6 +448,7 @@ function App() {
                           dataKey={name} 
                           fill={color}
                           legendType="circle"
+                          data={exerciseData}
                           shape={(props) => {
                             const { cx, cy } = props;
                             return (
