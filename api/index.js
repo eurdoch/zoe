@@ -35,7 +35,7 @@ async function connectToDatabase() {
     const supplementCollection = database.collection('supplement');
 
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
-    const repoPath = '/home/ubuntu/vitale';
+    const repoPath = '/home/ubuntu/zoe';
 
     const verifySignature = (payload, signature) => {
       const hash = createHmac('sha256', WEBHOOK_SECRET)
