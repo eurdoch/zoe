@@ -341,7 +341,7 @@ function App() {
           <div className="chart">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                <ScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="timestamp" 
@@ -350,10 +350,25 @@ function App() {
                     type="number"
                     tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleDateString()}
                     name="Date"
+                    padding={{ left: 30, right: 30 }}
+                    ticks={(() => {
+                      // Show only 5 ticks total regardless of actual data points
+                      if (chartData.length === 0) return [];
+                      const timestamps = chartData.map(d => d.timestamp);
+                      const minTime = Math.min(...timestamps);
+                      const maxTime = Math.max(...timestamps);
+                      const range = maxTime - minTime;
+                      
+                      // Generate exactly 5 evenly spaced ticks
+                      return [0, 1, 2, 3, 4].map(i => 
+                        Math.round(minTime + (range * i / 4))
+                      );
+                    })()}
                   />
                   <YAxis 
                     name="Value"
                     label={{ value: 'Score / Weight / Count', angle: -90, position: 'insideLeft' }}
+                    ticks={[0, 25, 50, 75, 100, 125, 150]}
                   />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
