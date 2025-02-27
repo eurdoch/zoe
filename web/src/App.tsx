@@ -11,8 +11,8 @@ import {
 } from 'recharts';
 import './App.css';
 
-// API base URL (same as in the mobile app config)
-const API_BASE_URL = 'https://directto.link';
+// API base URL - use proxy to avoid CORS issues
+const API_BASE_URL = '/api';
 
 // Define data types based on the mobile app's types
 interface ExerciseEntry {

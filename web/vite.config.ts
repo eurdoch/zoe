@@ -22,5 +22,12 @@ export default defineConfig({
     port: 3000,
     open: true,
     host: true, // Listen on all addresses
+    proxy: {
+      '/api': {
+        target: 'https://directto.link',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
 });
