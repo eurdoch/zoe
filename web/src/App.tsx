@@ -39,8 +39,18 @@ interface WeightEntry {
 
 // Type for our chart data
 interface ChartDataPoint {
-  date: string;
-  [key: string]: string | number | undefined;
+  id: string;           // Unique identifier for each point
+  date: string;         // Date string
+  time?: string;        // Time string
+  dateTime?: string;    // ISO date time
+  timestamp: number;    // Unix timestamp
+  dataType?: string;    // Type of data (weight, workout, exercise)
+  exerciseName?: string; // Name of the exercise for exercise data
+  workoutName?: string; // Name of the workout
+  reps?: number;        // Reps for exercise data
+  weight?: number;      // Weight (for both weight entries and exercise weight)
+  workouts?: number;    // Workout count
+  [key: string]: string | number | undefined; // For dynamic exercise names as keys
 }
 
 function App() {
@@ -166,45 +176,50 @@ function App() {
         dataOptions
       });
       
-      const dataPoints = new Map<string, ChartDataPoint>();
+      // Completely redesigned approach to show individual points
+      const individualDataPoints: ChartDataPoint[] = [];
+      let pointId = 0;
       
       // Add weight data if enabled
       if (dataOptions.weight) {
         weightData.forEach(entry => {
-          const dateStr = new Date(entry.createdAt * 1000).toLocaleDateString();
-          if (!dataPoints.has(dateStr)) {
-            dataPoints.set(dateStr, { date: dateStr });
-          }
+          const date = new Date(entry.createdAt * 1000);
+          const dateStr = date.toLocaleDateString();
+          const timeStr = date.toLocaleTimeString();
           
-          const point = dataPoints.get(dateStr)!;
-          point.weight = entry.value;
+          individualDataPoints.push({
+            id: `w_${pointId++}`,
+            date: dateStr,
+            time: timeStr,
+            dateTime: date.toISOString(),
+            timestamp: entry.createdAt,
+            weight: entry.value,
+            dataType: 'weight'
+          });
         });
       }
       
-      // Add workout count data if enabled
+      // Add workout data if enabled
       if (dataOptions.workouts) {
-        const workoutCounts = new Map<string, number>();
-        
         workoutData.forEach(entry => {
-          const dateStr = new Date(entry.createdAt * 1000).toLocaleDateString();
-          const count = workoutCounts.get(dateStr) || 0;
-          workoutCounts.set(dateStr, count + 1);
-        });
-        
-        workoutCounts.forEach((count, dateStr) => {
-          if (!dataPoints.has(dateStr)) {
-            dataPoints.set(dateStr, { date: dateStr });
-          }
+          const date = new Date(entry.createdAt * 1000);
+          const dateStr = date.toLocaleDateString();
+          const timeStr = date.toLocaleTimeString();
           
-          const point = dataPoints.get(dateStr)!;
-          point.workouts = count;
+          individualDataPoints.push({
+            id: `wo_${pointId++}`,
+            date: dateStr,
+            time: timeStr,
+            dateTime: date.toISOString(),
+            timestamp: entry.createdAt,
+            workouts: 1, // Each workout is a single point
+            workoutName: entry.name,
+            dataType: 'workout'
+          });
         });
       }
       
-      // Group exercise data by name and date
-      const exerciseValuesByNameAndDate = new Map<string, Map<string, number[]>>();
-      
-      // Add exercise data if enabled - calculate (reps * weight) / 100 for each entry
+      // Add exercise data - each exercise entry is its own point
       exerciseData.forEach(entry => {
         // Skip if the specific exercise type is disabled
         const exerciseKey = entry.name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -212,51 +227,38 @@ function App() {
           return;
         }
         
-        // Make sure we're parsing createdAt correctly (it's in milliseconds since epoch)
-        const date = new Date(entry.createdAt * 1000); // Convert from seconds to milliseconds
-        console.log(`Exercise date for ${entry.name}: ${date.toISOString()}, from timestamp: ${entry.createdAt}`);
+        // Make sure we're parsing createdAt correctly (it's in seconds since epoch)
+        const date = new Date(entry.createdAt * 1000); 
         const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString();
         
         // Calculate the value using the formula (reps * weight) / 100
         const value = (entry.reps * entry.weight) / 100;
         
-        // Initialize maps if needed
-        if (!exerciseValuesByNameAndDate.has(entry.name)) {
-          exerciseValuesByNameAndDate.set(entry.name, new Map<string, number[]>());
-        }
+        // Create a data point for this specific exercise entry
+        const dataPoint: ChartDataPoint = {
+          id: `ex_${pointId++}`,
+          date: dateStr,
+          time: timeStr,
+          dateTime: date.toISOString(),
+          timestamp: entry.createdAt,
+          dataType: 'exercise',
+          exerciseName: entry.name,
+          reps: entry.reps,
+          weight: entry.weight
+        };
         
-        const dateMap = exerciseValuesByNameAndDate.get(entry.name)!;
-        if (!dateMap.has(dateStr)) {
-          dateMap.set(dateStr, []);
-        }
+        // Add the value under the exercise name as the key
+        dataPoint[entry.name] = value;
         
-        // Add this value to the array for this date and exercise
-        dateMap.get(dateStr)!.push(value);
+        // Add this individual point to our array
+        individualDataPoints.push(dataPoint);
       });
       
-      // Now add the exercise data to chart points
-      exerciseValuesByNameAndDate.forEach((dateMap, exerciseName) => {
-        dateMap.forEach((values, dateStr) => {
-          if (!dataPoints.has(dateStr)) {
-            dataPoints.set(dateStr, { date: dateStr });
-          }
-          
-          const point = dataPoints.get(dateStr)!;
-          
-          // Use the highest value for each exercise on each date
-          // (This represents the best performance for that exercise on that day)
-          if (values.length > 0) {
-            const maxValue = Math.max(...values);
-            point[exerciseName] = maxValue;
-          }
-        });
-      });
+      // Sort all points by timestamp
+      const chartData = individualDataPoints.sort((a, b) => a.timestamp - b.timestamp);
       
-      // Convert map to array and sort by date
-      const chartData = Array.from(dataPoints.values())
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      console.log('Final chart data:', chartData);
+      console.log('Final chart data (individual points):', chartData);
       setChartData(chartData);
     };
     
@@ -403,9 +405,31 @@ function App() {
               <ResponsiveContainer width="100%" height={400}>
                 <ScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                  <XAxis 
+                    dataKey="timestamp" 
+                    scale="time" 
+                    domain={['auto', 'auto']}
+                    type="number"
+                    tickFormatter={(timestamp) => new Date(timestamp * 1000).toLocaleDateString()}
+                    name="Date"
+                  />
+                  <YAxis 
+                    name="Value"
+                    label={{ value: 'Score / Weight / Count', angle: -90, position: 'insideLeft' }}
+                  />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value, name, props) => {
+                      if (props.dataType === 'exercise') {
+                        return [`${value} (${props.reps} reps × ${props.weight} kg ÷ 100)`, formatExerciseName(name)];
+                      }
+                      return [value, name];
+                    }}
+                    labelFormatter={(timestamp) => {
+                      const date = new Date(timestamp * 1000);
+                      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                    }}
+                  />
                   <Legend />
                   
                   {dataOptions.weight && (
@@ -414,7 +438,7 @@ function App() {
                       dataKey="weight" 
                       fill="#8884d8" 
                       shape="circle"
-                      line={{ stroke: '#8884d8', strokeDasharray: '5 5' }}
+                      legendType="circle"
                     />
                   )}
                   
@@ -424,7 +448,7 @@ function App() {
                       dataKey="workouts" 
                       fill="#82ca9d" 
                       shape="square"
-                      line={{ stroke: '#82ca9d', strokeDasharray: '5 5' }}
+                      legendType="square"
                     />
                   )}
                   
@@ -440,7 +464,7 @@ function App() {
                           dataKey={name} 
                           fill={color}
                           shape="diamond"
-                          line={{ stroke: color, strokeDasharray: '5 5' }}
+                          legendType="diamond"
                         />
                       );
                     }
