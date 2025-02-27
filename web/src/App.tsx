@@ -407,6 +407,7 @@ function App() {
                       fill="#8884d8" 
                       shape="circle"
                       legendType="circle"
+                      size={80}
                     />
                   )}
                   
@@ -417,6 +418,7 @@ function App() {
                       fill="#82ca9d" 
                       shape="circle"
                       legendType="circle"
+                      size={80}
                     />
                   )}
                   
@@ -433,6 +435,7 @@ function App() {
                           fill={color}
                           shape="circle"
                           legendType="circle"
+                          size={80}
                         />
                       );
                     }
