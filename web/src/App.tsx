@@ -343,63 +343,6 @@ function App() {
         <div className="chart-container">
           <h2>Fitness Progress</h2>
           
-          <div className="data-options">
-            <div className="option-group">
-              <h3>Data Series</h3>
-              <label>
-                <input 
-                  type="checkbox" 
-                  checked={dataOptions.weight} 
-                  onChange={(e) => handleOptionChange('weight', e.target.checked)} 
-                />
-                Weight
-              </label>
-              <label>
-                <input 
-                  type="checkbox" 
-                  checked={dataOptions.workouts} 
-                  onChange={(e) => handleOptionChange('workouts', e.target.checked)} 
-                />
-                Workouts
-              </label>
-            </div>
-            
-            <div className="option-group">
-              <h3>Exercises</h3>
-              <label>
-                <input 
-                  type="checkbox" 
-                  checked={getUniqueExerciseNames().every(name => {
-                    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    return dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false;
-                  })} 
-                  onChange={(e) => {
-                    // Apply the same checked state to all exercise options
-                    const exerciseNames = getUniqueExerciseNames();
-                    exerciseNames.forEach(name => {
-                      const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                      handleOptionChange(`exercises.${key}`, e.target.checked);
-                    });
-                  }} 
-                />
-                <strong>Select/Deselect All</strong>
-              </label>
-              {getUniqueExerciseNames().map(name => {
-                const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                return (
-                  <label key={key}>
-                    <input 
-                      type="checkbox" 
-                      checked={dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false} 
-                      onChange={(e) => handleOptionChange(`exercises.${key}`, e.target.checked)} 
-                    />
-                    {formatExerciseName(name)}
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-          
           <div className="chart">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
@@ -478,6 +421,67 @@ function App() {
                 <p>Please ensure your fitness data has been logged in the mobile app.</p>
               </div>
             )}
+          </div>
+          
+          <div className="data-options-container">
+            <div className="data-options">
+              <div className="option-group">
+                <h3>Data Series</h3>
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={dataOptions.weight} 
+                    onChange={(e) => handleOptionChange('weight', e.target.checked)} 
+                  />
+                  Weight
+                </label>
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={dataOptions.workouts} 
+                    onChange={(e) => handleOptionChange('workouts', e.target.checked)} 
+                  />
+                  Workouts
+                </label>
+              </div>
+              
+              <div className="option-group">
+                <h3>Exercises</h3>
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={getUniqueExerciseNames().every(name => {
+                      const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                      return dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false;
+                    })} 
+                    onChange={(e) => {
+                      // Apply the same checked state to all exercise options
+                      const exerciseNames = getUniqueExerciseNames();
+                      exerciseNames.forEach(name => {
+                        const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        handleOptionChange(`exercises.${key}`, e.target.checked);
+                      });
+                    }} 
+                  />
+                  <strong>Select/Deselect All</strong>
+                </label>
+                <div className="exercise-checkbox-grid">
+                  {getUniqueExerciseNames().map(name => {
+                    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return (
+                      <label key={key}>
+                        <input 
+                          type="checkbox" 
+                          checked={dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false} 
+                          onChange={(e) => handleOptionChange(`exercises.${key}`, e.target.checked)} 
+                        />
+                        {formatExerciseName(name)}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
