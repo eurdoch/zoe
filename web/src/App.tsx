@@ -341,7 +341,7 @@ function App() {
           <div className="chart">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
+                <ScatterChart data={chartData} margin={{ top: 40, right: 50, left: 40, bottom: 50 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="timestamp" 
@@ -409,7 +409,7 @@ function App() {
                       shape={(props) => {
                         const { cx, cy } = props;
                         return (
-                          <circle cx={cx} cy={cy} r={15} fill="#8884d8" />
+                          <circle cx={cx} cy={cy} r={10} fill="#8884d8" />
                         );
                       }}
                     />
@@ -424,7 +424,7 @@ function App() {
                       shape={(props) => {
                         const { cx, cy } = props;
                         return (
-                          <circle cx={cx} cy={cy} r={15} fill="#82ca9d" />
+                          <circle cx={cx} cy={cy} r={10} fill="#82ca9d" />
                         );
                       }}
                     />
@@ -445,7 +445,7 @@ function App() {
                           shape={(props) => {
                             const { cx, cy } = props;
                             return (
-                              <circle cx={cx} cy={cy} r={15} fill={color} />
+                              <circle cx={cx} cy={cy} r={10} fill={color} />
                             );
                           }}
                         />
