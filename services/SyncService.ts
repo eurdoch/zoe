@@ -168,12 +168,39 @@ class SyncService {
     }
   }
 
+  // Helper function to find local data that needs to be pushed to server
+  private findLocalItemsToSync(localItems: any[], serverItems: any[]): any[] {
+    // Create a map of server IDs for quick lookup
+    const serverIdMap = new Map(serverItems.map(item => [item._id, item]));
+    
+    // Filter local items that aren't on the server or have been updated since last sync
+    return localItems.filter(localItem => {
+      const serverItem = serverIdMap.get(localItem._id);
+      
+      // Case 1: Item doesn't exist on server
+      if (!serverItem) {
+        return true;
+      }
+      
+      // Case 2: Item exists but local version is newer
+      // Compare based on createdAt timestamp (or any other appropriate field)
+      if (localItem.createdAt && serverItem.createdAt) {
+        // Assume higher timestamp means newer version
+        return localItem.createdAt > serverItem.createdAt;
+      }
+      
+      // By default, don't sync if it exists on server and we can't determine which is newer
+      return false;
+    });
+  }
+
   // Sync exercises data
   private async syncExercises(): Promise<void> {
     if (!this.realm) return;
     
     // Get all local exercises
     const exercises = this.realm.objects('ExerciseEntry');
+    const localExercises = Array.from(exercises).map(item => ({...item}));
     
     // 1. PULL: Get all exercises from the server
     const response = await fetch(`${API_BASE_URL}/exercise`);
@@ -184,10 +211,16 @@ class SyncService {
     
     const serverExercises = await response.json();
     
-    // 2. PUSH: Send local exercises to the server
-    await this.pushLocalData('exercise', exercises);
+    // 2. DETERMINE which local items need to be pushed to server
+    const itemsToSync = this.findLocalItemsToSync(localExercises, serverExercises);
+    console.log(`Found ${itemsToSync.length} exercises to sync to server`);
     
-    // 3. UPDATE: Create or update local database with server data
+    // 3. PUSH: Send only new/updated local exercises to the server
+    if (itemsToSync.length > 0) {
+      await this.pushLocalData('exercise', itemsToSync);
+    }
+    
+    // 4. UPDATE: Create or update local database with server data
     this.realm.write(() => {
       serverExercises.forEach((serverExercise: any) => {
         // Check if exercise exists locally
@@ -197,9 +230,11 @@ class SyncService {
         if (!localExercise) {
           this.realm!.create('ExerciseEntry', serverExercise);
         } else {
-          // Logic to determine which is newer could be based on a timestamp field
-          // This is a simple example - you'll need to adapt for your data model
-          this.realm!.create('ExerciseEntry', serverExercise, Realm.UpdateMode.Modified);
+          // Only update if server version is newer
+          if (!localExercise.createdAt || !serverExercise.createdAt || 
+              serverExercise.createdAt >= localExercise.createdAt) {
+            this.realm!.create('ExerciseEntry', serverExercise, Realm.UpdateMode.Modified);
+          }
         }
       });
     });
@@ -211,6 +246,7 @@ class SyncService {
     
     // Get all local workouts
     const workouts = this.realm.objects('WorkoutEntry');
+    const localWorkouts = Array.from(workouts).map(item => ({...item}));
     
     // 1. PULL: Get all workouts from the server
     const response = await fetch(`${API_BASE_URL}/workout`);
@@ -221,10 +257,16 @@ class SyncService {
     
     const serverWorkouts = await response.json();
     
-    // 2. PUSH: Send local workouts to the server
-    await this.pushLocalData('workout', workouts);
+    // 2. DETERMINE which local items need to be pushed to server
+    const itemsToSync = this.findLocalItemsToSync(localWorkouts, serverWorkouts);
+    console.log(`Found ${itemsToSync.length} workouts to sync to server`);
     
-    // 3. UPDATE: Create or update local database with server data
+    // 3. PUSH: Send only new/updated local workouts to the server
+    if (itemsToSync.length > 0) {
+      await this.pushLocalData('workout', itemsToSync);
+    }
+    
+    // 4. UPDATE: Create or update local database with server data
     this.realm.write(() => {
       serverWorkouts.forEach((serverWorkout: any) => {
         // Check if workout exists locally
@@ -234,8 +276,11 @@ class SyncService {
         if (!localWorkout) {
           this.realm!.create('WorkoutEntry', serverWorkout);
         } else {
-          // Logic to determine which is newer could be based on a timestamp field
-          this.realm!.create('WorkoutEntry', serverWorkout, Realm.UpdateMode.Modified);
+          // Only update if server version is newer
+          if (!localWorkout.createdAt || !serverWorkout.createdAt || 
+              serverWorkout.createdAt >= localWorkout.createdAt) {
+            this.realm!.create('WorkoutEntry', serverWorkout, Realm.UpdateMode.Modified);
+          }
         }
       });
     });
@@ -247,6 +292,7 @@ class SyncService {
     
     // Get all local weights
     const weights = this.realm.objects('WeightEntry');
+    const localWeights = Array.from(weights).map(item => ({...item}));
     
     // 1. PULL: Get all weights from the server
     const response = await fetch(`${API_BASE_URL}/weight`);
@@ -257,10 +303,16 @@ class SyncService {
     
     const serverWeights = await response.json();
     
-    // 2. PUSH: Send local weights to the server
-    await this.pushLocalData('weight', weights);
+    // 2. DETERMINE which local items need to be pushed to server
+    const itemsToSync = this.findLocalItemsToSync(localWeights, serverWeights);
+    console.log(`Found ${itemsToSync.length} weights to sync to server`);
     
-    // 3. UPDATE: Create or update local database with server data
+    // 3. PUSH: Send only new/updated local weights to the server
+    if (itemsToSync.length > 0) {
+      await this.pushLocalData('weight', itemsToSync);
+    }
+    
+    // 4. UPDATE: Create or update local database with server data
     this.realm.write(() => {
       serverWeights.forEach((serverWeight: any) => {
         // Check if weight exists locally
@@ -270,18 +322,21 @@ class SyncService {
         if (!localWeight) {
           this.realm!.create('WeightEntry', serverWeight);
         } else {
-          // Logic to determine which is newer could be based on a timestamp field
-          this.realm!.create('WeightEntry', serverWeight, Realm.UpdateMode.Modified);
+          // Only update if server version is newer
+          if (!localWeight.createdAt || !serverWeight.createdAt || 
+              serverWeight.createdAt >= localWeight.createdAt) {
+            this.realm!.create('WeightEntry', serverWeight, Realm.UpdateMode.Modified);
+          }
         }
       });
     });
   }
 
   // Push local data to the server
-  private async pushLocalData(endpoint: string, data: Realm.Results<any>): Promise<void> {
-    // Convert Realm results to plain objects
-    const plainData = Array.from(data).map(item => {
-      // Need to convert realm objects to plain objects
+  private async pushLocalData(endpoint: string, data: any[]): Promise<void> {
+    // Handle both Realm.Results and plain arrays for flexibility
+    const plainData = Array.isArray(data) ? data : Array.from(data).map(item => {
+      // Need to convert realm objects to plain objects if it's a Realm result
       return Object.keys(item).reduce((obj: any, key) => {
         if (key !== '_objectId') { // Skip Realm internal properties
           obj[key] = item[key];
