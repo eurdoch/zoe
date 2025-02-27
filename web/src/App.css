@@ -93,6 +93,18 @@
   overflow: hidden;
 }
 
+.no-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: #f9f9f9;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  color: #666;
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .data-options {
     flex-direction: column;

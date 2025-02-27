@@ -13,8 +13,14 @@ export default defineConfig({
       '@screens': path.resolve(__dirname, './src/screens'),
     },
   },
+  root: path.resolve(__dirname), // Explicitly set the root directory
+  publicDir: path.resolve(__dirname, 'public'),
+  build: {
+    outDir: path.resolve(__dirname, 'dist'),
+  },
   server: {
     port: 3000,
     open: true,
+    host: true, // Listen on all addresses
   },
 });
