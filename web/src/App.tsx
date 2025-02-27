@@ -11,8 +11,8 @@ import {
 } from 'recharts';
 import './App.css';
 
-// API base URL - use proxy to avoid CORS issues
-const API_BASE_URL = '/api';
+// API base URL - empty in production, /api in development
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : '/api';
 
 // Define data types based on the mobile app's types
 interface ExerciseEntry {
