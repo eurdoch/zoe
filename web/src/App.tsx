@@ -56,13 +56,9 @@ function App() {
   
   // State for checkboxes to filter data series
   const [dataOptions, setDataOptions] = useState({
-    weight: true,
-    workouts: true,
-    exercises: {
-      squats: true,
-      benchPress: true,
-      deadlift: true,
-    }
+    weight: false,
+    workouts: false,
+    exercises: {}
   });
 
   // Fetch data from the server
@@ -310,7 +306,8 @@ function App() {
     exerciseNames.forEach(name => {
       const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
       if (updatedExercises[key as keyof typeof updatedExercises] === undefined) {
-        updatedExercises[key as keyof typeof updatedExercises] = true;
+        // Initialize all exercise options to false for initial load
+        updatedExercises[key as keyof typeof updatedExercises] = false;
         hasChanges = true;
       }
     });
