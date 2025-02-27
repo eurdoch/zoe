@@ -91,12 +91,18 @@ class SyncService {
       
       // Check if server is reachable by trying to access one of the actual endpoints
       try {
+        // Create an AbortController with a timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
         const pingResponse = await fetch(`${API_BASE_URL}/exercise`, { 
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          // Short timeout to quickly determine if server is available
-          signal: AbortSignal.timeout(5000)
+          signal: controller.signal
         });
+        
+        // Clear the timeout
+        clearTimeout(timeoutId);
         
         // Even if we get a 404 or other error, at least the server is responding
         // Only treat connection errors as "server unreachable"
