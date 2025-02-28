@@ -19,6 +19,7 @@ import { Realm, RealmProvider } from '@realm/react';
 import ExerciseEntry from './types/ExerciseEntry.ts';
 import WorkoutEntry from './types/WorkoutEntry.ts';
 import WeightEntry from './types/WeightEntry.ts';
+import SupplementEntry from './types/SupplementEntry.ts';
 import 'react-native-get-random-values';
 import { SYNC_ENABLED } from './config';
 
@@ -89,6 +90,27 @@ class WeightEntrySchema extends Realm.Object<WeightEntry> {
   };
 }
 
+// Define the Realm schema for SupplementEntry
+class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
+  _id!: string;
+  name!: string;
+  amount!: number;
+  amount_unit!: string;
+  createdAt!: number;
+
+  static schema = {
+    name: 'SupplementEntry',
+    primaryKey: '_id',
+    properties: {
+      _id: 'string',
+      name: 'string',
+      amount: 'double',
+      amount_unit: 'string',
+      createdAt: 'int',
+    },
+  };
+}
+
 const App = () => {
   return (
     <RealmProvider
@@ -97,6 +119,7 @@ const App = () => {
         ExerciseEntrySchema,
         WorkoutEntrySchema,
         WeightEntrySchema,
+        SupplementEntrySchema,
       ]}
       schemaVersion={1} // Increment the version number
       //migration={(oldRealm, newRealm) => {

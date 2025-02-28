@@ -7,6 +7,7 @@ import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToa
 import CustomModal from '../CustomModal';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
+import { useRealm } from '@realm/react';
 
 const options = [
     { label: "unit", value: "" },
@@ -43,9 +44,10 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
   const [amount, setAmount] = useState<string>("");
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const [newSupplementName, setNewSupplementName] = useState<string>("");
+  const realm = useRealm();
 
   const loadData = () => {
-    getSupplement().then(entries => setSupplementEntries(entries));
+    getSupplement(realm).then(entries => setSupplementEntries(entries));
   }
 
   useEffect(() => {
@@ -57,7 +59,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
 
   useEffect(() => {
     loadData();
-    getSupplementNames()
+    getSupplementNames(realm)
       .then(names => {
         const sortedNames = names.sort((a, b) => a.localeCompare(b));
         const items = sortedNames.map(name => ({
@@ -75,23 +77,26 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
       .catch(err => {
         showToastError('Could not get supplements: ' + err.toString());
       });
-  }, []);
+  }, [realm]);
 
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
     if (!isNaN(parsedAmount)) {
       const supplementName = selectedItem?.value === 'new_supplement' ? convertToDatabaseFormat(newSupplementName) : selectedItem?.value;
       if (supplementName) {
-        const result = await postSupplement({
-          name: supplementName,
-          amount: parsedAmount,
-          createdAt: Math.floor(Date.now() / 1000),
-          amount_unit: selectedUnit.value,
-        });
-        if (result.acknowledged) {
+        try {
+          await postSupplement({
+            name: supplementName,
+            amount: parsedAmount,
+            createdAt: Math.floor(Date.now() / 1000),
+            amount_unit: selectedUnit.value,
+          }, realm);
           showToastInfo('Supplement added.');
           loadData();
-        } else {
+          setModalVisible(false);
+          setAmount("");
+        } catch (error) {
+          console.error('Error adding supplement:', error);
           showToastError('Supplement could not be added, try again.');
         }
       } else {
