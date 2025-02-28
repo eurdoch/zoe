@@ -52,13 +52,17 @@ interface ChartDataPoint {
   time?: string;        // Time string
   dateTime?: string;    // ISO date time
   timestamp: number;    // Unix timestamp
-  dataType?: string;    // Type of data (weight, workout, exercise)
+  dataType?: string;    // Type of data (weight, workout, exercise, supplement)
   exerciseName?: string; // Name of the exercise for exercise data
   workoutName?: string; // Name of the workout
+  supplementName?: string; // Name of the supplement
+  amount?: number;      // Amount for supplement data
+  amountUnit?: string;  // Amount unit for supplement data
   reps?: number;        // Reps for exercise data
   weight?: number;      // Weight (for both weight entries and exercise weight)
   workouts?: number;    // Workout count
-  [key: string]: string | number | undefined; // For dynamic exercise names as keys
+  supplements?: number; // Supplement flag (1 for visibility)
+  [key: string]: string | number | undefined; // For dynamic exercise/supplement names as keys
 }
 
 function App() {
@@ -301,6 +305,39 @@ function App() {
         individualDataPoints.push(dataPoint);
       });
       
+      // Add supplement data - each supplement is shown if its specific checkbox is enabled
+      supplementData.forEach(entry => {
+        // Skip if the specific supplement type is disabled
+        const supplementKey = entry.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!dataOptions.supplements[supplementKey as keyof typeof dataOptions.supplements]) {
+          return;
+        }
+        
+        const date = new Date(entry.createdAt * 1000);
+        const dateStr = date.toLocaleDateString();
+        const timeStr = date.toLocaleTimeString();
+        
+        // Create a data point for this specific supplement entry
+        const dataPoint: ChartDataPoint = {
+          id: `supp_${pointId++}`,
+          date: dateStr,
+          time: timeStr,
+          dateTime: date.toISOString(),
+          timestamp: entry.createdAt,
+          dataType: 'supplement',
+          supplementName: entry.name,
+          amount: entry.amount,
+          amountUnit: entry.amount_unit,
+          supplements: 1 // Flag for visibility
+        };
+        
+        // Add a value specifically for this supplement type so it can be displayed in chart
+        dataPoint[entry.name] = entry.amount;
+        
+        // Add this individual point to our array
+        individualDataPoints.push(dataPoint);
+      });
+      
       // Sort all points by timestamp
       const chartData = individualDataPoints.sort((a, b) => a.timestamp - b.timestamp);
       
@@ -463,6 +500,11 @@ function App() {
                               </>
                             ) : data.dataType === 'weight' ? (
                               <p>{`Weight: ${data.weight} lbs`}</p>
+                            ) : data.dataType === 'supplement' ? (
+                              <>
+                                <p>Supplement: {formatExerciseName(data.supplementName || "")}</p>
+                                <p>{`${data.amount} ${data.amountUnit}`}</p>
+                              </>
                             ) : (
                               <p>Workout: {data.workoutName || "Workout"}</p>
                             )}
@@ -527,6 +569,46 @@ function App() {
                             const { cx, cy } = props;
                             return (
                               <circle cx={cx} cy={cy} r={10} fill={color} />
+                            );
+                          }}
+                        />
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  {/* Display available supplement data */}
+                  {getUniqueSupplementNames().map((name, index) => {
+                    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (dataOptions.supplements[key as keyof typeof dataOptions.supplements]) {
+                      // Use a consistent color generation based on name to keep colors consistent
+                      const hashCode = name.split('').reduce((a, b) => {
+                        a = ((a << 5) - a) + b.charCodeAt(0);
+                        return a & a;
+                      }, 0);
+                      const color = `#${Math.abs(hashCode).toString(16).padStart(6, '0').substring(0, 6)}`;
+                      
+                      // Filter data points to only include this specific supplement
+                      const supplementData = chartData.filter(point => 
+                        point.dataType === 'supplement' && point.supplementName === name
+                      );
+                      
+                      return (
+                        <Scatter 
+                          key={`supp_${name}`}
+                          name={`${formatExerciseName(name)}`} 
+                          dataKey={name} 
+                          fill={color}
+                          legendType="diamond"
+                          data={supplementData}
+                          shape={(props) => {
+                            const { cx, cy } = props;
+                            // Use diamonds for supplements to distinguish from exercises
+                            return (
+                              <polygon 
+                                points={`${cx},${cy-8} ${cx+8},${cy} ${cx},${cy+8} ${cx-8},${cy}`} 
+                                fill={color} 
+                              />
                             );
                           }}
                         />
