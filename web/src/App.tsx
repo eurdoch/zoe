@@ -37,6 +37,14 @@ interface WeightEntry {
   createdAt: number;
 }
 
+interface SupplementEntry {
+  _id: string;
+  name: string;
+  amount: number;
+  amount_unit: string;
+  createdAt: number;
+}
+
 // Type for our chart data
 interface ChartDataPoint {
   id: string;           // Unique identifier for each point
@@ -58,6 +66,7 @@ function App() {
   const [exerciseData, setExerciseData] = useState<ExerciseEntry[]>([]);
   const [workoutData, setWorkoutData] = useState<WorkoutEntry[]>([]);
   const [weightData, setWeightData] = useState<WeightEntry[]>([]);
+  const [supplementData, setSupplementData] = useState<SupplementEntry[]>([]);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   
   // State for tracking loading and errors
@@ -68,7 +77,8 @@ function App() {
   const [dataOptions, setDataOptions] = useState({
     weight: false,
     workouts: false,
-    exercises: {}
+    exercises: {},
+    supplements: {}
   });
 
   // Fetch data from the server
@@ -80,11 +90,13 @@ function App() {
       try {
         console.log('Fetching data from server:', API_BASE_URL);
         
-        // We'll use Promise.allSettled for weight and workout data
-        const [weightResponse, workoutResponse, exerciseNamesResponse] = await Promise.allSettled([
+        // We'll use Promise.allSettled for weight, workout, and supplement data
+        const [weightResponse, workoutResponse, exerciseNamesResponse, supplementResponse, supplementNamesResponse] = await Promise.allSettled([
           fetch(`${API_BASE_URL}/weight`),
           fetch(`${API_BASE_URL}/workout`),
-          fetch(`${API_BASE_URL}/exercise/names`)
+          fetch(`${API_BASE_URL}/exercise/names`),
+          fetch(`${API_BASE_URL}/supplement`),
+          fetch(`${API_BASE_URL}/supplement/names`)
         ]);
         
         // Process weight data if successful
@@ -146,8 +158,41 @@ function App() {
           console.warn('Failed to fetch exercise names');
         }
         
+        // Process supplement data if successful
+        if (supplementResponse.status === 'fulfilled' && supplementResponse.value.ok) {
+          const jsonData = await supplementResponse.value.json();
+          console.log('Successfully received supplement data');
+          if (Array.isArray(jsonData)) {
+            setSupplementData(jsonData);
+          }
+        } else {
+          console.warn('Failed to fetch supplement data');
+        }
+        
+        // Process supplement names if successful
+        if (supplementNamesResponse.status === 'fulfilled' && supplementNamesResponse.value.ok) {
+          const supplementNames = await supplementNamesResponse.value.json();
+          console.log('Successfully received supplement names:', supplementNames);
+          
+          // Initialize supplement checkboxes to false
+          if (Array.isArray(supplementNames)) {
+            const supplementOptions = { ...dataOptions.supplements };
+            supplementNames.forEach(name => {
+              const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+              supplementOptions[key] = false;
+            });
+            
+            setDataOptions(prevOptions => ({
+              ...prevOptions,
+              supplements: supplementOptions
+            }));
+          }
+        } else {
+          console.warn('Failed to fetch supplement names');
+        }
+        
         // Check if any main requests failed
-        const anyFailed = [weightResponse, workoutResponse, exerciseNamesResponse].some(
+        const anyFailed = [weightResponse, workoutResponse, exerciseNamesResponse, supplementResponse].some(
           response => response.status === 'rejected' || 
             (response.status === 'fulfilled' && !response.value.ok)
         );
@@ -173,6 +218,7 @@ function App() {
         weightDataCount: weightData.length, 
         workoutDataCount: workoutData.length, 
         exerciseDataCount: exerciseData.length,
+        supplementDataCount: supplementData.length,
         dataOptions
       });
       
@@ -263,7 +309,7 @@ function App() {
     };
     
     prepareChartData();
-  }, [exerciseData, weightData, workoutData, dataOptions]);
+  }, [exerciseData, weightData, workoutData, supplementData, dataOptions]);
 
   // Handle checkbox changes
   const handleOptionChange = (optionPath: string, value: boolean) => {
@@ -288,6 +334,13 @@ function App() {
   const getUniqueExerciseNames = (): string[] => {
     const names = new Set<string>();
     exerciseData.forEach(entry => names.add(entry.name));
+    return Array.from(names);
+  };
+  
+  // Get list of unique supplement names from data
+  const getUniqueSupplementNames = (): string[] => {
+    const names = new Set<string>();
+    supplementData.forEach(entry => names.add(entry.name));
     return Array.from(names);
   };
 
@@ -321,6 +374,29 @@ function App() {
       }));
     }
   }, [exerciseData]);
+  
+  // Make sure the dataOptions.supplements has all the supplement names
+  useEffect(() => {
+    const supplementNames = getUniqueSupplementNames();
+    const updatedSupplements = { ...dataOptions.supplements };
+    let hasChanges = false;
+    
+    supplementNames.forEach(name => {
+      const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (updatedSupplements[key as keyof typeof updatedSupplements] === undefined) {
+        // Initialize all supplement options to false for initial load
+        updatedSupplements[key as keyof typeof updatedSupplements] = false;
+        hasChanges = true;
+      }
+    });
+    
+    if (hasChanges) {
+      setDataOptions(prev => ({
+        ...prev,
+        supplements: updatedSupplements
+      }));
+    }
+  }, [supplementData]);
 
   // No mock data generators - using only real server data
 
@@ -525,6 +601,44 @@ function App() {
                             type="checkbox" 
                             checked={dataOptions.exercises[key as keyof typeof dataOptions.exercises] ?? false} 
                             onChange={(e) => handleOptionChange(`exercises.${key}`, e.target.checked)} 
+                          />
+                          {formatExerciseName(name)}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Supplements section */}
+                <div className="option-group">
+                  <h3>Supplements</h3>
+                  <label>
+                    <input 
+                      type="checkbox" 
+                      checked={getUniqueSupplementNames().every(name => {
+                        const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return dataOptions.supplements[key as keyof typeof dataOptions.supplements] ?? false;
+                      })} 
+                      onChange={(e) => {
+                        // Apply the same checked state to all supplement options
+                        const supplementNames = getUniqueSupplementNames();
+                        supplementNames.forEach(name => {
+                          const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                          handleOptionChange(`supplements.${key}`, e.target.checked);
+                        });
+                      }} 
+                    />
+                    <strong>Select/Deselect All</strong>
+                  </label>
+                  <div className="exercise-checkbox-grid">
+                    {getUniqueSupplementNames().map(name => {
+                      const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                      return (
+                        <label key={key}>
+                          <input 
+                            type="checkbox" 
+                            checked={dataOptions.supplements[key as keyof typeof dataOptions.supplements] ?? false} 
+                            onChange={(e) => handleOptionChange(`supplements.${key}`, e.target.checked)} 
                           />
                           {formatExerciseName(name)}
                         </label>
