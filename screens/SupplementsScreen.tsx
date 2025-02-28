@@ -3,7 +3,7 @@ import { ScrollView, View, Text, StyleSheet, Dimensions, TextInput, Button } fro
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo } from '../utils';
+import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo, getCurrentDayUnixTime } from '../utils';
 import CustomModal from '../CustomModal';
 import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
@@ -47,7 +47,17 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
   const realm = useRealm();
 
   const loadData = () => {
-    getSupplement(realm).then(entries => setSupplementEntries(entries));
+    // Get start of current day in Unix time
+    const startOfDay = getCurrentDayUnixTime();
+    // End of day is start of day + 24 hours (in seconds)
+    const endOfDay = startOfDay + (24 * 60 * 60);
+    
+    getSupplement(realm, startOfDay, endOfDay)
+      .then(entries => setSupplementEntries(entries))
+      .catch(error => {
+        console.error('Error loading supplements:', error);
+        showToastError('Could not load supplements');
+      });
   }
 
   useEffect(() => {
@@ -107,17 +117,37 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
     }
   }
 
+  // Get today's date in MM/DD/YYYY format
+  const getTodayDate = () => {
+    const today = new Date();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const year = today.getFullYear();
+    return `${month}/${day}/${year}`;
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {
-        supplementEntries.map(entry => <View style={styles.supplementEntry} key={entry._id}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.dateHeader}>Today: {getTodayDate()}</Text>
+      </View>
+      
+      {supplementEntries.length === 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>No supplements taken today</Text>
+        </View>
+      ) : (
+        supplementEntries.map(entry => (
+          <View style={styles.supplementEntry} key={entry._id}>
             <View style={styles.entryTextContainer}>
               <Text style={[styles.entryText, styles.boldText]}>{formatTime(entry.createdAt)}</Text>
               <Text style={styles.entryText}>{convertFromDatabaseFormat(entry.name)}</Text>
             </View>
-            <Text style={styles.entryText}>{entry.amount + ' ' + entry.amount_unit }</Text>
-        </View>)
-      }
+            <Text style={styles.entryText}>{entry.amount + ' ' + entry.amount_unit}</Text>
+          </View>
+        ))
+      )}
+      
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         {selectedItem?.value === 'new_supplement' ? (
@@ -182,6 +212,29 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 10,
   },
+  headerContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginBottom: 5,
+  },
+  dateHeader: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    fontFamily: 'Inter',
+  },
+  emptyStateContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    fontSize: 18,
+    color: '#888',
+    fontFamily: 'Inter',
+  },
   boldText: {
     fontWeight: 'bold',
   },
@@ -190,6 +243,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   entryTextContainer: {
     flexDirection: 'row',

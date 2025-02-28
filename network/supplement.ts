@@ -57,14 +57,17 @@ export async function getSupplement(realm: Realm, startDate?: number, endDate?: 
     let supplements = realm.objects<SupplementEntry>('SupplementEntry');
     
     if (startDate && endDate) {
-      supplements = supplements.filtered('date >= $0 && date <= $1', startDate, endDate);
+      supplements = supplements.filtered('createdAt >= $0 && createdAt <= $1', startDate, endDate);
     } else if (startDate) {
-      supplements = supplements.filtered('date >= $0', startDate);
+      supplements = supplements.filtered('createdAt >= $0', startDate);
     } else if (endDate) {
-      supplements = supplements.filtered('date <= $0', endDate);
+      supplements = supplements.filtered('createdAt <= $0', endDate);
     }
     
-    return Array.from(supplements).map(supplement => ({ ...supplement }));
+    // Sort by createdAt time
+    const sortedSupplements = supplements.sorted('createdAt');
+    
+    return Array.from(sortedSupplements).map(supplement => ({ ...supplement }));
   } catch (error) {
     console.error('Error getting supplements:', error);
     throw error;
