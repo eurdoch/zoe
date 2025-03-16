@@ -140,7 +140,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                     fill={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
                     stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
                     strokeWidth={2}
-                    onPress={() => handleDataPointClick(point.originalData, i)}
+                    onPress={() => onDataPointClick(point.originalData, i)}
                   />
                 ))
               )}
