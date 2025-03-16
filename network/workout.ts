@@ -23,7 +23,7 @@ export async function postWorkout(workout: Workout, realm: Realm): Promise<Worko
     if (SYNC_ENABLED) {
       try {
         // Push the new workout to the server
-        await fetch(`${API_BASE_URL}/workouts`, {
+        await fetch(`${API_BASE_URL}/workout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
