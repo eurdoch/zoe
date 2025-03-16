@@ -1,39 +1,21 @@
 import { Realm } from '@realm/react';
 import Workout from "../types/Workout";
 import WorkoutEntry from "../types/WorkoutEntry";
-import { API_BASE_URL, SYNC_ENABLED } from '../config';
-import { syncService } from '../services/SyncService';
 
 export async function postWorkout(workout: Workout, realm: Realm): Promise<WorkoutEntry> {
   try {
     let result: WorkoutEntry;
     
     realm.write(() => {
+      const createdAt = Date.now()
       const workoutEntry = {
         _id: new Realm.BSON.ObjectId().toString(),
         name: workout.name,
         exercises: workout.exercises,
-        date: new Date(),
+        createdAt: Math.floor(Date.now() / 1000),
       };
       result = realm.create<WorkoutEntry>('WorkoutEntry', workoutEntry);
     });
-    
-    // If sync is enabled, try to sync immediately with the server
-    if (SYNC_ENABLED) {
-      try {
-        // Push the new workout to the server
-        await fetch(`${API_BASE_URL}/workout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(result),
-        });
-      } catch (syncError) {
-        console.warn('Failed to immediately sync new workout, will sync later:', syncError);
-        // This doesn't affect the local save, it just means we'll sync later
-      }
-    }
     
     return result!;
   } catch (error) {
@@ -96,7 +78,7 @@ export async function updateWorkout(workoutEntry: WorkoutEntry, realm: Realm): P
           _id: workoutEntry._id,
           name: workoutEntry.name,
           exercises: workoutEntry.exercises,
-          createdAt: workoutEntry.createdAt,
+          createdAt: Math.floor(Date.now() / 1000)
         },
         Realm.UpdateMode.Modified,
       );

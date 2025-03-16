@@ -1,8 +1,6 @@
 import { Realm } from '@realm/react';
 import Exercise from "../types/Exercise";
 import ExerciseEntry from "../types/ExerciseEntry";
-import { API_BASE_URL, SYNC_ENABLED } from '../config';
-import { syncService } from '../services/SyncService';
 
 export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
@@ -16,23 +14,6 @@ export async function postExercise(exercise: Exercise, realm: Realm): Promise<Ex
       };
       result = realm.create('ExerciseEntry', exerciseEntry);
     });
-    
-    // If sync is enabled, try to sync immediately with the server
-    if (SYNC_ENABLED) {
-      try {
-        // Push the new exercise to the server
-        await fetch(`${API_BASE_URL}/exercises`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(result),
-        });
-      } catch (syncError) {
-        console.warn('Failed to immediately sync new exercise, will sync later:', syncError);
-        // This doesn't affect the local save, it just means we'll sync later
-      }
-    }
     
     return result!;
   } catch (error) {

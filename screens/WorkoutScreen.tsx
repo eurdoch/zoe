@@ -51,8 +51,8 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       const newExercises = [...workoutEntry.exercises];
       newExercises.splice(index, 1);
       const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
-      updateWorkout(newWorkoutEntry, realm).then(_updatedWorkout => {
-        setWorkoutEntry(newWorkoutEntry);
+      updateWorkout(newWorkoutEntry, realm).then(updatedWorkout => {
+        setWorkoutEntry(updatedWorkout);
         showToastInfo('Exercise removed.');
       }).catch(console.log);
     }
@@ -88,17 +88,22 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const handleAddToWorkout = (_e: any) => {
     if (selectedItem && workoutEntry) {
       const newWorkoutEntry = {
-        ...workoutEntry,
-        exercises: [...workoutEntry.exercises, selectedItem.value === 'new_exercise' ? convertToDatabaseFormat(newExerciseName) : selectedItem.value]
+        _id: workoutEntry._id,
+        name: workoutEntry.name,
+        exercises: [
+          ...workoutEntry.exercises, 
+          selectedItem.value === 'new_exercise' ? 
+            convertToDatabaseFormat(newExerciseName) : selectedItem.value
+        ],
+        createdAt: Math.floor(Date.now() / 1000)
       };
-      // TODO change ot reflect to Realm return results
-      updateWorkout(newWorkoutEntry, realm).then(result => {
-        if (!result.acknowledged) {
-          showToastError('Exercise could not be added, try again.');
-        } else {
+      try {
+        updateWorkout(newWorkoutEntry, realm).then(result => {
           setWorkoutEntry(newWorkoutEntry);
-        }
-      });
+        });
+      } catch (_e: any) {
+        showToastError('Exercise could not be added, try again.');
+      }
     }
     setIsEditMode(false);
     setSelectedItem(undefined);

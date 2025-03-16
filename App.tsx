@@ -38,6 +38,7 @@ class WorkoutEntrySchema extends Realm.Object<WorkoutEntry> {
   _id!: string;
   name!: string;
   exercises!: string[];
+  createdAt!: number;
 
   static schema = {
     name: 'WorkoutEntry',
@@ -46,6 +47,7 @@ class WorkoutEntrySchema extends Realm.Object<WorkoutEntry> {
       _id: 'string',
       name: 'string',
       exercises: 'string[]',
+      createdAt: 'int',
     },
   };
 }
@@ -114,23 +116,23 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
 const App = () => {
   return (
     <RealmProvider
-      deleteRealmIfMigrationNeeded={__DEV__}
+      deleteRealmIfMigrationNeeded={false}
       schema={[
         ExerciseEntrySchema,
         WorkoutEntrySchema,
         WeightEntrySchema,
         SupplementEntrySchema,
       ]}
-      schemaVersion={1} // Increment the version number
-      //migration={(oldRealm, newRealm) => {
-      //  // If you're deleting the date field completely
-      //  oldRealm.objects('WorkoutEntry').forEach(oldObject => {
-      //    const newObject = newRealm.objects('WorkoutEntry').filtered('_id == $0', oldObject._id)[0];
-      //    if (newObject) {
-      //      // Handle migration of other fields if needed
-      //    }
-      //  });
-      //}}
+      schemaVersion={2} // Increment the version number
+      onMigration={(oldRealm: any, newRealm: any) => {
+        const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
+        for (const oldEntry of oldWorkoutEntries) {
+          const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
+          if (newEntry && !newEntry.createdAt) {
+            newEntry.createdAt = Math.floor(Date.now() / 1000);
+          }
+        }
+      }}
     >
         <NavigationContainer>
           <Stack.Navigator

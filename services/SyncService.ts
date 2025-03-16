@@ -176,6 +176,7 @@ class SyncService {
 
   // Helper function to find local data that needs to be pushed to server
   private findLocalItemsToSync(localItems: any[], serverItems: any[]): any[] {
+
     // Create a map of server IDs for quick lookup
     const serverIdMap = new Map(serverItems.map(item => [item._id, item]));
     
@@ -226,24 +227,7 @@ class SyncService {
       await this.pushLocalData('exercise', itemsToSync);
     }
     
-    // 4. UPDATE: Create or update local database with server data
-    this.realm.write(() => {
-      serverExercises.forEach((serverExercise: any) => {
-        // Check if exercise exists locally
-        const localExercise = this.realm!.objectForPrimaryKey('ExerciseEntry', serverExercise._id);
-        
-        // If exercise doesn't exist locally or server version is newer, update local
-        if (!localExercise) {
-          this.realm!.create('ExerciseEntry', serverExercise);
-        } else {
-          // Only update if server version is newer
-          if (!localExercise.createdAt || !serverExercise.createdAt || 
-              serverExercise.createdAt >= localExercise.createdAt) {
-            this.realm!.create('ExerciseEntry', serverExercise, Realm.UpdateMode.Modified);
-          }
-        }
-      });
-    });
+    // No longer updating local data from server data - only pushing local data to server
   }
 
   // Sync workouts data
@@ -253,6 +237,7 @@ class SyncService {
     // Get all local workouts
     const workouts = this.realm.objects('WorkoutEntry');
     const localWorkouts = Array.from(workouts).map(item => ({...item}));
+    localWorkouts.forEach(console.log);
     
     // 1. PULL: Get all workouts from the server
     const response = await fetch(`${API_BASE_URL}/workout`);
@@ -272,24 +257,7 @@ class SyncService {
       await this.pushLocalData('workout', itemsToSync);
     }
     
-    // 4. UPDATE: Create or update local database with server data
-    this.realm.write(() => {
-      serverWorkouts.forEach((serverWorkout: any) => {
-        // Check if workout exists locally
-        const localWorkout = this.realm!.objectForPrimaryKey('WorkoutEntry', serverWorkout._id);
-        
-        // If workout doesn't exist locally or server version is newer, update local
-        if (!localWorkout) {
-          this.realm!.create('WorkoutEntry', serverWorkout);
-        } else {
-          // Only update if server version is newer
-          if (!localWorkout.createdAt || !serverWorkout.createdAt || 
-              serverWorkout.createdAt >= localWorkout.createdAt) {
-            this.realm!.create('WorkoutEntry', serverWorkout, Realm.UpdateMode.Modified);
-          }
-        }
-      });
-    });
+    // No longer updating local data from server data - only pushing local data to server
   }
 
   // Sync weights data
@@ -318,24 +286,7 @@ class SyncService {
       await this.pushLocalData('weight', itemsToSync);
     }
     
-    // 4. UPDATE: Create or update local database with server data
-    this.realm.write(() => {
-      serverWeights.forEach((serverWeight: any) => {
-        // Check if weight exists locally
-        const localWeight = this.realm!.objectForPrimaryKey('WeightEntry', serverWeight._id);
-        
-        // If weight doesn't exist locally or server version is newer, update local
-        if (!localWeight) {
-          this.realm!.create('WeightEntry', serverWeight);
-        } else {
-          // Only update if server version is newer
-          if (!localWeight.createdAt || !serverWeight.createdAt || 
-              serverWeight.createdAt >= localWeight.createdAt) {
-            this.realm!.create('WeightEntry', serverWeight, Realm.UpdateMode.Modified);
-          }
-        }
-      });
-    });
+    // No longer updating local data from server data - only pushing local data to server
   }
 
   // Push local data to the server
@@ -366,7 +317,7 @@ class SyncService {
         
         // Send single item to server
         const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
