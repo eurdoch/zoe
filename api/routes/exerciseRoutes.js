@@ -1,5 +1,4 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 const router = express.Router();
 export default function exerciseRoutes(exerciseCollection) {
   router.get('/names', async (req, res) => {
@@ -16,7 +15,7 @@ export default function exerciseRoutes(exerciseCollection) {
 router.get('/', async (req, res) => {
   const name = req.query.name;
   const id = req.query.id;
-  const query = name ? { name } : id ? { _id: new ObjectId(id) } : {};
+  const query = name ? { name } : id ? { _id: id } : {};
   try {
     if (Object.keys(query).length === 0) {
       console.log('GET /exercise - fetching all exercises');
@@ -55,9 +54,10 @@ router.get('/', async (req, res) => {
       res.status(500).json({ error: `Error saving exercise data: ${err}` });
     }
   });
+
   router.delete('/:id', async (req, res) => {
     try {
-      const id = new ObjectId(req.params.id);
+      const id = req.params.id;
       console.log(`DELETE /exercise/${req.params.id}`);
       const query = { _id: id };
       const result = await exerciseCollection.deleteOne(query);
@@ -67,5 +67,6 @@ router.get('/', async (req, res) => {
       res.status(500).json({ error: `Error deleting exercises: ${err}` });
     }
   });
+
   return router;
 }

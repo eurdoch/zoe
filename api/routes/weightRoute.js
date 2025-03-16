@@ -1,5 +1,4 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 const router = express.Router();
 export default function weightRoutes(weightCollection) {
   router.post('/', async (req, res) => {
@@ -14,7 +13,7 @@ export default function weightRoutes(weightCollection) {
   router.delete('/:id', async (req, res) => {
     try {
       console.log(`DELETE /weight/${req.params.id} request received`);
-      const result = await weightCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+      const result = await weightCollection.deleteOne({ _id: req.params.id });
       if (result.deletedCount === 0) {
         res.status(404).json({ error: 'Item not found' });
         return;
@@ -24,6 +23,7 @@ export default function weightRoutes(weightCollection) {
       res.status(500).json({ error: 'Failed to delete item' });
     }
   });
+
   router.get('/', async (req, res) => {
     try {
       console.log('GET /weight request received');
@@ -43,5 +43,6 @@ export default function weightRoutes(weightCollection) {
       res.status(500).json({ error: 'Failed to get items' });
     }
   });
+
   return router;
 }

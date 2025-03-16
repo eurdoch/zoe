@@ -1,5 +1,4 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 const router = express.Router();
 export default function workoutRoutes(workoutCollection) {
   router.post('/', async (req, res) => {
@@ -11,10 +10,11 @@ export default function workoutRoutes(workoutCollection) {
       res.status(500).json({ error: 'Failed to create item' });
     }
   });
+
   router.get('/:id', async (req, res) => {
     try {
       console.log(`GET /workout/:id`);
-      const workout = await workoutCollection.findOne({ _id: new ObjectId(req.params.id) });
+      const workout = await workoutCollection.findOne({ _id: req.params.id });
       if (workout) {
         res.json(workout);
       } else {
@@ -24,6 +24,7 @@ export default function workoutRoutes(workoutCollection) {
       res.status(500).json({ error: 'Failed to retrieve workout' });
     }
   });
+
   router.get('/', async (req, res) => {
     try {
       console.log(`GET /workout`);
@@ -33,21 +34,23 @@ export default function workoutRoutes(workoutCollection) {
       res.status(500).json({ error: 'Failed to retrieve workouts' });
     }
   });
+
   router.delete('/:id', async (req, res) => {
     try {
       console.log(`DELETE /workout/:id`);
-      const result = await workoutCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+      const result = await workoutCollection.deleteOne({ _id: req.params.id) });
       res.status(200).json(result);
     } catch (err) {
       res.status(500).json({ error: 'Failed to delete workout' });
     }
   });
+
   router.put('/', async (req, res) => {
     try {
       console.log(`PUT /workout`);
-      const { _id, ...updateData } = req.body;  // Separate _id from the rest of the data
+      const { _id, ...updateData } = req.body;
       const result = await workoutCollection.updateOne(
-        { _id: new ObjectId(_id) },
+        { _id: _id },
         { $set: updateData }
       );
       res.status(200).json(result);
@@ -55,5 +58,6 @@ export default function workoutRoutes(workoutCollection) {
       res.status(500).json({ error: 'Failed to update workout' });
     }
   });
+
   return router;
 }

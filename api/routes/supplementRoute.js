@@ -1,5 +1,4 @@
 import express from 'express';
-import { ObjectId } from 'mongodb';
 const router = express.Router();
 export default function supplementRoutes(supplementCollection) {
   router.get('/names', async (req, res) => {
@@ -12,6 +11,7 @@ export default function supplementRoutes(supplementCollection) {
       res.status(500).json({ error: `Error fetching exercise names: ${err}` });
     }
   });
+
   router.post('/', async (req, res) => {
     try {
       console.log('POST /supplement', req.body);
@@ -22,10 +22,11 @@ export default function supplementRoutes(supplementCollection) {
       res.status(500).json({ error: 'Failed to create item' });
     }
   });
+
   router.delete('/:id', async (req, res) => {
     try {
       console.log('DELETE /supplement/:id');
-      const result = await supplementCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+      const result = await supplementCollection.deleteOne({ _id: req.params.id });
       if (result.deletedCount === 0) {
         res.status(404).json({ error: 'Item not found' });
         return;
@@ -36,6 +37,7 @@ export default function supplementRoutes(supplementCollection) {
       res.status(500).json({ error: 'Failed to delete item' });
     }
   });
+
   router.get('/', async (req, res) => {
     try {
       console.log('GET /supplement');
@@ -56,5 +58,6 @@ export default function supplementRoutes(supplementCollection) {
       res.status(500).json({ error: 'Failed to get items' });
     }
   });
+
   return router;
 }
