@@ -21,7 +21,6 @@ import WorkoutEntry from './types/WorkoutEntry.ts';
 import WeightEntry from './types/WeightEntry.ts';
 import SupplementEntry from './types/SupplementEntry.ts';
 import 'react-native-get-random-values';
-import { SYNC_ENABLED } from './config';
 
 type RootStackParamList = {
   Home: undefined;
@@ -144,7 +143,7 @@ const App = () => {
               name="Home"
               component={HomeScreen}
               options={{
-                title: "zoe",
+                title: "zotik",
                 headerTitleAlign: "center",
               }}
             />
