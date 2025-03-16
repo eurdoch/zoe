@@ -193,13 +193,14 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
           />
         </View>
         <Button title="Add" onPress={handleAddSupplement} />
-        <Button 
+        {/* <Button 
           title="Nutrition Label Parser" 
           onPress={() => {
             setModalVisible(false);
             navigation.navigate('NutritionLabelParser')
           }} 
-        />
+        /> */}
+
       </CustomModal>
     </ScrollView>
   );
