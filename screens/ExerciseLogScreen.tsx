@@ -230,6 +230,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     padding: 20,
+    justifyContent: 'center',
   },
   label: {
     position: 'absolute',
