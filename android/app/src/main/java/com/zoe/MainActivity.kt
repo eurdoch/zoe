@@ -1,4 +1,4 @@
-package com.vitale
+package com.zoe
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
