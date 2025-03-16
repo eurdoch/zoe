@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  View
+  View,
+  TouchableOpacity,
+  Text
 } from 'react-native';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
@@ -60,6 +62,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
+  const [formModalVisible, setFormModalVisible] = useState<boolean>(false);
   const realm = useRealm();
 
   useEffect(() => {
@@ -176,12 +179,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       )}
       { 
         selectedItem && (
-          <View>
-            <KeyboardAwareForm
-              inputs={exerciseLogInputs}
-              onSubmit={handleAddDataPoint}
-              submitButtonText="Add"
-            />
+          <View style={styles.addButtonContainer}>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => setFormModalVisible(true)}
+            >
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
           </View>
         )
       }
@@ -203,6 +207,19 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           )
         }
       </CustomModal>
+      
+      <CustomModal visible={formModalVisible} setVisible={setFormModalVisible}>
+        <View>
+          <KeyboardAwareForm
+            inputs={exerciseLogInputs}
+            onSubmit={(formData) => {
+              handleAddDataPoint(formData);
+              setFormModalVisible(false);
+            }}
+            submitButtonText="Add"
+          />
+        </View>
+      </CustomModal>
     </SafeAreaView>
   );
 }
@@ -222,6 +239,23 @@ const styles = StyleSheet.create({
     zIndex: 999,
     paddingHorizontal: 8,
     fontSize: 14,
+  },
+  addButtonContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 export default ExerciseLogScreen;
