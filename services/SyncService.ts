@@ -196,8 +196,20 @@ class SyncService {
         return localItem.createdAt > serverItem.createdAt;
       }
       
-      // By default, don't sync if it exists on server and we can't determine which is newer
-      return false;
+      // Case 3: Always prefer local data when both exist with same ID
+      return true;
+    });
+  }
+  
+  // Helper function to find server data that needs to be pulled to local
+  private findServerItemsToSync(localItems: any[], serverItems: any[]): any[] {
+    // Create a map of local IDs for quick lookup
+    const localIdMap = new Map(localItems.map(item => [item._id, item]));
+    
+    // Filter server items that don't exist locally
+    return serverItems.filter(serverItem => {
+      // Only add server items that don't exist locally
+      return !localIdMap.has(serverItem._id);
     });
   }
 
@@ -227,7 +239,19 @@ class SyncService {
       await this.pushLocalData('exercise', itemsToSync);
     }
     
-    // No longer updating local data from server data - only pushing local data to server
+    // 4. DETERMINE which server items need to be pulled to local (ones not in local)
+    const itemsToPull = this.findServerItemsToSync(localExercises, serverExercises);
+    console.log(`Found ${itemsToPull.length} exercises to pull from server`);
+    
+    // 5. PULL: Add server items that don't exist locally
+    if (itemsToPull.length > 0) {
+      this.realm.write(() => {
+        itemsToPull.forEach(item => {
+          // Create a new exercise in the local database
+          this.realm?.create('ExerciseEntry', item, Realm.UpdateMode.Modified);
+        });
+      });
+    }
   }
 
   // Sync workouts data
@@ -237,7 +261,6 @@ class SyncService {
     // Get all local workouts
     const workouts = this.realm.objects('WorkoutEntry');
     const localWorkouts = Array.from(workouts).map(item => ({...item}));
-    localWorkouts.forEach(console.log);
     
     // 1. PULL: Get all workouts from the server
     const response = await fetch(`${API_BASE_URL}/workout`);
@@ -257,7 +280,19 @@ class SyncService {
       await this.pushLocalData('workout', itemsToSync);
     }
     
-    // No longer updating local data from server data - only pushing local data to server
+    // 4. DETERMINE which server items need to be pulled to local (ones not in local)
+    const itemsToPull = this.findServerItemsToSync(localWorkouts, serverWorkouts);
+    console.log(`Found ${itemsToPull.length} workouts to pull from server`);
+    
+    // 5. PULL: Add server items that don't exist locally
+    if (itemsToPull.length > 0) {
+      this.realm.write(() => {
+        itemsToPull.forEach(item => {
+          // Create a new workout in the local database
+          this.realm?.create('WorkoutEntry', item, Realm.UpdateMode.Modified);
+        });
+      });
+    }
   }
 
   // Sync weights data
@@ -286,7 +321,19 @@ class SyncService {
       await this.pushLocalData('weight', itemsToSync);
     }
     
-    // No longer updating local data from server data - only pushing local data to server
+    // 4. DETERMINE which server items need to be pulled to local (ones not in local)
+    const itemsToPull = this.findServerItemsToSync(localWeights, serverWeights);
+    console.log(`Found ${itemsToPull.length} weights to pull from server`);
+    
+    // 5. PULL: Add server items that don't exist locally
+    if (itemsToPull.length > 0) {
+      this.realm.write(() => {
+        itemsToPull.forEach(item => {
+          // Create a new weight in the local database
+          this.realm?.create('WeightEntry', item, Realm.UpdateMode.Modified);
+        });
+      });
+    }
   }
 
   // Push local data to the server
