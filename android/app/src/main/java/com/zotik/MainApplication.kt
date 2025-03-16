@@ -1,4 +1,4 @@
-package com.zoe
+package com.zotik
 
 import android.app.Application
 import com.facebook.react.PackageList
