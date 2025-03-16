@@ -1,7 +1,7 @@
 // App configuration settings
 
 // Whether to sync with remote database
-export const SYNC_ENABLED = true; // Change to true to enable remote sync
+export const SYNC_ENABLED = true;
 
 // Whether to use mock API (for development without a real server)
 export const USE_MOCK_API = false;

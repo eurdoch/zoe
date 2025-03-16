@@ -8,7 +8,6 @@ export async function postWorkout(workout: Workout, realm: Realm): Promise<Worko
   try {
     let result: WorkoutEntry;
     
-    // Create in local Realm database
     realm.write(() => {
       const workoutEntry = {
         _id: new Realm.BSON.ObjectId().toString(),
