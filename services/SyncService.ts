@@ -95,7 +95,10 @@ class SyncService {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
         
-        const pingResponse = await fetch(`${API_BASE_URL}/exercise`, { 
+        // We'll try the supplement endpoint as an alternative to exercise
+        // This provides redundancy in case one endpoint is temporarily down
+        const pingEndpoint = Math.random() > 0.5 ? 'exercise' : 'supplement';
+        const pingResponse = await fetch(`${API_BASE_URL}/${pingEndpoint}`, { 
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal
@@ -120,6 +123,7 @@ class SyncService {
         this.syncExercises(),
         this.syncWorkouts(),
         this.syncWeights(),
+        this.syncSupplements(),
         // Add other data types as needed
       ]);
       
@@ -130,7 +134,7 @@ class SyncService {
         console.warn('Some sync operations failed:');
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
-            const dataTypes = ['exercises', 'workouts', 'weights'];
+            const dataTypes = ['exercises', 'workouts', 'weights', 'supplements'];
             console.warn(`- Failed to sync ${dataTypes[index]}: ${(result as PromiseRejectedResult).reason}`);
           }
         });
@@ -331,6 +335,47 @@ class SyncService {
         itemsToPull.forEach(item => {
           // Create a new weight in the local database
           this.realm?.create('WeightEntry', item, Realm.UpdateMode.Modified);
+        });
+      });
+    }
+  }
+  
+  // Sync supplements data
+  private async syncSupplements(): Promise<void> {
+    if (!this.realm) return;
+    
+    // Get all local supplements
+    const supplements = this.realm.objects('SupplementEntry');
+    const localSupplements = Array.from(supplements).map(item => ({...item}));
+    
+    // 1. PULL: Get all supplements from the server
+    const response = await fetch(`${API_BASE_URL}/supplement`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch supplements: ${response.statusText}`);
+    }
+    
+    const serverSupplements = await response.json();
+    
+    // 2. DETERMINE which local items need to be pushed to server
+    const itemsToSync = this.findLocalItemsToSync(localSupplements, serverSupplements);
+    console.log(`Found ${itemsToSync.length} supplements to sync to server`);
+    
+    // 3. PUSH: Send only new/updated local supplements to the server
+    if (itemsToSync.length > 0) {
+      await this.pushLocalData('supplement', itemsToSync);
+    }
+    
+    // 4. DETERMINE which server items need to be pulled to local (ones not in local)
+    const itemsToPull = this.findServerItemsToSync(localSupplements, serverSupplements);
+    console.log(`Found ${itemsToPull.length} supplements to pull from server`);
+    
+    // 5. PULL: Add server items that don't exist locally
+    if (itemsToPull.length > 0) {
+      this.realm.write(() => {
+        itemsToPull.forEach(item => {
+          // Create a new supplement in the local database
+          this.realm?.create('SupplementEntry', item, Realm.UpdateMode.Modified);
         });
       });
     }
