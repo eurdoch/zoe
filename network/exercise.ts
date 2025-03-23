@@ -1,6 +1,7 @@
 import { Realm } from '@realm/react';
 import Exercise from "../types/Exercise";
 import ExerciseEntry from "../types/ExerciseEntry";
+import { API_BASE_URL, SYNC_ENABLED } from '../config';
 
 export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
@@ -59,12 +60,33 @@ export async function getExerciseById(id: string, realm: Realm): Promise<Exercis
 
 export async function deleteExerciseById(id: string, realm: Realm): Promise<void> {
   try {
+    // Delete from local Realm database
     realm.write(() => {
       const exercise = realm.objectForPrimaryKey<ExerciseEntry>('ExerciseEntry', id);
       if (exercise) {
         realm.delete(exercise);
       }
     });
+    
+    // If sync is enabled, delete from the remote server as well
+    if (SYNC_ENABLED) {
+      try {
+        // Delete the exercise from the server
+        const response = await fetch(`${API_BASE_URL}/exercise/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          console.warn(`Failed to delete exercise with ID ${id} from server: ${response.status} ${response.statusText}`);
+        }
+      } catch (syncError) {
+        console.warn(`Failed to sync deletion of exercise with ID ${id}:`, syncError);
+        // This doesn't affect the local deletion, it just means we'll have inconsistency with the server
+      }
+    }
   } catch (error) {
     console.error('Error deleting exercise:', error);
     throw error;
