@@ -68,5 +68,28 @@ router.get('/', async (req, res) => {
     }
   });
 
+  router.put('/', async (req, res) => {
+    try {
+      const { _id, ...updateData } = req.body;
+      console.log(`PUT /exercise - Updating exercise with id: ${_id}`);
+      
+      if (!_id) {
+        return res.status(400).json({ error: 'Exercise ID (_id) is required' });
+      }
+
+      const result = await exerciseCollection.updateOne(
+        { _id },
+        { $set: updateData },
+        { upsert: true }
+      );
+
+      const updatedExercise = await exerciseCollection.findOne({ _id });
+      res.json(updatedExercise);
+    } catch (err) {
+      console.error(`Error updating exercise: ${err}`);
+      res.status(500).json({ error: `Error updating exercise: ${err}` });
+    }
+  });
+
   return router;
 }
