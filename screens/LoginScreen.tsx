@@ -12,13 +12,11 @@ import {
   Alert,
 } from "react-native";
 import PhoneInput from "react-native-phone-number-input";
-import { Colors } from "react-native/Libraries/NewAppScreen";
+import { API_BASE_URL } from '../config';
 
 type LoginScreenProps = {
   navigation: NavigationProp<any>;
 };
-
-const API_URL = 'http://localhost:3000';
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
   const [value, setValue] = useState("");
@@ -37,7 +35,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
       setIsLoading(true);
       
       try {
-        const response = await fetch(`${API_URL}/verify/send`, {
+        const response = await fetch(`${API_BASE_URL}/verify/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +70,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${API_URL}/verify/check`, {
+      const response = await fetch(`${API_BASE_URL}/verify/check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
