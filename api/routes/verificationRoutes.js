@@ -1,15 +1,17 @@
 import express from 'express';
 import twilio from 'twilio';
 
+// Initialize Twilio client at module level
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const serviceSid = process.env.TWILIO_SERVICE_SID;
+
+// Create a single client instance to be reused
+const client = twilio(accountSid, authToken);
+
 const router = express.Router();
 
 export default function verificationRoutes() {
-  // Initialize Twilio client
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const serviceSid = process.env.TWILIO_SERVICE_SID;
-  
-  const client = twilio(accountSid, authToken);
 
   // Create a new verification
   router.post('/send', async (req, res) => {
