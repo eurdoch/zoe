@@ -54,7 +54,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
             style={styles.button}
             onPress={handleVerify}
           >
-            <Text>Check</Text>
+            <Text>Login</Text>
           </TouchableOpacity>
       </View>
     </SafeAreaView>
