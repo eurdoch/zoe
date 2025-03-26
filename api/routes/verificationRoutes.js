@@ -29,15 +29,11 @@ export default function verificationRoutes() {
           channel: 'sms'
         });
       
-      res.status(200).json({
-        success: true,
-        status: verification.status,
-        message: 'Verification code sent successfully'
-      });
+      // Return the entire verification object directly
+      res.status(200).json(verification);
     } catch (error) {
       console.error('Error sending verification code:', error);
       res.status(500).json({
-        success: false,
         error: error.message || 'Failed to send verification code'
       });
     }
@@ -61,33 +57,11 @@ export default function verificationRoutes() {
           code: code
         });
 
-      if (verificationCheck.status === 'approved') {
-        // Here you would typically:
-        // 1. Create a user or find existing user by phone number
-        // 2. Generate authentication tokens
-        // 3. Return user data and tokens
-        
-        res.status(200).json({
-          success: true,
-          status: verificationCheck.status,
-          message: 'Verification successful',
-          // Include any additional user data or tokens here
-          user: {
-            phoneNumber: phoneNumber,
-            // Add other user properties as needed
-          }
-        });
-      } else {
-        res.status(400).json({
-          success: false,
-          status: verificationCheck.status,
-          message: 'Verification failed'
-        });
-      }
+      // Return the entire verification check object directly
+      res.status(200).json(verificationCheck);
     } catch (error) {
       console.error('Error checking verification code:', error);
       res.status(500).json({
-        success: false,
         error: error.message || 'Failed to check verification code'
       });
     }
