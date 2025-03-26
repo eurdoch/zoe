@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
 import Toast from 'react-native-toast-message';
@@ -24,6 +26,7 @@ import 'react-native-get-random-values';
 
 type RootStackParamList = {
   Home: undefined;
+  Login: undefined;
   ExerciseLog: undefined;
   Exercise: { title: string };
   Diet: undefined;
@@ -113,6 +116,28 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
 }
 
 const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const currentUser = await AsyncStorage.getItem('currentUser');
+        setUserLoggedIn(currentUser !== null);
+      } catch (error) {
+        console.error('Error checking login status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
+
+  if (isLoading) {
+    return null; // Or a loading screen
+  }
+
   return (
     <RealmProvider
       deleteRealmIfMigrationNeeded={false}
@@ -138,7 +163,16 @@ const App = () => {
             screenOptions={{
               animation: 'slide_from_right',
             }}
+            initialRouteName={userLoggedIn ? "Home" : "Login"}
           >
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{
+                title: "Login",
+                headerTitleAlign: "center",
+              }}
+            />
             <Stack.Screen
               name="Home"
               component={HomeScreen}
