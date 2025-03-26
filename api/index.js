@@ -8,6 +8,7 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
+import verificationRoutes from './routes/verificationRoutes.js';
 import 'dotenv/config';
 
 import path from 'path';
@@ -90,6 +91,7 @@ async function connectToDatabase() {
     app.use('/weight', weightRoutes(weightCollection));
     app.use('/supplement', supplementRoutes(supplementCollection));
     app.use('/nutritionimg', nutritionParserRoutes());
+    app.use('/verify', verificationRoutes());
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);

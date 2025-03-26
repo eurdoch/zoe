@@ -9,6 +9,7 @@
     "@aws-sdk/client-bedrock-runtime": "^3.712.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
-    "mongodb": "^6.11.0"
+    "mongodb": "^6.11.0",
+    "twilio": "^4.22.0"
   }
 }
