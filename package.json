@@ -40,7 +40,8 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-vision-camera": "^4.6.3",
-    "realm": "^12.14.0"
+    "realm": "^12.14.0",
+    "twilio": "^5.5.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
