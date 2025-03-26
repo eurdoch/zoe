@@ -34,7 +34,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.container}>
+      <View style={styles.wrapper}>
           <PhoneInput
             ref={phoneInput}
             defaultValue={value}
@@ -49,12 +49,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
             withDarkTheme
             withShadow
             autoFocus
+            containerStyle={styles.inputContainer}
           />
           <TouchableOpacity
             style={styles.button}
             onPress={handleVerify}
           >
-            <Text>Login</Text>
+            <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -64,39 +65,49 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.lighter,
+    backgroundColor: '#FAFAFA',
   },
   wrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  inputContainer: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   button: {
-    marginTop: 20,
+    marginTop: 30,
     height: 50,
-    width: 300,
+    width: '100%',
+    maxWidth: 400,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#7CDB8A',
-    shadowColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 8,
+    shadowColor: 'rgba(0,0,0,0.1)',
     shadowOffset: {
-      width: 1,
-      height: 5,
+      width: 0,
+      height: 2,
     },
-    shadowOpacity: 0.34,
-    shadowRadius: 6.27,
-    elevation: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   buttonText:{
-    color: 'white',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   redColor: {
     backgroundColor: '#F57777'
   },
   message: {
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
     padding: 20,
     marginBottom: 20,
     justifyContent: 'center',
