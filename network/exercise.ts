@@ -2,6 +2,7 @@ import { Realm } from '@realm/react';
 import Exercise from "../types/Exercise";
 import ExerciseEntry from "../types/ExerciseEntry";
 import { API_BASE_URL, SYNC_ENABLED } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
@@ -71,16 +72,32 @@ export async function deleteExerciseById(id: string, realm: Realm): Promise<void
     // If sync is enabled, delete from the remote server as well
     if (SYNC_ENABLED) {
       try {
-        // Delete the exercise from the server
+        // Get JWT token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          console.warn('No authentication token found, skipping server deletion');
+          return;
+        }
+        
+        // Delete the exercise from the server with authentication
         const response = await fetch(`${API_BASE_URL}/exercise/${id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
         });
         
         if (!response.ok) {
           console.warn(`Failed to delete exercise with ID ${id} from server: ${response.status} ${response.statusText}`);
+          
+          // If unauthorized, log it specifically
+          if (response.status === 401 || response.status === 403) {
+            console.error('Authentication failed when deleting exercise from server');
+          }
+        } else {
+          console.log(`Successfully deleted exercise with ID ${id} from server`);
         }
       } catch (syncError) {
         console.warn(`Failed to sync deletion of exercise with ID ${id}:`, syncError);
