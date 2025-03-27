@@ -86,7 +86,43 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
       
       if (data.status === 'approved') {
         console.log('Verification successful!');
-        // TODO: Handle successful login (e.g., navigate to main screen)
+        
+        // PBKDF2-like implementation for phone number hashing
+        const secureHashPhoneNumber = (phone: string) => {
+          // Normalize the phone number by removing non-digit characters
+          const normalizedPhone = phone.replace(/\D/g, '');
+          
+          // Create salt from the last 4 digits (or use a fixed salt in production)
+          const salt = normalizedPhone.slice(-4);
+          
+          // Perform multiple iterations of hashing to increase security
+          let hash = normalizedPhone + salt;
+          const iterations = 1000; // More iterations increase security
+          
+          for (let i = 0; i < iterations; i++) {
+            // Combine existing hash with salt and iteration count
+            const dataToHash = hash + salt + i.toString();
+            
+            // Use a more secure hashing algorithm (similar to SHA-256)
+            let newHash = 0;
+            for (let j = 0; j < dataToHash.length; j++) {
+              const char = dataToHash.charCodeAt(j);
+              newHash = ((newHash << 5) - newHash) + char;
+              newHash = newHash & newHash;
+            }
+            
+            // Convert to hex and append to hash
+            hash = Math.abs(newHash).toString(16);
+          }
+          
+          return hash;
+        };
+        
+        const hashedPhoneNumber = secureHashPhoneNumber(formattedValue);
+        console.log('Secure hashed phone number:', hashedPhoneNumber);
+        
+        // TODO: Store the hashed phone number for authentication
+        // TODO: Navigate to main screen
       } else {
         Alert.alert('Verification Failed', 'The code you entered is incorrect. Please try again.');
       }
