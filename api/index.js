@@ -9,6 +9,7 @@ import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
 import verificationRoutes from './routes/verificationRoutes.js';
+import authenticateToken from './middleware/auth.js';
 import 'dotenv/config';
 
 import path from 'path';
@@ -86,13 +87,16 @@ async function connectToDatabase() {
       }
     });
 
-    app.use('/exercise', exerciseRoutes(exerciseCollection));
+    // Public routes (no authentication required)
     app.use('/food', foodRoutes(foodCollection));
-    app.use('/workout', workoutRoutes(workoutCollection));
-    app.use('/weight', weightRoutes(weightCollection));
-    app.use('/supplement', supplementRoutes(supplementCollection));
     app.use('/nutritionimg', nutritionParserRoutes());
     app.use('/verify', verificationRoutes(userCollection));
+    
+    // Protected routes (require JWT authentication)
+    app.use('/exercise', authenticateToken, exerciseRoutes(exerciseCollection));
+    app.use('/workout', authenticateToken, workoutRoutes(workoutCollection));
+    app.use('/weight', authenticateToken, weightRoutes(weightCollection));
+    app.use('/supplement', authenticateToken, supplementRoutes(supplementCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
