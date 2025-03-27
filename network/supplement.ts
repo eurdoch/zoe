@@ -17,23 +17,6 @@ export async function postSupplement(supplement: Supplement, realm: Realm): Prom
       result = realm.create('SupplementEntry', supplementEntry);
     });
     
-    // If sync is enabled, try to sync immediately with the server
-    if (SYNC_ENABLED) {
-      try {
-        // Push the new supplement to the server
-        await fetch(`${API_BASE_URL}/supplement`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(result),
-        });
-      } catch (syncError) {
-        console.warn('Failed to immediately sync new supplement, will sync later:', syncError);
-        // This doesn't affect the local save, it just means we'll sync later
-      }
-    }
-    
     return result!;
   } catch (error) {
     console.error('Error creating supplement:', error);
