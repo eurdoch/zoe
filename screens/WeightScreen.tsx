@@ -57,6 +57,8 @@ const WeightScreen = () => {
           value={weight}
           onChangeText={setWeight}
           placeholder="Enter weight"
+          keyboardType="numeric"
+          style={styles.input}
         />
         <Button title="Add" onPress={handleAddWeight} />
       </CustomModal>
@@ -74,6 +76,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    width: '100%',
   },
 });
 
