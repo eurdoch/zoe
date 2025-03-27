@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { TouchableOpacity, Text, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -157,6 +158,38 @@ const App = () => {
     return null; // Or a loading screen
   }
 
+  // Function to handle logout with confirmation
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Clear user data from AsyncStorage
+              await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
+              console.log('User logged out successfully');
+              
+              // Update state to trigger navigation to Login screen
+              setUserLoggedIn(false);
+            } catch (error) {
+              console.error('Error during logout:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <RealmProvider
       deleteRealmIfMigrationNeeded={false}
@@ -198,6 +231,26 @@ const App = () => {
               options={{
                 title: "zotik",
                 headerTitleAlign: "center",
+                headerRight: () => (
+                  <TouchableOpacity
+                    onPress={handleLogout}
+                    style={{ 
+                      paddingHorizontal: 15,
+                      flexDirection: 'row',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Text style={{ 
+                      fontSize: 16, 
+                      color: '#7CDB8A',
+                      fontWeight: '600',
+                      marginRight: 4
+                    }}>
+                      Logout
+                    </Text>
+                    {/* You can add an icon here if you import a library like react-native-vector-icons */}
+                  </TouchableOpacity>
+                ),
               }}
             />
             <Stack.Screen
