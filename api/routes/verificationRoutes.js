@@ -117,7 +117,7 @@ export default function verificationRoutes(userCollection) {
           code: code
         });
 
-      // If verification is successful, hash the phone number
+      // If verification is successful, hash the phone number and return user data
       if (verificationCheck.status === 'approved') {
         // Generate user ID from phone number
         const userId = generateConsistentHash(phoneNumber);
@@ -125,6 +125,7 @@ export default function verificationRoutes(userCollection) {
         
         // Check if this user already exists in the database
         let user = null;
+        let userResponse = null;
         
         if (userCollection) {
           // Try to find the user by user_id
@@ -154,13 +155,17 @@ export default function verificationRoutes(userCollection) {
               }
             );
             
-            // Add user info and token to the response - include premium status
-            verificationCheck.user = {
+            // Get the updated user data
+            user = await userCollection.findOne({ user_id: userId });
+            
+            // Create the user response
+            userResponse = {
               user_id: user.user_id,
-              existing_user: true,
               token: token,
-              premium: user.premium || false, // Include premium status (default to false if not set)
-              // Include other non-sensitive user data here as needed
+              last_login: user.last_login,
+              created_at: user.created_at,
+              premium: user.premium || false,
+              // Any other fields to include from user record
             };
           } else {
             console.log('Creating new user with ID:', userId);
@@ -178,12 +183,10 @@ export default function verificationRoutes(userCollection) {
             const result = await userCollection.insertOne(newUser);
             console.log('New user created with DB ID:', result.insertedId);
             
-            // Add user info and token to the response
-            verificationCheck.user = {
-              user_id: userId,
-              existing_user: false,
-              token: token,
-              premium: false
+            // Create the user response
+            userResponse = {
+              ...newUser,
+              _id: result.insertedId.toString()
             };
           }
         } else {
@@ -198,17 +201,26 @@ export default function verificationRoutes(userCollection) {
             { expiresIn: JWT_EXPIRES_IN }
           );
           
-          // Include the ID and token in the response
-          verificationCheck.user = {
+          // Create a minimal user response
+          userResponse = {
             user_id: userId,
-            existing_user: null,
-            token: token
+            token: token,
+            premium: false,
+            created_at: new Date(),
+            last_login: new Date()
           };
         }
+        
+        // Return just the user data instead of the verification check
+        res.status(200).json(userResponse);
+      } else {
+        // If verification failed, return the verification check object
+        res.status(400).json({ 
+          status: verificationCheck.status,
+          error: 'Verification failed',
+          message: 'The verification code is invalid or expired'
+        });
       }
-
-      // Return the enhanced verification check object 
-      res.status(200).json(verificationCheck);
     } catch (error) {
       console.error('Error checking verification code:', error);
       res.status(500).json({
