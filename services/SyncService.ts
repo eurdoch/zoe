@@ -3,6 +3,7 @@ import { Realm } from '@realm/react';
 import { SYNC_ENABLED, API_BASE_URL, SYNC_CONFIG } from '../config';
 import NetInfo from '@react-native-community/netinfo';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Type for representing the sync status
 export enum SyncStatus {
@@ -30,6 +31,22 @@ class SyncService {
   };
   private isSyncing: boolean = false;
   private appStateSubscription: any = null;
+  
+  // Helper method to get authorization headers with token
+  private async getAuthHeaders(): Promise<HeadersInit> {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+      };
+    } catch (error) {
+      console.error('Error retrieving auth token:', error);
+      return {
+        'Content-Type': 'application/json',
+      };
+    }
+  }
 
   constructor() {
     // Listen for app state changes to sync when app comes to foreground
@@ -89,16 +106,14 @@ class SyncService {
       this.isSyncing = true;
       this.syncInfo.status = SyncStatus.SYNCING;
       
-      // Check if server is reachable by trying to access one of the actual endpoints
+      // Check if server is reachable by trying to access a public endpoint
       try {
         // Create an AbortController with a timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
         
-        // We'll try the supplement endpoint as an alternative to exercise
-        // This provides redundancy in case one endpoint is temporarily down
-        const pingEndpoint = Math.random() > 0.5 ? 'exercise' : 'supplement';
-        const pingResponse = await fetch(`${API_BASE_URL}/${pingEndpoint}`, { 
+        // Use ping endpoint which doesn't require authentication
+        const pingResponse = await fetch(`${API_BASE_URL}/ping`, { 
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal
@@ -225,8 +240,14 @@ class SyncService {
     const exercises = this.realm.objects('ExerciseEntry');
     const localExercises = Array.from(exercises).map(item => ({...item}));
     
+    // Get authorization headers with token
+    const headers = await this.getAuthHeaders();
+    
     // 1. PULL: Get all exercises from the server
-    const response = await fetch(`${API_BASE_URL}/exercise`);
+    const response = await fetch(`${API_BASE_URL}/exercise`, {
+      method: 'GET',
+      headers
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to fetch exercises: ${response.statusText}`);
@@ -266,8 +287,14 @@ class SyncService {
     const workouts = this.realm.objects('WorkoutEntry');
     const localWorkouts = Array.from(workouts).map(item => ({...item}));
     
+    // Get authorization headers with token
+    const headers = await this.getAuthHeaders();
+    
     // 1. PULL: Get all workouts from the server
-    const response = await fetch(`${API_BASE_URL}/workout`);
+    const response = await fetch(`${API_BASE_URL}/workout`, {
+      method: 'GET',
+      headers
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to fetch workouts: ${response.statusText}`);
@@ -307,8 +334,14 @@ class SyncService {
     const weights = this.realm.objects('WeightEntry');
     const localWeights = Array.from(weights).map(item => ({...item}));
     
+    // Get authorization headers with token
+    const headers = await this.getAuthHeaders();
+    
     // 1. PULL: Get all weights from the server
-    const response = await fetch(`${API_BASE_URL}/weight`);
+    const response = await fetch(`${API_BASE_URL}/weight`, {
+      method: 'GET',
+      headers
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to fetch weights: ${response.statusText}`);
@@ -348,8 +381,14 @@ class SyncService {
     const supplements = this.realm.objects('SupplementEntry');
     const localSupplements = Array.from(supplements).map(item => ({...item}));
     
+    // Get authorization headers with token
+    const headers = await this.getAuthHeaders();
+    
     // 1. PULL: Get all supplements from the server
-    const response = await fetch(`${API_BASE_URL}/supplement`);
+    const response = await fetch(`${API_BASE_URL}/supplement`, {
+      method: 'GET',
+      headers
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to fetch supplements: ${response.statusText}`);
@@ -407,12 +446,13 @@ class SyncService {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), SYNC_CONFIG.timeout);
         
+        // Get authorization headers with token
+        const headers = await this.getAuthHeaders();
+
         // Send single item to server
         const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify(item), // Send just this item
           signal: controller.signal,
         });
