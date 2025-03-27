@@ -1,6 +1,7 @@
 import express from 'express';
 import twilio from 'twilio';
 import { MongoClient } from 'mongodb';
+import jwt from 'jsonwebtoken';
 
 // Initialize Twilio client at module level
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -9,6 +10,10 @@ const serviceSid = process.env.TWILIO_SERVICE_SID;
 
 // Create a single client instance to be reused
 const client = twilio(accountSid, authToken);
+
+// JWT secret - in production, store in environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'zoe-app-jwt-secret-key-development-only';
+const JWT_EXPIRES_IN = '30d'; // 30 days
 
 // MongoDB connection
 const uri = 'mongodb://localhost:27017';
@@ -127,33 +132,76 @@ export default function verificationRoutes(userCollection) {
           
           if (user) {
             console.log('User found:', user._id);
-            // Add user info to the response
+            
+            // Generate JWT for existing user
+            const token = jwt.sign(
+              { 
+                user_id: user.user_id,
+                // Add any other claims needed
+              }, 
+              JWT_SECRET, 
+              { expiresIn: JWT_EXPIRES_IN }
+            );
+            
+            // Add user info and token to the response
             verificationCheck.user = {
               user_id: user.user_id,
               existing_user: true,
+              token: token,
               // Include other non-sensitive user data here
             };
           } else {
-            console.log('New user, should be created with ID:', userId);
-            // Just include the generated ID for new users
-            verificationCheck.user = {
+            console.log('Creating new user with ID:', userId);
+            
+            // Create a new user entry
+            const newUser = {
               user_id: userId,
-              existing_user: false
+              phone_hash: userId, // Store the hash as both ID and phone reference
+              created_at: new Date(),
+              last_login: new Date(),
+              // Add additional default fields as needed
+              profile_completed: false
             };
             
-            // You could create the user here, but client might want to collect more info first
-            // await userCollection.insertOne({ 
-            //   user_id: userId,
-            //   created_at: new Date(),
-            //   // other user properties
-            // });
+            // Insert the new user into the database
+            const result = await userCollection.insertOne(newUser);
+            console.log('New user created with DB ID:', result.insertedId);
+            
+            // Generate JWT for the new user
+            const token = jwt.sign(
+              { 
+                user_id: userId,
+                // Add any other claims needed
+              }, 
+              JWT_SECRET, 
+              { expiresIn: JWT_EXPIRES_IN }
+            );
+            
+            // Add user info and token to the response
+            verificationCheck.user = {
+              user_id: userId,
+              existing_user: false,
+              token: token,
+              profile_completed: false
+            };
           }
         } else {
           console.log('No userCollection available, but generated ID:', userId);
-          // Still include the ID in the response even if we can't check the database
+          
+          // Even without a database, we can still generate a JWT
+          const token = jwt.sign(
+            { 
+              user_id: userId,
+            }, 
+            JWT_SECRET, 
+            { expiresIn: JWT_EXPIRES_IN }
+          );
+          
+          // Include the ID and token in the response
           verificationCheck.user = {
             user_id: userId,
-            existing_user: null
+            existing_user: null,
+            token: token
           };
         }
       }
