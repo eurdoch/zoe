@@ -130,17 +130,28 @@ export default function verificationRoutes(userCollection) {
           // Try to find the user by user_id
           user = await userCollection.findOne({ user_id: userId });
           
+          // Generate JWT for the user
+          const token = jwt.sign(
+            { 
+              user_id: userId,
+              // Add any other claims needed
+            }, 
+            JWT_SECRET, 
+            { expiresIn: JWT_EXPIRES_IN }
+          );
+          
           if (user) {
             console.log('User found:', user._id);
             
-            // Generate JWT for existing user
-            const token = jwt.sign(
+            // Update user with new token and last login time
+            await userCollection.updateOne(
+              { user_id: userId },
               { 
-                user_id: user.user_id,
-                // Add any other claims needed
-              }, 
-              JWT_SECRET, 
-              { expiresIn: JWT_EXPIRES_IN }
+                $set: { 
+                  token: token,
+                  last_login: new Date()
+                }
+              }
             );
             
             // Add user info and token to the response
@@ -148,41 +159,28 @@ export default function verificationRoutes(userCollection) {
               user_id: user.user_id,
               existing_user: true,
               token: token,
-              // Include other non-sensitive user data here
+              // Include other non-sensitive user data here as needed
             };
           } else {
             console.log('Creating new user with ID:', userId);
             
-            // Create a new user entry
+            // Create a new user entry (without profile_completed and phone_hash)
             const newUser = {
               user_id: userId,
-              phone_hash: userId, // Store the hash as both ID and phone reference
               created_at: new Date(),
               last_login: new Date(),
-              // Add additional default fields as needed
-              profile_completed: false
+              token: token
             };
             
             // Insert the new user into the database
             const result = await userCollection.insertOne(newUser);
             console.log('New user created with DB ID:', result.insertedId);
             
-            // Generate JWT for the new user
-            const token = jwt.sign(
-              { 
-                user_id: userId,
-                // Add any other claims needed
-              }, 
-              JWT_SECRET, 
-              { expiresIn: JWT_EXPIRES_IN }
-            );
-            
             // Add user info and token to the response
             verificationCheck.user = {
               user_id: userId,
               existing_user: false,
-              token: token,
-              profile_completed: false
+              token: token
             };
           }
         } else {
