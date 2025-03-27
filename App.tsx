@@ -117,63 +117,11 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
   };
 }
 
-// Custom Modal Component for Logout
-const LogoutModal = ({ 
-  visible, 
-  onCancel, 
-  onLogout 
-}: { 
-  visible: boolean; 
-  onCancel: () => void; 
-  onLogout: () => void; 
-}) => {
-  return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onCancel}
-    >
-      <TouchableOpacity 
-        style={appStyles.modalOverlay}
-        activeOpacity={1}
-        onPress={onCancel}
-      >
-        <View 
-          style={appStyles.modalContent}
-          onStartShouldSetResponder={() => true}
-          onTouchEnd={(e) => e.stopPropagation()}
-        >
-          <Text style={appStyles.modalTitle}>Logout</Text>
-          <Text style={appStyles.modalText}>Are you sure you want to logout?</Text>
-          
-          <View style={appStyles.modalButtons}>
-            <Pressable
-              style={[appStyles.button, appStyles.buttonCancel]}
-              onPress={onCancel}
-            >
-              <Text style={appStyles.buttonText}>Cancel</Text>
-            </Pressable>
-            
-            <Pressable
-              style={[appStyles.button, appStyles.buttonLogout]}
-              onPress={onLogout}
-            >
-              <Text style={[appStyles.buttonText, appStyles.buttonLogoutText]}>
-                Logout
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-};
+// Logout functionality has been moved to HomeScreen
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
-  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -213,32 +161,7 @@ const App = () => {
     return null; // Or a loading screen
   }
 
-  // Handle opening the logout modal
-  const handleLogoutPress = () => {
-    setLogoutModalVisible(true);
-  };
-
-  // Handle cancel button in modal  
-  const handleCancelLogout = () => {
-    setLogoutModalVisible(false);
-  };
-
-  // Handle actual logout
-  const handleLogout = async () => {
-    console.log('Performing logout...');
-    try {
-      // Clear user data from AsyncStorage
-      await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
-      console.log('User logged out successfully');
-      
-      // Set login state to false (which will redirect to login)
-      setUserLoggedIn(false);
-    } catch (error) {
-      console.error('Error during logout:', error);
-    } finally {
-      setLogoutModalVisible(false);
-    }
-  };
+  // No logout handling here - moved to HomeScreen
 
   return (
     <RealmProvider
@@ -281,14 +204,6 @@ const App = () => {
               options={{
                 title: "zotik",
                 headerTitleAlign: "center",
-                headerRight: () => (
-                  <TouchableOpacity
-                    onPress={handleLogoutPress}
-                    style={{ marginRight: 15, padding: 8 }}
-                  >
-                    <Icon name="logout" size={24} color="#7CDB8A" />
-                  </TouchableOpacity>
-                )
               }}
             />
             <Stack.Screen
@@ -379,12 +294,6 @@ const App = () => {
         <Toast />
       </RealmProvider>
       
-      {/* Logout Modal */}
-      <LogoutModal 
-        visible={logoutModalVisible}
-        onCancel={handleCancelLogout}
-        onLogout={handleLogout}
-      />
   );
 };
 
