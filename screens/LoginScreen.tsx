@@ -12,13 +12,14 @@ import {
   Alert,
 } from "react-native";
 import PhoneInput from "react-native-phone-number-input";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
 
 type LoginScreenProps = {
   navigation: NavigationProp<any>;
 };
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [value, setValue] = useState("");
   const [formattedValue, setFormattedValue] = useState("");
   const [verificationId, setVerificationId] = useState<string | null>(null);
@@ -81,68 +82,43 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
         }),
       });
       
-      const data = await response.json();
-      console.log('Verification check response:', data);
+      // The server now returns user data directly (not verification check)
+      const userData = await response.json();
+      console.log('Verification response:', userData);
       
-      if (data.status === 'approved') {
+      // Check if the verification was successful
+      if (response.ok) {
         console.log('Verification successful!');
         
-        // Generate a deterministic hash from the phone number - same number always produces same hash
-        const generateConsistentHash = (phone: string) => {
-          // Normalize the phone number by removing non-digit characters
-          const normalizedPhone = phone.replace(/\D/g, '');
+        try {
+          // Store the user data in AsyncStorage
+          await AsyncStorage.setItem('user', JSON.stringify(userData));
           
-          // Fixed salt - should be stored in environment variables in production
-          const salt = "Z0E_APP_SALT_37219864";
-          
-          // Function to create a hash segment
-          const hashSegment = (input: string, seed: number) => {
-            let result = 0;
-            const data = input + salt + seed.toString();
-            
-            // First pass
-            for (let i = 0; i < data.length; i++) {
-              const char = data.charCodeAt(i);
-              result = ((result << 5) - result) + char;
-              result = result & result; // Convert to 32bit integer
-            }
-            
-            // Second pass with different algorithm
-            let secondResult = 0;
-            for (let i = 0; i < data.length; i++) {
-              const char = data.charCodeAt(i);
-              secondResult = ((secondResult << 7) + secondResult) ^ char;
-              secondResult = secondResult & secondResult;
-            }
-            
-            // Combine results and convert to hex (at least 8 characters)
-            const hex = Math.abs(result ^ secondResult).toString(16);
-            return hex.padStart(8, '0');
-          };
-          
-          // Create multiple hash segments with deterministic seeds
-          const segments = 8; // Will create a 64 character hash
-          let hashParts = [];
-          
-          for (let i = 0; i < segments; i++) {
-            // Use deterministic seed for each segment based on input
-            const segmentInput = normalizedPhone + i.toString();
-            hashParts.push(hashSegment(segmentInput, i));
+          // Also store the token separately for easier access
+          if (userData.token) {
+            await AsyncStorage.setItem('token', userData.token);
           }
           
-          // Join all segments to create a fixed-length hash
-          const fullHash = hashParts.join('');
+          // Reset form values
+          setVerificationId(null);
+          setVerificationCode('');
           
-          return fullHash;
-        };
-        
-        const userId = generateConsistentHash(formattedValue);
-        console.log('Generated User ID:', userId);
-        
-        // TODO: Store the hashed phone number for authentication
-        // TODO: Navigate to main screen
+          // Navigate to the HomeScreen
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+          });
+        } catch (error) {
+          console.error('Error storing user data:', error);
+          Alert.alert('Error', 'Failed to store login information. Please try again.');
+        }
       } else {
-        Alert.alert('Verification Failed', 'The code you entered is incorrect. Please try again.');
+        // The verification failed
+        console.error('Verification failed:', userData);
+        Alert.alert(
+          'Verification Failed', 
+          userData.message || 'The code you entered is incorrect. Please try again.'
+        );
       }
       
     } catch (error) {
