@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { TouchableOpacity, Text, Alert, View } from 'react-native';
+import { Text, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -117,20 +116,7 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
   };
 }
 
-// Simplify to just use the icon button that directly triggers the logout confirmation
-const LogoutButton = ({ onLogout }: { onLogout: () => void }) => {
-  return (
-    <TouchableOpacity 
-      onPress={onLogout}
-      style={{ 
-        marginRight: 15,
-        padding: 5 
-      }}
-    >
-      <Icon name="logout" size={24} color="#7CDB8A" />
-    </TouchableOpacity>
-  );
-};
+// LogoutButton has been moved to HomeScreen.tsx
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -174,37 +160,7 @@ const App = () => {
     return null; // Or a loading screen
   }
 
-  // Function to handle logout with confirmation
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Clear user data from AsyncStorage
-              await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
-              console.log('User logged out successfully');
-              
-              // Update state to trigger navigation to Login screen
-              setUserLoggedIn(false);
-            } catch (error) {
-              console.error('Error during logout:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
-  };
+  // Logout handling has been moved to HomeScreen.tsx
 
   return (
     <RealmProvider
@@ -247,9 +203,6 @@ const App = () => {
               options={{
                 title: "zotik",
                 headerTitleAlign: "center",
-                headerRight: () => (
-                  <LogoutButton onLogout={handleLogout} />
-                ),
               }}
             />
             <Stack.Screen
