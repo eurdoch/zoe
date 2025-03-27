@@ -3,6 +3,7 @@ import Supplement from "../types/Supplement";
 import SupplementEntry from "../types/SupplementEntry";
 import { API_BASE_URL, SYNC_ENABLED } from '../config';
 import { syncService } from '../services/SyncService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function postSupplement(supplement: Supplement, realm: Realm): Promise<SupplementEntry> {
   try {
@@ -72,12 +73,49 @@ export async function getSupplementById(id: string, realm: Realm): Promise<Suppl
 
 export async function deleteSupplement(id: string, realm: Realm): Promise<void> {
   try {
+    // Delete from local Realm database
     realm.write(() => {
       const supplement = realm.objectForPrimaryKey<SupplementEntry>('SupplementEntry', id);
       if (supplement) {
         realm.delete(supplement);
       }
     });
+    
+    // If sync is enabled, delete from the remote server as well
+    if (SYNC_ENABLED) {
+      try {
+        // Get JWT token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          console.warn('No authentication token found, skipping server deletion for supplement');
+          return;
+        }
+        
+        // Delete the supplement from the server with authentication
+        const response = await fetch(`${API_BASE_URL}/supplement/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+        
+        if (!response.ok) {
+          console.warn(`Failed to delete supplement with ID ${id} from server: ${response.status} ${response.statusText}`);
+          
+          // If unauthorized, log it specifically
+          if (response.status === 401 || response.status === 403) {
+            console.error('Authentication failed when deleting supplement from server');
+          }
+        } else {
+          console.log(`Successfully deleted supplement with ID ${id} from server`);
+        }
+      } catch (syncError) {
+        console.warn(`Failed to sync deletion of supplement with ID ${id}:`, syncError);
+        // This doesn't affect the local deletion, it just means we'll have inconsistency with the server
+      }
+    }
   } catch (error) {
     console.error('Error deleting supplement:', error);
     throw error;
