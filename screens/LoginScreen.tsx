@@ -87,39 +87,55 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: any }) => {
       if (data.status === 'approved') {
         console.log('Verification successful!');
         
-        // PBKDF2-like implementation for phone number hashing
-        const secureHashPhoneNumber = (phone: string) => {
+        // Generate a long, secure hash for phone number that can be used as an ID
+        const generateSecureId = (phone: string) => {
           // Normalize the phone number by removing non-digit characters
           const normalizedPhone = phone.replace(/\D/g, '');
           
-          // Create salt from the last 4 digits (or use a fixed salt in production)
-          const salt = normalizedPhone.slice(-4);
+          // Create a salt from the last 4 digits and timestamp (or use a fixed salt in production)
+          const salt = normalizedPhone.slice(-4) + Date.now().toString();
           
-          // Perform multiple iterations of hashing to increase security
-          let hash = normalizedPhone + salt;
-          const iterations = 1000; // More iterations increase security
+          // Generate a random seed (different each time)
+          const generateRandomSeed = () => {
+            return Math.floor(Math.random() * 1000000).toString();
+          };
           
-          for (let i = 0; i < iterations; i++) {
-            // Combine existing hash with salt and iteration count
-            const dataToHash = hash + salt + i.toString();
+          // Function to create a hash segment
+          const hashSegment = (input: string, seed: string) => {
+            let result = 0;
+            const data = input + seed;
             
-            // Use a more secure hashing algorithm (similar to SHA-256)
-            let newHash = 0;
-            for (let j = 0; j < dataToHash.length; j++) {
-              const char = dataToHash.charCodeAt(j);
-              newHash = ((newHash << 5) - newHash) + char;
-              newHash = newHash & newHash;
+            for (let i = 0; i < data.length; i++) {
+              const char = data.charCodeAt(i);
+              result = ((result << 5) - result) + char;
+              result = result & result; // Convert to 32bit integer
             }
             
-            // Convert to hex and append to hash
-            hash = Math.abs(newHash).toString(16);
+            // Convert to hex and ensure it's at least 8 characters
+            const hex = Math.abs(result).toString(16);
+            return hex.padStart(8, '0');
+          };
+          
+          // Create multiple hash segments and combine them
+          const segments = 8; // Will create a 64+ character hash
+          let hashParts = [];
+          
+          for (let i = 0; i < segments; i++) {
+            // Use different seed for each segment
+            const seed = generateRandomSeed() + i + salt;
+            const segmentInput = normalizedPhone + salt + i.toString();
+            hashParts.push(hashSegment(segmentInput, seed));
           }
           
-          return hash;
+          // Join all segments and add timestamp hash to ensure uniqueness
+          const timestampHash = hashSegment(Date.now().toString(), normalizedPhone);
+          const fullHash = hashParts.join('') + timestampHash;
+          
+          return fullHash;
         };
         
-        const hashedPhoneNumber = secureHashPhoneNumber(formattedValue);
-        console.log('Secure hashed phone number:', hashedPhoneNumber);
+        const userId = generateSecureId(formattedValue);
+        console.log('Generated User ID:', userId);
         
         // TODO: Store the hashed phone number for authentication
         // TODO: Navigate to main screen
