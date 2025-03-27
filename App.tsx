@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TouchableOpacity, Text, Alert, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Menu, Provider as PaperProvider } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -118,31 +117,18 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
   };
 }
 
-const HeaderMenu = ({ onLogout }: { onLogout: () => void }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
-  
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
-  
+// Simplify to just use the icon button that directly triggers the logout confirmation
+const LogoutButton = ({ onLogout }: { onLogout: () => void }) => {
   return (
-    <Menu
-      visible={menuVisible}
-      onDismiss={closeMenu}
-      anchor={
-        <TouchableOpacity onPress={openMenu} style={{ padding: 8 }}>
-          <Icon name="dots-vertical" size={24} color="#7CDB8A" />
-        </TouchableOpacity>
-      }
+    <TouchableOpacity 
+      onPress={onLogout}
+      style={{ 
+        marginRight: 15,
+        padding: 5 
+      }}
     >
-      <Menu.Item 
-        onPress={() => {
-          closeMenu();
-          onLogout();
-        }} 
-        title="Logout" 
-        leadingIcon="logout"
-      />
-    </Menu>
+      <Icon name="logout" size={24} color="#7CDB8A" />
+    </TouchableOpacity>
   );
 };
 
@@ -221,8 +207,7 @@ const App = () => {
   };
 
   return (
-    <PaperProvider>
-      <RealmProvider
+    <RealmProvider
         deleteRealmIfMigrationNeeded={false}
         schema={[
           ExerciseEntrySchema,
@@ -263,7 +248,7 @@ const App = () => {
                 title: "zotik",
                 headerTitleAlign: "center",
                 headerRight: () => (
-                  <HeaderMenu onLogout={handleLogout} />
+                  <LogoutButton onLogout={handleLogout} />
                 ),
               }}
             />
@@ -354,7 +339,6 @@ const App = () => {
         </NavigationContainer>
         <Toast />
       </RealmProvider>
-    </PaperProvider>
   );
 };
 
