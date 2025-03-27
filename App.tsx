@@ -117,11 +117,10 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
   };
 }
 
-// Logout functionality has been moved to HomeScreen
-
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -161,7 +160,33 @@ const App = () => {
     return null; // Or a loading screen
   }
 
-  // No logout handling here - moved to HomeScreen
+  // Handle logout button press
+  const handleLogoutPress = () => {
+    console.log('Logout button pressed');
+    setLogoutModalVisible(true);
+  };
+  
+  // Handle modal cancel
+  const handleCancelLogout = () => {
+    setLogoutModalVisible(false);
+  };
+  
+  // Perform the actual logout
+  const handleLogout = async () => {
+    console.log('Performing logout...');
+    try {
+      // Clear user data from AsyncStorage
+      await AsyncStorage.multiRemove(['user', 'token']);
+      console.log('User logged out successfully');
+      
+      // Reset authentication state
+      setUserLoggedIn(false);
+      setLogoutModalVisible(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      setLogoutModalVisible(false);
+    }
+  };
 
   return (
     <RealmProvider
@@ -204,6 +229,21 @@ const App = () => {
               options={{
                 title: "zotik",
                 headerTitleAlign: "center",
+                headerRight: () => (
+                  <TouchableOpacity 
+                    onPress={handleLogoutPress}
+                    style={{ marginRight: 10 }}
+                  >
+                    <Text style={{ 
+                      color: '#7CDB8A', 
+                      fontSize: 16,
+                      fontWeight: '600',
+                      padding: 8
+                    }}>
+                      Logout
+                    </Text>
+                  </TouchableOpacity>
+                ),
               }}
             />
             <Stack.Screen
@@ -292,6 +332,46 @@ const App = () => {
           </Stack.Navigator>
         </NavigationContainer>
         <Toast />
+        
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={logoutModalVisible}
+          onRequestClose={handleCancelLogout}
+        >
+          <TouchableOpacity 
+            style={appStyles.modalOverlay}
+            activeOpacity={1}
+            onPress={handleCancelLogout}
+          >
+            <View 
+              style={appStyles.modalContent}
+              onStartShouldSetResponder={() => true}
+              onTouchEnd={(e) => e.stopPropagation()}
+            >
+              <Text style={appStyles.modalTitle}>Logout</Text>
+              <Text style={appStyles.modalText}>Are you sure you want to logout?</Text>
+              
+              <View style={appStyles.modalButtons}>
+                <Pressable
+                  style={[appStyles.button, appStyles.buttonCancel]}
+                  onPress={handleCancelLogout}
+                >
+                  <Text style={appStyles.buttonText}>Cancel</Text>
+                </Pressable>
+                
+                <Pressable
+                  style={[appStyles.button, appStyles.buttonLogout]}
+                  onPress={handleLogout}
+                >
+                  <Text style={[appStyles.buttonText, appStyles.buttonLogoutText]}>
+                    Logout
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </RealmProvider>
       
   );
