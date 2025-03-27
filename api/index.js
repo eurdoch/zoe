@@ -34,6 +34,7 @@ async function connectToDatabase() {
     const workoutCollection = database.collection('workout');
     const weightCollection = database.collection('weight');
     const supplementCollection = database.collection('supplement');
+    const userCollection = database.collection('users');
 
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
     // hardcoded repo path
@@ -91,7 +92,7 @@ async function connectToDatabase() {
     app.use('/weight', weightRoutes(weightCollection));
     app.use('/supplement', supplementRoutes(supplementCollection));
     app.use('/nutritionimg', nutritionParserRoutes());
-    app.use('/verify', verificationRoutes());
+    app.use('/verify', verificationRoutes(userCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);
