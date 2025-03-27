@@ -50,7 +50,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     console.log('Performing logout...');
     try {
       // Clear user data from AsyncStorage
-      await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
+      await AsyncStorage.multiRemove(['user', 'token']);
       console.log('User logged out successfully');
       
       // Navigate to Login screen
