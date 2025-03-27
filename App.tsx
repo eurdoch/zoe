@@ -122,10 +122,29 @@ const App = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const currentUser = await AsyncStorage.getItem('currentUser');
-        setUserLoggedIn(currentUser !== null);
+        // Check for user data in AsyncStorage
+        const userData = await AsyncStorage.getItem('user');
+        const token = await AsyncStorage.getItem('token');
+        
+        if (userData && token) {
+          // User is logged in
+          console.log('User is logged in');
+          setUserLoggedIn(true);
+        } else {
+          // No valid user data, clear storage for good measure
+          console.log('No user found, clearing storage');
+          await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
+          setUserLoggedIn(false);
+        }
       } catch (error) {
         console.error('Error checking login status:', error);
+        // On error, clear storage and ensure user is logged out
+        try {
+          await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
+        } catch (clearError) {
+          console.error('Error clearing storage:', clearError);
+        }
+        setUserLoggedIn(false);
       } finally {
         setIsLoading(false);
       }
