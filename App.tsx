@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { TouchableOpacity, Text, Alert } from 'react-native';
+import { TouchableOpacity, Text, Alert, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Menu, Provider as PaperProvider } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -116,6 +118,34 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
   };
 }
 
+const HeaderMenu = ({ onLogout }: { onLogout: () => void }) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+  
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
+  
+  return (
+    <Menu
+      visible={menuVisible}
+      onDismiss={closeMenu}
+      anchor={
+        <TouchableOpacity onPress={openMenu} style={{ padding: 8 }}>
+          <Icon name="dots-vertical" size={24} color="#7CDB8A" />
+        </TouchableOpacity>
+      }
+    >
+      <Menu.Item 
+        onPress={() => {
+          closeMenu();
+          onLogout();
+        }} 
+        title="Logout" 
+        leadingIcon="logout"
+      />
+    </Menu>
+  );
+};
+
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
@@ -191,32 +221,33 @@ const App = () => {
   };
 
   return (
-    <RealmProvider
-      deleteRealmIfMigrationNeeded={false}
-      schema={[
-        ExerciseEntrySchema,
-        WorkoutEntrySchema,
-        WeightEntrySchema,
-        SupplementEntrySchema,
-      ]}
-      schemaVersion={2} // Increment the version number
-      onMigration={(oldRealm: any, newRealm: any) => {
-        const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
-        for (const oldEntry of oldWorkoutEntries) {
-          const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
-          if (newEntry && !newEntry.createdAt) {
-            newEntry.createdAt = Math.floor(Date.now() / 1000);
+    <PaperProvider>
+      <RealmProvider
+        deleteRealmIfMigrationNeeded={false}
+        schema={[
+          ExerciseEntrySchema,
+          WorkoutEntrySchema,
+          WeightEntrySchema,
+          SupplementEntrySchema,
+        ]}
+        schemaVersion={2} // Increment the version number
+        onMigration={(oldRealm: any, newRealm: any) => {
+          const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
+          for (const oldEntry of oldWorkoutEntries) {
+            const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
+            if (newEntry && !newEntry.createdAt) {
+              newEntry.createdAt = Math.floor(Date.now() / 1000);
+            }
           }
-        }
-      }}
-    >
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              animation: 'slide_from_right',
-            }}
-            initialRouteName={userLoggedIn ? "Home" : "Login"}
-          >
+        }}
+      >
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{
+                animation: 'slide_from_right',
+              }}
+              initialRouteName={userLoggedIn ? "Home" : "Login"}
+            >
             <Stack.Screen
               name="Login"
               component={LoginScreen}
@@ -232,24 +263,7 @@ const App = () => {
                 title: "zotik",
                 headerTitleAlign: "center",
                 headerRight: () => (
-                  <TouchableOpacity
-                    onPress={handleLogout}
-                    style={{ 
-                      paddingHorizontal: 15,
-                      flexDirection: 'row',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Text style={{ 
-                      fontSize: 16, 
-                      color: '#7CDB8A',
-                      fontWeight: '600',
-                      marginRight: 4
-                    }}>
-                      Logout
-                    </Text>
-                    {/* You can add an icon here if you import a library like react-native-vector-icons */}
-                  </TouchableOpacity>
+                  <HeaderMenu onLogout={handleLogout} />
                 ),
               }}
             />
@@ -340,6 +354,7 @@ const App = () => {
         </NavigationContainer>
         <Toast />
       </RealmProvider>
+    </PaperProvider>
   );
 };
 
