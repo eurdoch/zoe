@@ -154,22 +154,24 @@ export default function verificationRoutes(userCollection) {
               }
             );
             
-            // Add user info and token to the response
+            // Add user info and token to the response - include premium status
             verificationCheck.user = {
               user_id: user.user_id,
               existing_user: true,
               token: token,
+              premium: user.premium || false, // Include premium status (default to false if not set)
               // Include other non-sensitive user data here as needed
             };
           } else {
             console.log('Creating new user with ID:', userId);
             
-            // Create a new user entry (without profile_completed and phone_hash)
+            // Create a new user entry with premium field set to false
             const newUser = {
               user_id: userId,
               created_at: new Date(),
               last_login: new Date(),
-              token: token
+              token: token,
+              premium: false
             };
             
             // Insert the new user into the database
@@ -180,7 +182,8 @@ export default function verificationRoutes(userCollection) {
             verificationCheck.user = {
               user_id: userId,
               existing_user: false,
-              token: token
+              token: token,
+              premium: false
             };
           }
         } else {
