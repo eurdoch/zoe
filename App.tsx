@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, Alert } from 'react-native';
+import { Text, Modal, View, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -116,11 +117,63 @@ class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
   };
 }
 
-// LogoutButton has been moved to HomeScreen.tsx
+// Custom Modal Component for Logout
+const LogoutModal = ({ 
+  visible, 
+  onCancel, 
+  onLogout 
+}: { 
+  visible: boolean; 
+  onCancel: () => void; 
+  onLogout: () => void; 
+}) => {
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onCancel}
+    >
+      <TouchableOpacity 
+        style={appStyles.modalOverlay}
+        activeOpacity={1}
+        onPress={onCancel}
+      >
+        <View 
+          style={appStyles.modalContent}
+          onStartShouldSetResponder={() => true}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
+          <Text style={appStyles.modalTitle}>Logout</Text>
+          <Text style={appStyles.modalText}>Are you sure you want to logout?</Text>
+          
+          <View style={appStyles.modalButtons}>
+            <Pressable
+              style={[appStyles.button, appStyles.buttonCancel]}
+              onPress={onCancel}
+            >
+              <Text style={appStyles.buttonText}>Cancel</Text>
+            </Pressable>
+            
+            <Pressable
+              style={[appStyles.button, appStyles.buttonLogout]}
+              onPress={onLogout}
+            >
+              <Text style={[appStyles.buttonText, appStyles.buttonLogoutText]}>
+                Logout
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+};
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -160,7 +213,32 @@ const App = () => {
     return null; // Or a loading screen
   }
 
-  // Logout handling has been moved to HomeScreen.tsx
+  // Handle opening the logout modal
+  const handleLogoutPress = () => {
+    setLogoutModalVisible(true);
+  };
+
+  // Handle cancel button in modal  
+  const handleCancelLogout = () => {
+    setLogoutModalVisible(false);
+  };
+
+  // Handle actual logout
+  const handleLogout = async () => {
+    console.log('Performing logout...');
+    try {
+      // Clear user data from AsyncStorage
+      await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
+      console.log('User logged out successfully');
+      
+      // Set login state to false (which will redirect to login)
+      setUserLoggedIn(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setLogoutModalVisible(false);
+    }
+  };
 
   return (
     <RealmProvider
@@ -203,6 +281,14 @@ const App = () => {
               options={{
                 title: "zotik",
                 headerTitleAlign: "center",
+                headerRight: () => (
+                  <TouchableOpacity
+                    onPress={handleLogoutPress}
+                    style={{ marginRight: 15, padding: 8 }}
+                  >
+                    <Icon name="logout" size={24} color="#7CDB8A" />
+                  </TouchableOpacity>
+                )
               }}
             />
             <Stack.Screen
@@ -292,7 +378,77 @@ const App = () => {
         </NavigationContainer>
         <Toast />
       </RealmProvider>
+      
+      {/* Logout Modal */}
+      <LogoutModal 
+        visible={logoutModalVisible}
+        onCancel={handleCancelLogout}
+        onLogout={handleLogout}
+      />
   );
 };
+
+// Styles for the app (primarily for the modal)
+const appStyles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 25,
+    width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 25,
+    textAlign: 'center',
+    color: '#555',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  button: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  buttonCancel: {
+    backgroundColor: '#f0f0f0',
+  },
+  buttonLogout: {
+    backgroundColor: '#ff6b6b',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  buttonLogoutText: {
+    color: 'white',
+  },
+});
 
 export default App;
