@@ -39,6 +39,8 @@ export default ExerciseDropdown;
 const styles = StyleSheet.create({
   dropdown: {
       height: 50,
+      width: '90%',
+      alignSelf: 'center',
       borderColor: 'gray',
       borderWidth: 0.5,
       borderRadius: 8,
