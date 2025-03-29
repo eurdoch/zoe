@@ -26,6 +26,8 @@
 	<true/>
   <key>NSCameraUsageDescription</key>
   <string>Required to get nutrition label and barcode information</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Use location during app use</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
