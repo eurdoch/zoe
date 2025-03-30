@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, Button } from 'react-native';
+import { View, StyleSheet, TextInput, Button, TouchableOpacity } from 'react-native';
+import { Text } from 'react-native-paper';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { getWeight, postWeight } from '../network/weight';
-import { mapWeightEntriesToDataPoint, showToastError, showToastInfo } from '../utils';
+import { getWeight, postWeight, deleteWeight } from '../network/weight';
+import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime } from '../utils';
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
 import CustomModal from '../CustomModal';
 import { useRealm } from '@realm/react';
+import WeightEntry from '../types/WeightEntry';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const WeightScreen = () => {
   const [data, setData] = useState<DataPoint[]>([]);
   const [weight, setWeight] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
+  const [weightModalVisible, setWeightModalVisible] = useState<boolean>(false);
   const realm = useRealm();
 
   const loadData = () => {
@@ -44,11 +49,41 @@ const WeightScreen = () => {
     loadData();
   }, []);
 
+  const handleDataPointClick = (point: DataPoint) => {
+    console.log('handleDataPointClick: ', point);
+    if (point.label) {
+      const weightItem = realm.objectForPrimaryKey<WeightEntry>('WeightEntry', point.label);
+      console.log('weightItem found:', weightItem);
+      if (weightItem) {
+        setSelectedWeight(weightItem);
+        setWeightModalVisible(true);
+      } else {
+        console.log('No weight entry found with ID:', point.label);
+      }
+    } else {
+      console.log('Data point has no label property');
+    }
+  }
+
+  const handleDeleteWeight = async () => {
+    if (selectedWeight && selectedWeight._id) {
+      try {
+        await deleteWeight(selectedWeight._id, realm);
+        showToastInfo("Weight deleted successfully");
+        loadData();
+        setWeightModalVisible(false);
+      } catch (error) {
+        showToastError("Could not delete weight, please try again");
+        console.error(error);
+      }
+    }
+  }
+
   return (
     <View style={styles.container}>
       <ScatterPlot
         datasets={[data]}
-        onDataPointClick={() => {}}
+        onDataPointClick={handleDataPointClick}
         zoomAndPanEnabled={false}
       />
       <FloatingActionButton onPress={() => setModalVisible(true)} />
@@ -62,6 +97,22 @@ const WeightScreen = () => {
         />
         <Button title="Add" onPress={handleAddWeight} />
       </CustomModal>
+
+      <CustomModal visible={weightModalVisible} setVisible={setWeightModalVisible}>
+        {selectedWeight ? (
+          <View style={styles.modalContainer}>
+            <Text style={[styles.text, styles.bold]}>{formatTime(selectedWeight.createdAt)}</Text>
+            <Text style={styles.text}>{selectedWeight.value.toString()} lbs</Text>
+            <TouchableOpacity onPress={handleDeleteWeight}> 
+              <MaterialCommunityIcons name="delete" size={20}/>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.modalContainer}>
+            <Text style={styles.text}>No weight data available</Text>
+          </View>
+        )}
+      </CustomModal>
     </View>
   );
 };
@@ -72,6 +123,13 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalContainer: {
+    flexDirection: 'column',
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
   title: {
     fontSize: 24,
@@ -86,6 +144,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     width: '100%',
   },
+  text: {
+    fontFamily: 'System',
+    fontSize: 20,
+  },
+  bold: {
+    fontWeight: 'bold',
+  }
 });
 
 export default WeightScreen;

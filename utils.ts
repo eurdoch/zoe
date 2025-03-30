@@ -47,6 +47,7 @@ export const mapWeightEntriesToDataPoint = (entries: WeightEntry[]): DataPoint[]
   return entries.map(entry => ({
     x: entry.createdAt,
     y: entry.value,
+    label: entry._id,
   }));
 }
 
