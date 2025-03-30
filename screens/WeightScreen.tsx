@@ -65,22 +65,18 @@ const WeightScreen = () => {
     }
   }
 
-  const handleDeleteWeight = async () => {
+  const handleDeleteWeight = () => {
     if (selectedWeight && selectedWeight._id) {
       try {
-        // Store the _id before deletion since the selectedWeight object will be invalidated
         const weightId = selectedWeight._id;
         
-        // Close the modal before deleting to prevent accessing invalid object
-        setWeightModalVisible(false);
-        
-        // Delete the weight
-        await deleteWeight(weightId, realm);
-        showToastInfo("Weight deleted successfully");
-        
-        // Reset selected weight and reload data
-        setSelectedWeight(null);
-        loadData();
+        deleteWeight(weightId, realm).then(() => {
+          showToastInfo("Weight deleted successfully");
+          
+          setSelectedWeight(null);
+          setWeightModalVisible(false);
+          loadData();
+        });
       } catch (error) {
         showToastError("Could not delete weight, please try again");
         console.error(error);
