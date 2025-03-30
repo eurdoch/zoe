@@ -18,6 +18,7 @@ import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
+import FloatingActionButton from '../components/FloatingActionButton';
 import { useRealm } from '@realm/react';
 
 interface ExerciseLogScreenProps {
@@ -179,14 +180,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       )}
       { 
         selectedItem && (
-          <View style={styles.addButtonContainer}>
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={() => setFormModalVisible(true)}
-            >
-              <Text style={styles.addButtonText}>Add</Text>
-            </TouchableOpacity>
-          </View>
+          <FloatingActionButton onPress={() => setFormModalVisible(true)} />
         )
       }
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
@@ -240,23 +234,6 @@ const styles = StyleSheet.create({
     zIndex: 999,
     paddingHorizontal: 8,
     fontSize: 14,
-  },
-  addButtonContainer: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  addButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  }
 });
 export default ExerciseLogScreen;
