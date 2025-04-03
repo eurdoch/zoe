@@ -59,5 +59,46 @@ export default function supplementRoutes(supplementCollection) {
     }
   });
 
+  router.put('/', async (req, res) => {
+    try {
+      console.log('PUT /supplement request received');
+      
+      // Get user_id from the authentication middleware
+      const userId = req.user ? req.user.user_id : null;
+      console.log(`User ID from token: ${userId}`);
+      
+      // Extract _id from request body
+      const { _id, ...updateData } = req.body;
+      
+      if (!_id) {
+        return res.status(400).json({ error: 'Supplement ID (_id) is required' });
+      }
+      
+      // If we have user_id from authentication, ensure it's included in the update
+      if (userId) {
+        updateData.user_id = userId;
+      }
+      
+      // Update the supplement entry
+      const result = await supplementCollection.updateOne(
+        { _id },
+        { $set: updateData },
+        { upsert: true }
+      );
+      
+      if (result.matchedCount === 0 && result.upsertedCount === 0) {
+        return res.status(404).json({ error: 'Supplement entry not found and could not be created' });
+      }
+      
+      // Fetch the updated/created document to return it
+      const updatedSupplement = await supplementCollection.findOne({ _id });
+      
+      res.status(200).json(updatedSupplement);
+    } catch (err) {
+      console.error('Error in PUT /supplement:', err);
+      res.status(500).json({ error: 'Failed to update supplement entry' });
+    }
+  });
+
   return router;
 }
