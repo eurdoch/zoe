@@ -84,3 +84,5 @@ pprog.toml
 
 web/dist/
 CHANGELOG.md
+upgrade_packages.sh
+*.bak
