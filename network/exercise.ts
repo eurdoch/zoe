@@ -7,15 +7,53 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
     let result: ExerciseEntry;
+    let exerciseEntry: ExerciseEntry;
     
     // Create in local Realm database
     realm.write(() => {
-      const exerciseEntry = {
+      exerciseEntry = {
         _id: new Realm.BSON.ObjectId().toString(),
         ...exercise,
       };
       result = realm.create('ExerciseEntry', exerciseEntry);
     });
+    
+    // If sync is enabled, save to the remote server as well
+    if (SYNC_ENABLED) {
+      try {
+        // Get JWT token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          console.warn('No authentication token found, skipping server save');
+          return result!;
+        }
+        
+        // Save the exercise to the server with authentication
+        const response = await fetch(`${API_BASE_URL}/exercise`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(exerciseEntry),
+        });
+        
+        if (!response.ok) {
+          console.warn(`Failed to save exercise to server: ${response.status} ${response.statusText}`);
+          
+          // If unauthorized, log it specifically
+          if (response.status === 401 || response.status === 403) {
+            console.error('Authentication failed when saving exercise to server');
+          }
+        } else {
+          console.log(`Successfully saved exercise with ID ${exerciseEntry._id} to server`);
+        }
+      } catch (syncError) {
+        console.warn('Failed to sync new exercise to server:', syncError);
+        // This doesn't affect the local save, it just means we'll have inconsistency with the server
+      }
+    }
     
     return result!;
   } catch (error) {
