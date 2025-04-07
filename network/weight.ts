@@ -15,6 +15,43 @@ export async function postWeight(weight: Weight, realm: Realm): Promise<WeightEn
     });
   });
 
+  // If sync is enabled, save to the remote server as well
+  if (SYNC_ENABLED) {
+    try {
+      // Get JWT token from AsyncStorage
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!token) {
+        console.warn('No authentication token found, skipping server save for weight');
+        return newWeightEntry!;
+      }
+      
+      // Save the weight to the server with authentication
+      const response = await fetch(`${API_BASE_URL}/weight`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newWeightEntry),
+      });
+      
+      if (!response.ok) {
+        console.warn(`Failed to save weight to server: ${response.status} ${response.statusText}`);
+        
+        // If unauthorized, log it specifically
+        if (response.status === 401 || response.status === 403) {
+          console.error('Authentication failed when saving weight to server');
+        }
+      } else {
+        console.log(`Successfully saved weight with ID ${newWeightEntry._id} to server`);
+      }
+    } catch (syncError) {
+      console.warn('Failed to sync new weight to server:', syncError);
+      // This doesn't affect the local save, it just means we'll have inconsistency with the server
+    }
+  }
+
   return newWeightEntry!;
 }
 
