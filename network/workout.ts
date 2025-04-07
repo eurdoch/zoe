@@ -7,10 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export async function postWorkout(workout: Workout, realm: Realm): Promise<WorkoutEntry> {
   try {
     let result: WorkoutEntry;
+    let workoutEntry: any;
     
     realm.write(() => {
-      const createdAt = Date.now()
-      const workoutEntry = {
+      workoutEntry = {
         _id: new Realm.BSON.ObjectId().toString(),
         name: workout.name,
         exercises: workout.exercises,
@@ -18,6 +18,43 @@ export async function postWorkout(workout: Workout, realm: Realm): Promise<Worko
       };
       result = realm.create<WorkoutEntry>('WorkoutEntry', workoutEntry);
     });
+    
+    // If sync is enabled, save to the remote server as well
+    if (SYNC_ENABLED) {
+      try {
+        // Get JWT token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          console.warn('No authentication token found, skipping server save for workout');
+          return result!;
+        }
+        
+        // Save the workout to the server with authentication
+        const response = await fetch(`${API_BASE_URL}/workout`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(workoutEntry),
+        });
+        
+        if (!response.ok) {
+          console.warn(`Failed to save workout to server: ${response.status} ${response.statusText}`);
+          
+          // If unauthorized, log it specifically
+          if (response.status === 401 || response.status === 403) {
+            console.error('Authentication failed when saving workout to server');
+          }
+        } else {
+          console.log(`Successfully saved workout with ID ${workoutEntry._id} to server`);
+        }
+      } catch (syncError) {
+        console.warn('Failed to sync new workout to server:', syncError);
+        // This doesn't affect the local save, it just means we'll have inconsistency with the server
+      }
+    }
     
     return result!;
   } catch (error) {
