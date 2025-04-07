@@ -82,7 +82,7 @@ export default function verificationRoutes(userCollection) {
     }
 
     // For demo account, skip actual Twilio verification
-    if (phoneNumber === '+19999999999') {
+    if (phoneNumber === '+2250112345678') {
       console.log('Demo account detected, skipping Twilio verification send');
       // Return a mock verification object that looks like Twilio's response
       return res.status(200).json({
@@ -127,7 +127,7 @@ export default function verificationRoutes(userCollection) {
       let verificationStatus = 'pending';
       
       // Check if this is the demo account
-      if (phoneNumber === '+19999999999') {
+      if (phoneNumber === '+2250112345678') {
         // Skip Twilio verification for demo account
         console.log('Demo account detected, bypassing Twilio verification');
         verificationStatus = 'approved';
@@ -160,11 +160,11 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
-              is_demo: phoneNumber === '+19999999999',
+              is_demo: phoneNumber === '+2250112345678',
               // Add any other claims needed
             }, 
             JWT_SECRET, 
-            { expiresIn: phoneNumber === '+19999999999' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
+            { expiresIn: phoneNumber === '+2250112345678' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           if (user) {
@@ -222,10 +222,10 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
-              is_demo: phoneNumber === '+19999999999',
+              is_demo: phoneNumber === '+2250112345678',
             }, 
             JWT_SECRET, 
-            { expiresIn: phoneNumber === '+19999999999' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
+            { expiresIn: phoneNumber === '+2250112345678' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           // Create a minimal user response
