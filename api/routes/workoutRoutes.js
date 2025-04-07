@@ -90,26 +90,45 @@ export default function workoutRoutes(workoutCollection) {
       
       const { _id, ...updateData } = req.body;
       
+      if (!_id) {
+        return res.status(400).json({ error: 'Workout ID (_id) is required' });
+      }
+      
+      // Ensure user_id is preserved and matches the authenticated user
+      updateData.user_id = userId;
+      
       // First check if the workout belongs to this user
       const workout = await workoutCollection.findOne({ 
         _id: _id,
         user_id: userId
       });
       
+      let result;
       if (!workout) {
-        return res.status(404).json({ error: 'Workout not found or not authorized' });
+        // If workout doesn't exist yet, create it with this user_id
+        console.log(`Creating new workout with ID: ${_id} for user: ${userId}`);
+        result = await workoutCollection.updateOne(
+          { _id },
+          { $set: updateData },
+          { upsert: true }
+        );
+      } else {
+        // If workout exists, only update if it belongs to this user
+        console.log(`Updating existing workout with ID: ${_id} for user: ${userId}`);
+        result = await workoutCollection.updateOne(
+          { _id, user_id: userId },
+          { $set: updateData }
+        );
       }
       
-      // Ensure we maintain the user_id in the update
-      updateData.user_id = userId;
+      if (result.matchedCount === 0 && result.upsertedCount === 0) {
+        return res.status(500).json({ error: 'Workout entry not found and could not be created' });
+      }
       
-      // Update the workout
-      const result = await workoutCollection.updateOne(
-        { _id: _id, user_id: userId },
-        { $set: updateData }
-      );
+      // Fetch the updated/created document to return it
+      const updatedWorkout = await workoutCollection.findOne({ _id, user_id: userId });
       
-      res.status(200).json(result);
+      res.status(200).json(updatedWorkout);
     } catch (err) {
       console.error('Error updating workout:', err);
       res.status(500).json({ error: 'Failed to update workout' });
