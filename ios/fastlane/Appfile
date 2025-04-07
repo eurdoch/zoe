@@ -1,0 +1,8 @@
+app_identifier("com.zotik") # The bundle identifier of your app
+apple_id("gbalch714@gmail.com") # Your Apple Developer Portal username
+
+itc_team_id("126616642") # App Store Connect Team ID
+team_id("Y9M847D6NV") # Developer Portal Team ID
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile
