@@ -8,15 +8,53 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export async function postSupplement(supplement: Supplement, realm: Realm): Promise<SupplementEntry> {
   try {
     let result: SupplementEntry;
+    let supplementEntry: any;
     
     // Create in local Realm database
     realm.write(() => {
-      const supplementEntry = {
+      supplementEntry = {
         _id: new Realm.BSON.ObjectId().toString(),
         ...supplement,
       };
       result = realm.create('SupplementEntry', supplementEntry);
     });
+    
+    // If sync is enabled, save to the remote server as well
+    if (SYNC_ENABLED) {
+      try {
+        // Get JWT token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          console.warn('No authentication token found, skipping server save for supplement');
+          return result!;
+        }
+        
+        // Save the supplement to the server with authentication
+        const response = await fetch(`${API_BASE_URL}/supplement`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(supplementEntry),
+        });
+        
+        if (!response.ok) {
+          console.warn(`Failed to save supplement to server: ${response.status} ${response.statusText}`);
+          
+          // If unauthorized, log it specifically
+          if (response.status === 401 || response.status === 403) {
+            console.error('Authentication failed when saving supplement to server');
+          }
+        } else {
+          console.log(`Successfully saved supplement with ID ${supplementEntry._id} to server`);
+        }
+      } catch (syncError) {
+        console.warn('Failed to sync new supplement to server:', syncError);
+        // This doesn't affect the local save, it just means we'll have inconsistency with the server
+      }
+    }
     
     return result!;
   } catch (error) {
