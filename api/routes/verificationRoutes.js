@@ -14,6 +14,7 @@ const client = twilio(accountSid, authToken);
 // JWT secret - in production, store in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'zoe-app-jwt-secret-key-development-only';
 const JWT_EXPIRES_IN = '30d'; // 30 days
+const DEMO_JWT_EXPIRES_IN = '2h'; // 2 hours for demo account
 
 // MongoDB connection
 const uri = 'mongodb://localhost:27017';
@@ -80,6 +81,20 @@ export default function verificationRoutes(userCollection) {
       return res.status(400).json({ error: 'Phone number is required' });
     }
 
+    // For demo account, skip actual Twilio verification
+    if (phoneNumber === '+19999999999') {
+      console.log('Demo account detected, skipping Twilio verification send');
+      // Return a mock verification object that looks like Twilio's response
+      return res.status(200).json({
+        sid: 'demo-verification-sid',
+        status: 'pending',
+        to: phoneNumber,
+        channel: 'sms',
+        date_created: new Date().toISOString(),
+        valid: true
+      });
+    }
+
     try {
       const verification = await client.verify.v2
         .services(serviceSid)
@@ -109,16 +124,26 @@ export default function verificationRoutes(userCollection) {
     }
 
     try {
-      // Verify the code with Twilio
-      const verificationCheck = await client.verify.v2
-        .services(serviceSid)
-        .verificationChecks.create({
-          to: phoneNumber,
-          code: code
-        });
+      let verificationStatus = 'pending';
+      
+      // Check if this is the demo account
+      if (phoneNumber === '+19999999999') {
+        // Skip Twilio verification for demo account
+        console.log('Demo account detected, bypassing Twilio verification');
+        verificationStatus = 'approved';
+      } else {
+        // Verify the code with Twilio for regular accounts
+        const verificationCheck = await client.verify.v2
+          .services(serviceSid)
+          .verificationChecks.create({
+            to: phoneNumber,
+            code: code
+          });
+        verificationStatus = verificationCheck.status;
+      }
 
       // If verification is successful, hash the phone number and return user data
-      if (verificationCheck.status === 'approved') {
+      if (verificationStatus === 'approved') {
         // Generate user ID from phone number
         const userId = generateConsistentHash(phoneNumber);
         console.log('Generated user ID from phone:', userId);
@@ -131,14 +156,15 @@ export default function verificationRoutes(userCollection) {
           // Try to find the user by user_id
           user = await userCollection.findOne({ user_id: userId });
           
-          // Generate JWT for the user
+          // Generate JWT for the user with shorter expiration for demo account
           const token = jwt.sign(
             { 
               user_id: userId,
+              is_demo: phoneNumber === '+19999999999',
               // Add any other claims needed
             }, 
             JWT_SECRET, 
-            { expiresIn: JWT_EXPIRES_IN }
+            { expiresIn: phoneNumber === '+19999999999' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           if (user) {
@@ -196,9 +222,10 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
+              is_demo: phoneNumber === '+19999999999',
             }, 
             JWT_SECRET, 
-            { expiresIn: JWT_EXPIRES_IN }
+            { expiresIn: phoneNumber === '+19999999999' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           // Create a minimal user response
