@@ -74,7 +74,7 @@ export async function getSupplementNames(realm: Realm): Promise<string[]> {
   }
 }
 
-export async function getSupplement(realm: Realm, startDate?: number, endDate?: number): Promise<SupplementEntry[]> {
+export async function getSupplement(realm: Realm, startDate?: number, endDate?: number, last_logged?: number): Promise<SupplementEntry[]> {
   try {
     let supplements = realm.objects<SupplementEntry>('SupplementEntry');
     
@@ -86,9 +86,14 @@ export async function getSupplement(realm: Realm, startDate?: number, endDate?: 
       supplements = supplements.filtered('createdAt <= $0', endDate);
     }
     
-    // Sort by createdAt time
-    const sortedSupplements = supplements.sorted('createdAt');
+    // If last_logged is specified, sort by createdAt descending and limit results
+    if (last_logged && last_logged > 0) {
+      const sortedSupplements = supplements.sorted('createdAt', true); // true for descending
+      return Array.from(sortedSupplements.slice(0, last_logged)).map(supplement => ({ ...supplement }));
+    }
     
+    // Default behavior: sort by createdAt ascending
+    const sortedSupplements = supplements.sorted('createdAt');
     return Array.from(sortedSupplements).map(supplement => ({ ...supplement }));
   } catch (error) {
     console.error('Error getting supplements:', error);
