@@ -62,6 +62,24 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
   const slideAnim = useState(new Animated.Value(0))[0];
   const realm = useRealm();
   
+  // Remove duplicates and keep only the most recent entry for each unique combination
+  const removeDuplicates = (entries: SupplementEntry[]): SupplementEntry[] => {
+    const uniqueEntries: { [key: string]: SupplementEntry } = {};
+    
+    // Process entries, keeping only the most recent one for each unique combination
+    entries.forEach(entry => {
+      const key = `${entry.name}_${entry.amount}_${entry.amount_unit}`;
+      
+      // If this key doesn't exist yet, or if this entry is more recent than the stored one
+      if (!uniqueEntries[key] || entry.createdAt > uniqueEntries[key].createdAt) {
+        uniqueEntries[key] = entry;
+      }
+    });
+    
+    // Convert the object back to an array and sort by createdAt (newest first)
+    return Object.values(uniqueEntries).sort((a, b) => b.createdAt - a.createdAt);
+  };
+  
   // Function to show the slide-up panel
   const showRecentEntries = () => {
     setRecentEntriesVisible(true);
@@ -201,10 +219,22 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
       <FloatingActionButton 
         onPress={() => {
           // Fetch the last 10 supplement entries and show in slide-up panel
-          getSupplement(realm, undefined, undefined, 10)
+          getSupplement(realm, undefined, undefined, 20)
             .then(entries => {
-              setRecentEntries(entries);
+              // Process entries to remove duplicates (keeping only the most recent entry)
+              const uniqueEntries = removeDuplicates(entries);
+              
+              // Set the unique entries (limited to 10)
+              setRecentEntries(uniqueEntries.slice(0, 10));
+              
+              // Show the panel
               showRecentEntries();
+              
+              // If we removed any duplicates, show a notification
+              const duplicatesRemoved = entries.length - uniqueEntries.length;
+              if (duplicatesRemoved > 0) {
+                showToastInfo(`Removed ${duplicatesRemoved} duplicate entries`);
+              }
             })
             .catch(error => {
               console.error('Error fetching recent supplements:', error);
@@ -238,7 +268,9 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
                 >
                   <View style={styles.recentEntryContent}>
                     <Text style={styles.recentEntryTime}>{formatTime(entry.createdAt)}</Text>
-                    <Text style={styles.recentEntryName}>{convertFromDatabaseFormat(entry.name)}</Text>
+                    <Text style={styles.recentEntryName}>
+                      {convertFromDatabaseFormat(entry.name)}
+                    </Text>
                     <Text style={styles.recentEntryAmount}>{entry.amount} {entry.amount_unit}</Text>
                   </View>
                 </TouchableOpacity>
