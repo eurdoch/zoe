@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, Dimensions, TextInput, Button } from 'react-native';
+import { 
+  ScrollView, 
+  View, 
+  Text, 
+  StyleSheet, 
+  Dimensions, 
+  TextInput, 
+  Button, 
+  Modal, 
+  TouchableOpacity, 
+  Animated, 
+  Pressable 
+} from 'react-native';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -45,7 +57,31 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
   const [amount, setAmount] = useState<string>("");
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const [newSupplementName, setNewSupplementName] = useState<string>("");
+  const [recentEntries, setRecentEntries] = useState<SupplementEntry[]>([]);
+  const [recentEntriesVisible, setRecentEntriesVisible] = useState<boolean>(false);
+  const slideAnim = useState(new Animated.Value(0))[0];
   const realm = useRealm();
+  
+  // Function to show the slide-up panel
+  const showRecentEntries = () => {
+    setRecentEntriesVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+  
+  // Function to hide the slide-up panel
+  const hideRecentEntries = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setRecentEntriesVisible(false);
+    });
+  };
 
   const loadData = () => {
     // Get start of current day in Unix time
@@ -127,6 +163,18 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
     return `${month}/${day}/${year}`;
   }
 
+  // Calculate slide up transform
+  const slideUpTransform = {
+    transform: [
+      {
+        translateY: slideAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [300, 0],
+        }),
+      },
+    ],
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.headerContainer}>
@@ -152,11 +200,11 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <FloatingActionButton 
         onPress={() => {
-          // Fetch and log the last 10 supplement entries
+          // Fetch the last 10 supplement entries and show in slide-up panel
           getSupplement(realm, undefined, undefined, 10)
             .then(entries => {
-              console.log('Last 10 supplement entries:', JSON.stringify(entries, null, 2));
-              showToastInfo('Last 10 entries logged to console');
+              setRecentEntries(entries);
+              showRecentEntries();
             })
             .catch(error => {
               console.error('Error fetching recent supplements:', error);
@@ -166,6 +214,40 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
         icon="history"
         style={{ left: 20, right: undefined, backgroundColor: '#4CAF50' }}
       />
+      
+      {/* Recent Entries Slide-up Panel */}
+      {recentEntriesVisible && (
+        <View style={styles.slideUpOverlay}>
+          <Pressable style={styles.closeOverlayArea} onPress={hideRecentEntries} />
+          <Animated.View style={[styles.slideUpPanel, slideUpTransform]}>
+            <View style={styles.slideUpHeader}>
+              <Text style={styles.slideUpTitle}>Recent Supplements</Text>
+              <TouchableOpacity onPress={hideRecentEntries}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.recentEntriesList}>
+              {recentEntries.map(entry => (
+                <TouchableOpacity 
+                  key={entry._id} 
+                  style={styles.recentEntryItem}
+                  onPress={() => {
+                    console.log('Entry details:', JSON.stringify(entry, null, 2));
+                    showToastInfo(`${convertFromDatabaseFormat(entry.name)} ${entry.amount}${entry.amount_unit}`);
+                  }}
+                >
+                  <View style={styles.recentEntryContent}>
+                    <Text style={styles.recentEntryTime}>{formatTime(entry.createdAt)}</Text>
+                    <Text style={styles.recentEntryName}>{convertFromDatabaseFormat(entry.name)}</Text>
+                    <Text style={styles.recentEntryAmount}>{entry.amount} {entry.amount_unit}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        </View>
+      )}
+      
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         {selectedItem?.value === 'new_supplement' ? (
           <TextInput
@@ -380,6 +462,87 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     height: 50,
+  },
+  // Slide-up panel styles
+  slideUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  closeOverlayArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 300, // Same height as the panel
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  slideUpPanel: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    height: 300,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+  },
+  slideUpHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingBottom: 10,
+  },
+  slideUpTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'Inter',
+  },
+  closeButton: {
+    fontSize: 22,
+    color: '#555',
+  },
+  recentEntriesList: {
+    flex: 1,
+  },
+  recentEntryItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  recentEntryContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recentEntryTime: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'Inter',
+  },
+  recentEntryName: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'Inter',
+    marginLeft: 10,
+  },
+  recentEntryAmount: {
+    fontSize: 16,
+    fontFamily: 'Inter',
+    color: '#555',
   },
 });
 
