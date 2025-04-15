@@ -262,8 +262,22 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
                   key={entry._id} 
                   style={styles.recentEntryItem}
                   onPress={() => {
-                    console.log('Entry details:', JSON.stringify(entry, null, 2));
-                    showToastInfo(`${convertFromDatabaseFormat(entry.name)} ${entry.amount}${entry.amount_unit}`);
+                    // Add a new supplement entry with the same details but current timestamp
+                    postSupplement({
+                      name: entry.name,
+                      amount: entry.amount,
+                      createdAt: Math.floor(Date.now() / 1000),
+                      amount_unit: entry.amount_unit,
+                    }, realm)
+                      .then(() => {
+                        showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
+                        loadData();
+                        hideRecentEntries();
+                      })
+                      .catch(error => {
+                        console.error('Error adding supplement from history:', error);
+                        showToastError('Could not add supplement, try again.');
+                      });
                   }}
                 >
                   <View style={styles.recentEntryContent}>
