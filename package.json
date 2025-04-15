@@ -39,7 +39,7 @@
     "react-native-vision-camera": "^4.6.4",
     "realm": "^12.14.1",
     "twilio": "^5.5.1",
-    "vite": "^6.2.5"
+    "vite": "^6.2.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
