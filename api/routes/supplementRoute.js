@@ -66,7 +66,7 @@ export default function supplementRoutes(supplementCollection) {
       const userId = req.user.user_id;
       console.log(`GET /supplement for user: ${userId}`);
       
-      const { startDate, endDate } = req.query;
+      const { startDate, endDate, last_logged } = req.query;
       // Always include user_id in the query
       const query = { user_id: userId };
       
@@ -74,6 +74,25 @@ export default function supplementRoutes(supplementCollection) {
         query.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
       }
       
+      // Check if last_logged parameter exists
+      if (last_logged) {
+        // Parse last_logged as integer
+        const limit = parseInt(last_logged, 10);
+        
+        if (isNaN(limit) || limit <= 0) {
+          return res.status(400).json({ error: 'last_logged must be a positive integer' });
+        }
+        
+        // Sort by createdAt descending and limit to requested number
+        const result = await supplementCollection.find(query)
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .toArray();
+          
+        return res.json(result);
+      }
+      
+      // Original behavior when last_logged is not provided
       const result = await supplementCollection.find(query).toArray();
       res.json(result);
     } catch (err) {
