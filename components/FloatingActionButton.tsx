@@ -1,13 +1,15 @@
-import {StyleSheet, TouchableOpacity } from 'react-native';
+import {StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface FloatingActionButtonProps {
   onPress: any;
+  icon?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
-const FloatingActionButton = ({ onPress }: FloatingActionButtonProps) => (
-  <TouchableOpacity onPress={onPress} style={styles.fab}>
-    <MaterialCommunityIcons name="plus" size={30} color="white" />
+const FloatingActionButton = ({ onPress, icon = "plus", style }: FloatingActionButtonProps) => (
+  <TouchableOpacity onPress={onPress} style={[styles.fab, style]}>
+    <MaterialCommunityIcons name={icon} size={30} color="white" />
   </TouchableOpacity>
 );
 

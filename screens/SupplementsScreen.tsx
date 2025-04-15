@@ -12,6 +12,7 @@ import { useRealm } from '@realm/react';
 const options = [
     { label: "unit", value: "" },
     { label: "mg", value: "mg" },
+    { label: "g", value: "g" },
     { label: "tablet", value: "tablet" },
     { label: "capsule", value: "capsule" },
     { label: "ml", value: "ml" },
@@ -149,6 +150,13 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
       )}
       
       <FloatingActionButton onPress={() => setModalVisible(true)} />
+      <FloatingActionButton 
+        onPress={() => {
+          console.log('Secondary action button pressed');
+        }}
+        icon="bookmark"
+        style={{ left: 20, right: undefined, backgroundColor: '#4CAF50' }}
+      />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         {selectedItem?.value === 'new_supplement' ? (
           <TextInput
