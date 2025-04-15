@@ -152,9 +152,18 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <FloatingActionButton 
         onPress={() => {
-          console.log('Secondary action button pressed');
+          // Fetch and log the last 10 supplement entries
+          getSupplement(realm, undefined, undefined, 10)
+            .then(entries => {
+              console.log('Last 10 supplement entries:', JSON.stringify(entries, null, 2));
+              showToastInfo('Last 10 entries logged to console');
+            })
+            .catch(error => {
+              console.error('Error fetching recent supplements:', error);
+              showToastError('Error fetching recent supplement entries');
+            });
         }}
-        icon="bookmark"
+        icon="history"
         style={{ left: 20, right: undefined, backgroundColor: '#4CAF50' }}
       />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
