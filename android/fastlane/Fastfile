@@ -35,4 +35,17 @@ platform :android do
     gradle(task: "clean assembleRelease")
     upload_to_play_store
   end
+
+  desc "Build and deploy an internal release to Google Play Console"
+  lane :internal do
+    # Clean the project first to resolve build issues
+    gradle(task: "clean")
+    # Build the Android App Bundle
+    # The keystore configuration is already in build.gradle from keystore.properties
+    gradle(task: "bundleRelease")
+    upload_to_play_store(
+      track: 'internal',
+      release_status: 'completed'
+    )
+  end
 end
