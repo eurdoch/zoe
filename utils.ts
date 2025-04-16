@@ -51,9 +51,10 @@ export const mapWeightEntriesToDataPoint = (entries: WeightEntry[]): DataPoint[]
   }));
 }
 
-export const getExercisesByNameAndConvertToDataPoint = async (name: string, realm: Realm): Promise<DataPoint[]> => {
-  const exerciseData = await getExerciseDataByName(name, realm);
-  return mapEntriesToDataPoint(exerciseData);
+export const getExercisesByNameAndConvertToDataPoint = async (name: string, realm: Realm): Promise<{dataPoints: DataPoint[], exerciseEntries: ExerciseEntry[]}> => {
+  const exerciseEntries = await getExerciseDataByName(name, realm);
+  const dataPoints = mapEntriesToDataPoint(exerciseEntries);
+  return { dataPoints, exerciseEntries };
 }
 
 export const showToastInfo = (message: string) => {

@@ -4,7 +4,8 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
-  Text
+  Text,
+  FlatList
 } from 'react-native';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
@@ -60,6 +61,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [data, setData] = useState<DataPoint[]>([]);
+  const [exerciseEntries, setExerciseEntries] = useState<ExerciseEntry[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
@@ -100,12 +102,15 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }, []);
 
   const handleSelect = async (item: DropdownItem) => {
-    const dataPoints = await getExercisesByNameAndConvertToDataPoint(item.value, realm);
-    setData(dataPoints);
+    const result = await getExercisesByNameAndConvertToDataPoint(item.value, realm);
+    setData(result.dataPoints);
+    setExerciseEntries(result.exerciseEntries);
   }
 
   const reloadData = async (name: string) => {
-    setData(await getExercisesByNameAndConvertToDataPoint(name, realm)); 
+    const result = await getExercisesByNameAndConvertToDataPoint(name, realm);
+    setData(result.dataPoints);
+    setExerciseEntries(result.exerciseEntries);
   }
 
   const handleAddDataPoint = (formData: ExerciseFormData) => {
@@ -172,11 +177,35 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         selectedItem={selectedItem}
       />
       { data && selectedItem && (
-        <ScatterPlot
-          onDataPointClick={handleDataPointClick}
-          datasets={[data]}
-          zoomAndPanEnabled={false}
-        />
+        <>
+          <ScatterPlot
+            onDataPointClick={handleDataPointClick}
+            datasets={[data]}
+            zoomAndPanEnabled={false}
+          />
+          <FlatList
+            data={[...exerciseEntries].sort((a, b) => b.createdAt - a.createdAt)}
+            keyExtractor={(item) => item._id}
+            style={styles.exerciseList}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={styles.exerciseItem} 
+                onPress={() => getExerciseById(item._id, realm).then(m => {
+                  setCurrentExercisePoint(m);
+                  setModalKey('exerciseContent');
+                  setModalVisible(true);
+                })}
+              >
+                <Text style={styles.exerciseDate}>
+                  {new Date(item.createdAt * 1000).toLocaleDateString()}
+                </Text>
+                <Text style={styles.exerciseWeight}>
+                  {item.weight}lbs × {item.reps} reps
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </>
       )}
       { 
         selectedItem && (
@@ -224,7 +253,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     padding: 20,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   label: {
     position: 'absolute',
@@ -234,6 +263,25 @@ const styles = StyleSheet.create({
     zIndex: 999,
     paddingHorizontal: 8,
     fontSize: 14,
+  },
+  exerciseList: {
+    marginTop: 10,
+    height: 200,
+  },
+  exerciseItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    backgroundColor: 'white',
+  },
+  exerciseDate: {
+    fontSize: 16,
+  },
+  exerciseWeight: {
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });
 export default ExerciseLogScreen;
