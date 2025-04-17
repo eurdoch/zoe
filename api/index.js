@@ -23,7 +23,7 @@ const port = 3000;
 
 app.use(express.json({limit: '5mb'}))
 
-const uri = 'mongodb://localhost:27017';
+const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 
 async function connectToDatabase() {
