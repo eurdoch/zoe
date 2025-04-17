@@ -10,7 +10,7 @@ type MacroNutrients = {
 
 export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number): MacroNutrients {
   // Get serving size weight in grams
-  const servingSizeGrams = parseServingSize(nutrition.serving_size);
+  const servingSizeGrams = parseServingSize(nutrition.serving_size || '1 oz (28g)');
   
   // Calculate multiplier based on amount relative to serving size
   const multiplier = amountInGrams / servingSizeGrams;
@@ -25,7 +25,8 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
   };
   
   // Map nutrients to corresponding macro properties
-  nutrition.nutritional_info.forEach(nutrient => {
+  if (nutrition.nutritional_info) {
+    nutrition.nutritional_info.forEach(nutrient => {
     switch(nutrient.name) {
       case 'Calories':
         macros.calories = nutrient.amount_per_serving * multiplier;
@@ -43,7 +44,8 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
         macros.fiber = nutrient.amount_per_serving * multiplier;
         break;
     }
-  });
+    });
+  }
   
   // Round values to 1 decimal place
   return {

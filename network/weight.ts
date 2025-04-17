@@ -5,7 +5,7 @@ import { API_BASE_URL, SYNC_ENABLED } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function postWeight(weight: Weight, realm: Realm): Promise<WeightEntry> {
-  let newWeightEntry: WeightEntry;
+  let newWeightEntry!: WeightEntry;
 
   realm.write(() => {
     newWeightEntry = realm.create<WeightEntry>('WeightEntry', {

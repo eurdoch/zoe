@@ -1,7 +1,7 @@
 import NetworkError from "../errors/NetworkError";
 import MacroInfo from "../types/MacroInfo";
 import MacrosByServing from "../types/MacrosByServing";
-import ProductResponse from "../types/ProductResponse";
+import OldProductResponse, { ProductResponse } from "../types/ProductResponse";
 
 const VITALE_BOX_URL = "https://directto.link";
 
@@ -25,7 +25,13 @@ export const getFoodItemByUpc = async (upc: string): Promise<any> => {
  * @param {string} options.locale - Locale for results (default: 'world')
  * @returns {Promise<Object>} Search results with products and pagination info
  */
-export const searchFoodItemByText = async (searchQuery: string, options = {}) => {
+interface SearchOptions {
+  page?: number;
+  pageSize?: number;
+  locale?: string;
+}
+
+export const searchFoodItemByText = async (searchQuery: string, options: SearchOptions = {}) => {
   const {
     page = 1,
     pageSize = 10,
@@ -59,7 +65,7 @@ export const searchFoodItemByText = async (searchQuery: string, options = {}) =>
       page: data.page,
       pageSize: data.page_size,
       totalPages: Math.ceil(data.count / data.page_size),
-      products: data.products.map(product => ({
+      products: data.products.map((product: any) => ({
         id: product._id,
         name: product.product_name || 'Unknown Product',
         brand: product.brands || null,
@@ -76,8 +82,9 @@ export const searchFoodItemByText = async (searchQuery: string, options = {}) =>
       }))
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(
-      `Failed to search products: ${error.message}`
+      `Failed to search products: ${errorMessage}`
     );
   }
 }
@@ -141,6 +148,9 @@ export function calculateMacrosByServing(
   servingAmount: number,
   servingUnit: string = 'g'
 ): MacrosByServing {
+  if (!productResponse.product) {
+    throw new Error('Invalid product response: product property is missing');
+  }
   const { product } = productResponse;
   const { nutriments } = product;
 

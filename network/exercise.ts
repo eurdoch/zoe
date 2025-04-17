@@ -7,14 +7,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
     let result: ExerciseEntry;
-    let exerciseEntry: ExerciseEntry;
+    let exerciseEntry: ExerciseEntry = {
+      _id: new Realm.BSON.ObjectId().toString(),
+      ...exercise,
+    };
     
     // Create in local Realm database
     realm.write(() => {
-      exerciseEntry = {
-        _id: new Realm.BSON.ObjectId().toString(),
-        ...exercise,
-      };
       result = realm.create('ExerciseEntry', exerciseEntry);
     });
     

@@ -33,7 +33,7 @@ class SyncService {
   private appStateSubscription: any = null;
   
   // Helper method to get authorization headers with token
-  private async getAuthHeaders(): Promise<HeadersInit> {
+  private async getAuthHeaders(): Promise<Record<string, string>> {
     try {
       const token = await AsyncStorage.getItem('token');
       return {
@@ -425,9 +425,9 @@ class SyncService {
     // Handle both Realm.Results and plain arrays for flexibility
     const plainData = Array.isArray(data) ? data : Array.from(data).map(item => {
       // Need to convert realm objects to plain objects if it's a Realm result
-      return Object.keys(item).reduce((obj: any, key) => {
+      return Object.keys(item as object).reduce((obj: any, key) => {
         if (key !== '_objectId') { // Skip Realm internal properties
-          obj[key] = item[key];
+          obj[key] = (item as any)[key];
         }
         return obj;
       }, {});

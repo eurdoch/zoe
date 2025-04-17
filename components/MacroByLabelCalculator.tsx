@@ -8,9 +8,10 @@ import {showToastError} from "../utils";
 interface MacroByLabelCalculatorProps {
   nutritionInfo: NutritionInfo;
   setModalVisible: (visible: boolean) => void;
+  loadDat: () => void;
 }
 
-const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible }: MacroByLabelCalculatorProps) => {
+const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: MacroByLabelCalculatorProps) => {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
 
@@ -27,6 +28,7 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible }: MacroByLabel
     if (!result.acknowledged) {
       showToastError("Could not save diet entry, please try again.");
     }
+    loadDat();
     setModalVisible(false);
   }
 

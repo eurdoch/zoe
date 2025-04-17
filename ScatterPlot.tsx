@@ -42,10 +42,10 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const chartDetails = useMemo(() => {
     const innerWidth = width - margins.left - margins.right;
     const innerHeight = height - margins.top - margins.bottom;
-    const xExtents = datasets.map(dataset => d3Array.extent(dataset, d => d.x) as [number, number]);
-    const yExtents = datasets.map(dataset => d3Array.extent(dataset, d => d.y) as [number, number]);
-    const xExtent = d3Array.extent([].concat(...xExtents.map(([min, max]) => [min, max]))) as [number, number];
-    const yExtent = d3Array.extent([].concat(...yExtents.map(([min, max]) => [min, max]))) as [number, number];
+    const xExtents = datasets.map(dataset => d3Array.extent(dataset, (d: DataPoint) => d.x) as [number, number]);
+    const yExtents = datasets.map(dataset => d3Array.extent(dataset, (d: DataPoint) => d.y) as [number, number]);
+    const xExtent = d3Array.extent(xExtents.flatMap(([min, max]: [number, number]) => [min, max])) as [number, number];
+    const yExtent = d3Array.extent(yExtents.flatMap(([min, max]: [number, number]) => [min, max])) as [number, number];
     const xScale = d3Scale.scaleLinear()
       .domain([
         xExtent[0] - (xExtent[1] - xExtent[0]) * 0.1, 
@@ -77,14 +77,14 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     };
   }, [datasets, width, height, margins]);
   const xTicks = useMemo(() => 
-    chartDetails.xScale.ticks(5).map(tick => ({
+    chartDetails.xScale.ticks(5).map((tick: number) => ({
       value: tick,
       x: chartDetails.xScale(tick)
     })), 
   [chartDetails]
   );
   const yTicks = useMemo(() => 
-    chartDetails.yScale.ticks(5).map(tick => ({
+    chartDetails.yScale.ticks(5).map((tick: number) => ({
       value: tick,
       y: chartDetails.yScale(tick)
     })), 
@@ -163,7 +163,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 strokeWidth={2}
               />
               {/* X-axis ticks */}
-              {xTicks.map((tick, i) => (
+              {xTicks.map((tick: any, i: number) => (
                 <G key={`x-tick-${i}`}>
                   <Line
                     x1={tick.x}
@@ -185,7 +185,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 </G>
               ))}
               {/* Y-axis ticks */}
-              {yTicks.map((tick, i) => (
+              {yTicks.map((tick: any, i: number) => (
                 <G key={`y-tick-${i}`}>
                   <Line
                     x1={0}

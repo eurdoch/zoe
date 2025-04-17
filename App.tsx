@@ -31,7 +31,14 @@ type RootStackParamList = {
   ExerciseLog: undefined;
   Exercise: { title: string };
   Diet: undefined;
-  DietLog: { productResponse?: any, photo?: any },
+  DietLog: { productResponse?: any, photo?: any };
+  CreateWorkout: undefined;
+  Workouts: undefined;
+  Workout: { workout: { name: string } };
+  Weight: undefined;
+  Supplement: undefined;
+  BarcodeScanner: undefined;
+  NutritionLabelParser: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

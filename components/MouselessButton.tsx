@@ -1,7 +1,12 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, GestureResponderEvent } from 'react-native';
 
-const MouselessButton = ({ onPress, children = "Button 35" }) => {
+interface MouselessButtonProps {
+  onPress: (event: GestureResponderEvent) => void;
+  children?: React.ReactNode;
+}
+
+const MouselessButton = ({ onPress, children = "Button 35" }: MouselessButtonProps) => {
   return (
     <TouchableOpacity 
       style={styles.button}

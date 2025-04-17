@@ -235,8 +235,8 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         <View>
           <KeyboardAwareForm
             inputs={exerciseLogInputs}
-            onSubmit={(formData) => {
-              handleAddDataPoint(formData);
+            onSubmit={(formData: any) => {
+              handleAddDataPoint(formData as ExerciseFormData);
               setFormModalVisible(false);
             }}
             submitButtonText="Add"

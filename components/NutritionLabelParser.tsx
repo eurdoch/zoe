@@ -11,7 +11,7 @@ interface NavigationProps {
 
 const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const [cameraActive, setCameraActive] = useState<boolean>(true);
-  const camera = useRef(null);
+  const camera = useRef<Camera | null>(null);
   const [hasPermission, setHasPermission] = useState(false);
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
@@ -36,10 +36,9 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
     try {
       setCaptureDisabled(true);
       const photo = await camera.current?.takePhoto();
-      navigation.popTo(
+      navigation.navigate(
         'DietLog',
-        { photo },
-        true,
+        { photo }
       );
       setCaptureDisabled(false);
     } catch (error) {
