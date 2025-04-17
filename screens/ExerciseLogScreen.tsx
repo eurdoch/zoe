@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   View,
-  TouchableOpacity,
-  Text,
   FlatList
 } from 'react-native';
+import { 
+  Layout, 
+  Card, 
+  Text, 
+  Button,
+  Divider,
+  List,
+  ListItem,
+  Modal,
+  Icon,
+  useTheme
+} from '@ui-kitten/components';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
 import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
@@ -19,7 +28,6 @@ import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
-import FloatingActionButton from '../components/FloatingActionButton';
 import { useRealm } from '@realm/react';
 
 interface ExerciseLogScreenProps {
@@ -169,70 +177,92 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }
 
+  const theme = useTheme();
+  
+  const renderAddButton = () => (
+    <Button
+      style={styles.floatingButton}
+      status="primary"
+      accessoryLeft={(props) => <Icon {...props} name="plus-outline" />}
+      onPress={() => setFormModalVisible(true)}
+    />
+  );
+
+  const renderExerciseItem = ({ item }: { item: ExerciseEntry }) => (
+    <ListItem
+      title={`${item.weight}lbs × ${item.reps} reps`}
+      description={new Date(item.createdAt * 1000).toLocaleDateString()}
+      onPress={() => getExerciseById(item._id, realm).then(m => {
+        setCurrentExercisePoint(m);
+        setModalKey('exerciseContent');
+        setModalVisible(true);
+      })}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <Layout style={styles.container}>
       <ExerciseDropdown 
         dropdownItems={dropdownItems}
         onChange={onDropdownChange} 
         selectedItem={selectedItem}
       />
-      { data && selectedItem && (
+      
+      {data && selectedItem && (
         <>
-          <ScatterPlot
-            onDataPointClick={handleDataPointClick}
-            datasets={[data]}
-            zoomAndPanEnabled={false}
-          />
-          <FlatList
-            data={[...exerciseEntries].sort((a, b) => b.createdAt - a.createdAt)}
-            keyExtractor={(item) => item._id}
-            style={styles.exerciseList}
-            renderItem={({ item }) => (
-              <TouchableOpacity 
-                style={styles.exerciseItem} 
-                onPress={() => getExerciseById(item._id, realm).then(m => {
-                  setCurrentExercisePoint(m);
-                  setModalKey('exerciseContent');
-                  setModalVisible(true);
-                })}
-              >
-                <Text style={styles.exerciseDate}>
-                  {new Date(item.createdAt * 1000).toLocaleDateString()}
-                </Text>
-                <Text style={styles.exerciseWeight}>
-                  {item.weight}lbs × {item.reps} reps
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
+          <Card style={styles.card}>
+            <ScatterPlot
+              onDataPointClick={handleDataPointClick}
+              datasets={[data]}
+              zoomAndPanEnabled={false}
+            />
+          </Card>
+          
+          <Card style={styles.listCard}>
+            <Text category="h6" style={styles.listTitle}>Exercise History</Text>
+            <Divider />
+            <List
+              data={[...exerciseEntries].sort((a, b) => b.createdAt - a.createdAt)}
+              keyExtractor={(item) => item._id}
+              renderItem={renderExerciseItem}
+            />
+          </Card>
         </>
       )}
-      { 
-        selectedItem && (
-          <FloatingActionButton onPress={() => setFormModalVisible(true)} />
-        )
-      }
-      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        { modalKey && modalKey === "newExercise" ? 
-          <NewExerciseModalContent
-            setData={setData}
-            setDropdownItems={setDropdownItems}
-            dropdownItems={dropdownItems}
-            setSelectedItem={setSelectedItem}
-            setModalVisible={setModalVisible}
-          /> :
-          currentExercisePoint && (
-            <ExerciseModalContent
-              setModalVisible={setModalVisible}
-              reloadData={reloadData}
-              entry={currentExercisePoint}
-            />
-          )
-        }
-      </CustomModal>
       
-      <CustomModal visible={formModalVisible} setVisible={setFormModalVisible}>
-        <View>
+      {selectedItem && renderAddButton()}
+      
+      <Modal
+        visible={modalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setModalVisible(false)}
+      >
+        <Card disabled>
+          {modalKey && modalKey === "newExercise" ? 
+            <NewExerciseModalContent
+              setData={setData}
+              setDropdownItems={setDropdownItems}
+              dropdownItems={dropdownItems}
+              setSelectedItem={setSelectedItem}
+              setModalVisible={setModalVisible}
+            /> :
+            currentExercisePoint && (
+              <ExerciseModalContent
+                setModalVisible={setModalVisible}
+                reloadData={reloadData}
+                entry={currentExercisePoint}
+              />
+            )
+          }
+        </Card>
+      </Modal>
+      
+      <Modal
+        visible={formModalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setFormModalVisible(false)}
+      >
+        <Card disabled>
           <KeyboardAwareForm
             inputs={exerciseLogInputs}
             onSubmit={(formData: any) => {
@@ -241,47 +271,37 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             }}
             submitButtonText="Add"
           />
-        </View>
-      </CustomModal>
-    </SafeAreaView>
+        </Card>
+      </Modal>
+    </Layout>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    padding: 20,
-    justifyContent: 'flex-start',
+    padding: 16,
   },
-  label: {
+  card: {
+    marginVertical: 8,
+  },
+  listCard: {
+    marginVertical: 8,
+    flex: 1,
+  },
+  listTitle: {
+    marginBottom: 8,
+  },
+  floatingButton: {
     position: 'absolute',
-    backgroundColor: 'white',
-    left: 22,
-    top: 8,
-    zIndex: 999,
-    paddingHorizontal: 8,
-    fontSize: 14,
+    right: 16,
+    bottom: 16,
+    borderRadius: 28,
+    width: 56,
+    height: 56,
   },
-  exerciseList: {
-    marginTop: 10,
-    height: 200,
-  },
-  exerciseItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: 'white',
-  },
-  exerciseDate: {
-    fontSize: 16,
-  },
-  exerciseWeight: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   }
 });
 export default ExerciseLogScreen;
