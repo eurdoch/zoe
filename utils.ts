@@ -12,6 +12,14 @@ export const formatTime = (unixTime: number): string => {
     return `${month}/${day}`;
 };
 
+export const formatTimeWithYear = (unixTime: number): string => {
+    const date = new Date(unixTime * 1000);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+};
+
 /** 
  * Returns the Unix time at midnight (00:00:00) of the current day.
  * @returns The Unix time in milliseconds for the start of the current day.

@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, Button, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TextInput, Button, TouchableOpacity, FlatList } from 'react-native';
 import { Text } from 'react-native-paper';
 import FloatingActionButton from '../components/FloatingActionButton';
 import { getWeight, postWeight, deleteWeight } from '../network/weight';
-import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime } from '../utils';
+import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime, formatTimeWithYear } from '../utils';
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
 import CustomModal from '../CustomModal';
 import { useRealm } from '@realm/react';
 import WeightEntry from '../types/WeightEntry';
+import Weight from '../types/Weight';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const WeightScreen = () => {
   const [data, setData] = useState<DataPoint[]>([]);
+  const [weightEntries, setWeightEntries] = useState<Weight[]>([]);
   const [weight, setWeight] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
@@ -22,6 +24,10 @@ const WeightScreen = () => {
   const loadData = () => {
     getWeight(realm).then(result => {
       setData(mapWeightEntriesToDataPoint(result));
+      setWeightEntries(result.map(entry => ({
+        value: entry.value,
+        createdAt: entry.createdAt
+      })));
     });
   }
 
@@ -84,6 +90,13 @@ const WeightScreen = () => {
     }
   }
 
+  const renderItem = ({ item }: { item: Weight }) => (
+    <View style={styles.weightItem}>
+      <Text style={styles.weightDate}>{formatTimeWithYear(item.createdAt)}</Text>
+      <Text style={styles.weightValue}>{item.value.toFixed(1)} lbs</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <ScatterPlot
@@ -91,6 +104,14 @@ const WeightScreen = () => {
         onDataPointClick={handleDataPointClick}
         zoomAndPanEnabled={false}
       />
+      
+      <FlatList
+        data={weightEntries.sort((a, b) => b.createdAt - a.createdAt)}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.createdAt.toString()}
+        style={styles.listContainer}
+      />
+      
       <FloatingActionButton onPress={() => setModalVisible(true)} />
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         <TextInput
@@ -126,8 +147,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   modalContainer: {
     flexDirection: 'column',
@@ -154,6 +173,26 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   bold: {
+    fontWeight: 'bold',
+  },
+  listContainer: {
+    flex: 1,
+    width: '100%',
+    marginTop: 10,
+  },
+  weightItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    width: '100%',
+  },
+  weightDate: {
+    fontSize: 16,
+  },
+  weightValue: {
+    fontSize: 16,
     fontWeight: 'bold',
   }
 });
