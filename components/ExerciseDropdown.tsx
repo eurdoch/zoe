@@ -35,7 +35,7 @@ const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDro
       style={styles.select}
       placeholder="Select exercise"
       value={displayValue}
-      selectedIndex={selectedIndex >= 0 ? new IndexPath(selectedIndex) : null}
+      selectedIndex={selectedIndex >= 0 ? new IndexPath(selectedIndex) : undefined}
       onSelect={onSelectChange}
     >
       {dropdownItems.map(renderOption)}

@@ -147,17 +147,20 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     }
   }
 
-  const renderItemAccessory = (index: number) => (
-    isEditMode ? (
-      <Button
-        size="small"
-        status="danger"
-        appearance="ghost"
-        accessoryLeft={(props: any) => <Icon {...props} name="trash-2-outline" />}
-        onPress={() => handleDeleteExercise(index)}
-      />
-    ) : null
-  );
+  const renderItemAccessory = (index: number) => {
+    if (isEditMode) {
+      return (
+        <Button
+          size="small"
+          status="danger"
+          appearance="ghost"
+          accessoryLeft={(props: any) => <Icon {...props} name="trash-2-outline" />}
+          onPress={() => handleDeleteExercise(index)}
+        />
+      );
+    }
+    return <></>;
+  };
 
   const renderAddButton = () => (
     <Button
@@ -171,7 +174,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const renderItem = ({ item, index }: { item: string, index: number }) => (
     <ListItem
       title={convertFromDatabaseFormat(item)}
-      onPress={!isEditMode ? () => handleLogExercise(item) : null}
+      onPress={!isEditMode ? () => handleLogExercise(item) : undefined}
       accessoryRight={() => renderItemAccessory(index)}
     />
   );
