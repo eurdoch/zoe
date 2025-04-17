@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Dropdown } from 'react-native-element-dropdown';
-import DropdownItem from '../types/DropdownItem';
+import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
+import { Select, SelectItem, IndexPath } from '@ui-kitten/components';
+import DropdownItem from '../types/DropdownItem';
 
 interface ExerciseDropdownProps {
   onChange: (item: DropdownItem) => void;
@@ -10,54 +10,43 @@ interface ExerciseDropdownProps {
 }
 
 const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDropdownProps) => {
-  const [isFocus, setIsFocus] = useState<boolean>(false);
-
+  const displayValue = selectedItem ? selectedItem.label : 'Select exercise';
+  
+  const renderOption = (item: DropdownItem) => (
+    <SelectItem key={item.value} title={item.label} />
+  );
+  
+  const onSelectChange = (index: IndexPath | IndexPath[]) => {
+    if (Array.isArray(index)) {
+      return; // We're not using multi-select
+    }
+    
+    const selected = dropdownItems[index.row];
+    onChange(selected);
+  };
+  
+  // Find the index of the selected item
+  const selectedIndex = selectedItem 
+    ? dropdownItems.findIndex(item => item.value === selectedItem.value)
+    : -1;
+    
   return (
-    <Dropdown
-      style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-      placeholderStyle={styles.placeholderStyle}
-      selectedTextStyle={[styles.selectedTextStyle, { fontWeight: 'bold', textAlign: 'center' }]}
-      inputSearchStyle={styles.inputSearchStyle}
-      iconStyle={styles.iconStyle}
-      data={dropdownItems}
-      search
-      maxHeight={300}
-      labelField="label"
-      valueField="value"
-      placeholder={!isFocus ? 'Select exercise' : '...'}
-      searchPlaceholder="Search..."
-      value={selectedItem === undefined ? '' : selectedItem.value}
-      onFocus={() => setIsFocus(true)}
-      onBlur={() => setIsFocus(false)}
-      onChange={onChange}
-    />
-  )
-}
+    <Select
+      style={styles.select}
+      placeholder="Select exercise"
+      value={displayValue}
+      selectedIndex={selectedIndex >= 0 ? new IndexPath(selectedIndex) : null}
+      onSelect={onSelectChange}
+    >
+      {dropdownItems.map(renderOption)}
+    </Select>
+  );
+};
 
 export default ExerciseDropdown;
 
 const styles = StyleSheet.create({
-  dropdown: {
-      height: 50,
-      width: '90%',
-      alignSelf: 'center',
-      borderColor: 'gray',
-      borderWidth: 0.5,
-      borderRadius: 8,
-      paddingHorizontal: 8,
-  },
-  placeholderStyle: {
-    fontSize: 16,
-  },
-  selectedTextStyle: {
-    fontSize: 16,
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
+  select: {
+    marginBottom: 16,
   },
 });
