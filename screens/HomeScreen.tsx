@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavigationProp } from '@react-navigation/native';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Modal, Pressable, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Menu from '../components/Menu';
@@ -75,14 +75,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         
         {/* Show sync status indicator only if sync is enabled */}
         {SYNC_ENABLED && <SyncStatusIndicator />}
-        
-        {/* Logout button */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogoutPress}
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
       </View>
       
       {/* Logout confirmation modal */}
@@ -138,19 +130,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoutButton: {
-    backgroundColor: '#ff6b6b',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   // Modal styles
   modalOverlay: {
@@ -213,4 +192,21 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
+// Create a logout handler function that can be used in the header
+export const handleLogout = async (navigation: NavigationProp<any>) => {
+  try {
+    // Clear user data from AsyncStorage
+    await AsyncStorage.multiRemove(['user', 'token']);
+    console.log('User logged out successfully');
+    
+    // Navigate to Login screen
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+};
+
 export default HomeScreen;

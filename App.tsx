@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
-import HomeScreen from './screens/HomeScreen';
+import HomeScreen, { handleLogout } from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
@@ -25,7 +25,7 @@ import WeightEntry from './types/WeightEntry.ts';
 import SupplementEntry from './types/SupplementEntry.ts';
 import 'react-native-get-random-values';
 import * as eva from '@eva-design/eva';
-import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
+import { ApplicationProvider, IconRegistry, Icon } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
 
 type RootStackParamList = {
@@ -210,10 +210,20 @@ const App = () => {
               <Stack.Screen
                 name="Home"
                 component={HomeScreen}
-                options={{
+                options={({ navigation }) => ({
                   title: "zotik",
                   headerTitleAlign: "center",
-                }}
+                  headerRight: () => (
+                    <Icon
+                      name="log-out-outline"
+                      width={24}
+                      height={24}
+                      fill="#ff6b6b"
+                      onPress={() => handleLogout(navigation)}
+                      style={{ marginRight: 16 }}
+                    />
+                  ),
+                })}
               />
               <Stack.Screen
                 name="ExerciseLog"
