@@ -171,22 +171,35 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     />
   );
 
-  const renderItem = ({ item, index }: { item: string, index: number }) => (
-    <ListItem
-      title={convertFromDatabaseFormat(item)}
-      onPress={!isEditMode ? () => handleLogExercise(item) : undefined}
-      accessoryRight={() => renderItemAccessory(index)}
-    />
-  );
-
   return (
     <Layout style={styles.container}>
-      <List
-        style={styles.list}
-        data={workoutEntry?.exercises || []}
-        renderItem={renderItem}
-        ItemSeparatorComponent={Divider}
-      />
+      <Layout style={styles.buttonContainer}>
+        {(workoutEntry?.exercises || []).map((item, index) => (
+          <Button
+            key={index}
+            style={styles.exerciseButton}
+            appearance="filled"
+            status="primary"
+            size="large"
+            onPress={!isEditMode ? () => handleLogExercise(item) : undefined}
+            accessoryRight={
+              isEditMode ? 
+                (props) => (
+                  <Icon 
+                    {...props} 
+                    name="trash-2-outline" 
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleDeleteExercise(index);
+                    }}
+                  />
+                ) : undefined
+            }
+          >
+            {convertFromDatabaseFormat(item)}
+          </Button>
+        ))}
+      </Layout>
       
       {isEditMode && renderAddButton()}
       
@@ -225,8 +238,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  list: {
+  buttonContainer: {
     flex: 1,
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+  },
+  exerciseButton: {
+    marginVertical: 8,
   },
   input: {
     marginBottom: 16,
