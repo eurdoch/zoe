@@ -1,11 +1,21 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Button, TextInput } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { 
+  Layout, 
+  Button, 
+  Text, 
+  Card, 
+  List, 
+  ListItem, 
+  Modal, 
+  Icon,
+  TopNavigationAction,
+  Input,
+  Divider
+} from '@ui-kitten/components';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, showToastError, showToastInfo } from '../utils';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FloatingActionButton from '../components/FloatingActionButton';
-import CustomModal from '../CustomModal';
 import ExerciseDropdown from '../components/ExerciseDropdown';
 import DropdownItem from '../types/DropdownItem';
 import { getExerciseNames } from '../network/exercise';
@@ -29,18 +39,32 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     deleteWorkout(route.params.workout._id, realm).then(() => navigation.goBack());
   }
 
+  const DeleteIcon = (props: any) => (
+    <Icon {...props} name='trash-2-outline'/>
+  );
+  
+  const EditIcon = (props: any) => (
+    <Icon {...props} name='edit-outline'/>
+  );
+  
+  const CloseIcon = (props: any) => (
+    <Icon {...props} name='close-outline'/>
+  );
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.rightHeader}>
           {isEditMode && (
-            <TouchableOpacity onPressOut={handleDeleteWorkout}>
-              <MaterialCommunityIcons name="delete" size={24} />
-            </TouchableOpacity>
+            <TopNavigationAction
+              icon={DeleteIcon}
+              onPress={handleDeleteWorkout}
+            />
           )}
-          <TouchableOpacity onPressOut={() => setIsEditMode(prev => !prev)}>
-            <MaterialCommunityIcons name={isEditMode ? "close" : "pencil"} size={24} />
-          </TouchableOpacity>
+          <TopNavigationAction
+            icon={isEditMode ? CloseIcon : EditIcon}
+            onPress={() => setIsEditMode(prev => !prev)}
+          />
         </View>
       )
     })
@@ -123,74 +147,103 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     }
   }
 
+  const renderItemAccessory = (index: number) => (
+    isEditMode ? (
+      <Button
+        size="small"
+        status="danger"
+        appearance="ghost"
+        accessoryLeft={(props: any) => <Icon {...props} name="trash-2-outline" />}
+        onPress={() => handleDeleteExercise(index)}
+      />
+    ) : null
+  );
+
+  const renderAddButton = () => (
+    <Button
+      style={styles.floatingButton}
+      status="primary"
+      accessoryLeft={(props: any) => <Icon {...props} name="plus-outline" />}
+      onPress={() => setModalVisible(true)}
+    />
+  );
+
+  const renderItem = ({ item, index }: { item: string, index: number }) => (
+    <ListItem
+      title={convertFromDatabaseFormat(item)}
+      onPress={!isEditMode ? () => handleLogExercise(item) : null}
+      accessoryRight={() => renderItemAccessory(index)}
+    />
+  );
+
   return (
-    <>
-      <ScrollView contentContainerStyle={styles.container}>
-        {workoutEntry?.exercises.map((exerciseName, index) => (
-          <View key={index} style={styles.entryContainer}>
-            <TouchableOpacity onPress={!isEditMode ? () => handleLogExercise(exerciseName) : () => {}}>
-              <Text style={styles.entryText}>{convertFromDatabaseFormat(exerciseName)}</Text>
-            </TouchableOpacity>
-            {isEditMode && (
-              <TouchableOpacity onPress={() => handleDeleteExercise(index)} style={styles.deleteButton}>
-                <MaterialCommunityIcons name="delete" size={24} color="red" />
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-      </ScrollView>
-      {isEditMode && (
-        <FloatingActionButton onPress={() => setModalVisible(true)} />
-      )}
-      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        {selectedItem && selectedItem.value === 'new_exercise' ? (
-          <TextInput
-            style={styles.input}
-            value={newExerciseName}
-            onChangeText={setNewExerciseName}
-            placeholder="Enter new exercise name"
-          />
-        ) : (
-          <ExerciseDropdown onChange={handleDropdownChange} dropdownItems={dropdownItems} selectedItem={selectedItem} />
-        )}
-        <Button 
-          title="Add Exercise" 
-          onPress={handleAddToWorkout} 
-        />
-      </CustomModal>
-    </>
+    <Layout style={styles.container}>
+      <List
+        style={styles.list}
+        data={workoutEntry?.exercises || []}
+        renderItem={renderItem}
+        ItemSeparatorComponent={Divider}
+      />
+      
+      {isEditMode && renderAddButton()}
+      
+      <Modal
+        visible={modalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setModalVisible(false)}
+      >
+        <Card disabled>
+          {selectedItem && selectedItem.value === 'new_exercise' ? (
+            <Input
+              style={styles.input}
+              value={newExerciseName}
+              onChangeText={setNewExerciseName}
+              placeholder="Enter new exercise name"
+            />
+          ) : (
+            <ExerciseDropdown 
+              onChange={handleDropdownChange} 
+              dropdownItems={dropdownItems} 
+              selectedItem={selectedItem} 
+            />
+          )}
+          <Button 
+            style={styles.addButton}
+            onPress={handleAddToWorkout}
+          >
+            ADD EXERCISE
+          </Button>
+        </Card>
+      </Modal>
+    </Layout>
   );
 };
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
   },
-  entryContainer: {
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 8,
-    flexDirection: 'row',
-  },
-  entryText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    marginLeft: 16,
+  list: {
+    flex: 1,
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    padding: 10,
-    paddingLeft: 15,
-    marginVertical: 8,
+    marginBottom: 16,
   },
   rightHeader: {
     flexDirection: 'row',
-    gap: 10,
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    borderRadius: 28,
+    width: 56,
+    height: 56,
+  },
+  addButton: {
+    marginTop: 16,
   }
 });
 export default WorkoutScreen;
