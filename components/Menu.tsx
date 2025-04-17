@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import MouselessButton from './MouselessButton';
+import { View, StyleSheet } from 'react-native';
+import { Button } from '@ui-kitten/components';
 
 interface MenuItem {
   screenName: string;
@@ -13,24 +13,18 @@ interface MenuProps {
 }
 
 const Menu = ({ navigation, menuItems }: MenuProps) => {
-  const screenWidth = Dimensions.get('window').width;
-  const buttonSize = (screenWidth - 80) / 2;
   return (
     <View style={styles.container}>
       {menuItems.map((item, index) => (
-        <View
+        <Button
           key={index}
-          style={{
-            width: buttonSize,
-            height: buttonSize,
-          }}
+          onPress={() => navigation.navigate(item.screenName)}
+          appearance="filled"
+          size="medium"
+          style={styles.button}
         >
-          <MouselessButton
-            onPress={() => navigation.navigate(item.screenName)}
-          >
-            {item.label}
-          </MouselessButton>
-        </View>
+          {item.label}
+        </Button>
       ))}
     </View>
   );
@@ -38,12 +32,14 @@ const Menu = ({ navigation, menuItems }: MenuProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    width: '100%',
+    padding: 16,
   },
+  button: {
+    marginVertical: 8,
+  }
 });
 
 export default Menu;

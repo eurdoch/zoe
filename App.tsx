@@ -24,6 +24,9 @@ import WorkoutEntry from './types/WorkoutEntry.ts';
 import WeightEntry from './types/WeightEntry.ts';
 import SupplementEntry from './types/SupplementEntry.ts';
 import 'react-native-get-random-values';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
+import { EvaIconsPack } from '@ui-kitten/eva-icons';
 
 type RootStackParamList = {
   Home: undefined;
@@ -167,25 +170,28 @@ const App = () => {
 
 
   return (
-    <RealmProvider
-        deleteRealmIfMigrationNeeded={false}
-        schema={[
-          ExerciseEntrySchema,
-          WorkoutEntrySchema,
-          WeightEntrySchema,
-          SupplementEntrySchema,
-        ]}
-        schemaVersion={2} // Increment the version number
-        onMigration={(oldRealm: any, newRealm: any) => {
-          const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
-          for (const oldEntry of oldWorkoutEntries) {
-            const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
-            if (newEntry && !newEntry.createdAt) {
-              newEntry.createdAt = Math.floor(Date.now() / 1000);
+    <>
+      <IconRegistry icons={EvaIconsPack} />
+      <ApplicationProvider {...eva} theme={eva.light}>
+        <RealmProvider
+          deleteRealmIfMigrationNeeded={false}
+          schema={[
+            ExerciseEntrySchema,
+            WorkoutEntrySchema,
+            WeightEntrySchema,
+            SupplementEntrySchema,
+          ]}
+          schemaVersion={2} // Increment the version number
+          onMigration={(oldRealm: any, newRealm: any) => {
+            const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
+            for (const oldEntry of oldWorkoutEntries) {
+              const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
+              if (newEntry && !newEntry.createdAt) {
+                newEntry.createdAt = Math.floor(Date.now() / 1000);
+              }
             }
-          }
-        }}
-      >
+          }}
+        >
           <NavigationContainer>
             <Stack.Navigator
               screenOptions={{
@@ -193,109 +199,111 @@ const App = () => {
               }}
               initialRouteName={userLoggedIn ? "Home" : "Login"}
             >
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{
-                title: "Login",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{
-                title: "zotik",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="ExerciseLog"
-              component={ExerciseLogScreen}
-              options={{
-                title: "log",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="DietLog"
-              component={DietLogScreen}
-              options={{
-                title: "Diet Log"
-              }}
-            />
-            <Stack.Screen
-              name="Diet"
-              component={DietScreen}
-              options={{
-                title: "Diet"
-              }}
-            />
-            <Stack.Screen
-              name="Exercise"
-              component={ExerciseScreen}
-              options={{
-                title: "exercise",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="CreateWorkout"
-              component={CreateWorkoutScreen}
-              options={{
-                title: "create workout",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="Workouts"
-              component={WorkoutsScreen}
-              options={{
-                title: "workouts",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="Workout"
-              component={WorkoutScreen}
-              options={({ route }) => ({ 
-                title: convertFromDatabaseFormat(route.params?.workout.name),
-              })}
-            />
-            <Stack.Screen
-              name="Weight"
-              component={WeightScreen}
-              options={{
-                title: "weight",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="Supplement"
-              component={SupplementScreen}
-              options={{
-                title: "supplements",
-                headerTitleAlign: "center",
-              }}
-            />
-            <Stack.Screen
-              name="BarcodeScanner"
-              component={BarcodeScanner}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="NutritionLabelParser"
-              component={NutritionLabelParser}
-              options={{
-                headerShown: false,
-              }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-        <Toast />
-      </RealmProvider>
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{
+                  title: "Login",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                  title: "zotik",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="ExerciseLog"
+                component={ExerciseLogScreen}
+                options={{
+                  title: "log",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="DietLog"
+                component={DietLogScreen}
+                options={{
+                  title: "Diet Log"
+                }}
+              />
+              <Stack.Screen
+                name="Diet"
+                component={DietScreen}
+                options={{
+                  title: "Diet"
+                }}
+              />
+              <Stack.Screen
+                name="Exercise"
+                component={ExerciseScreen}
+                options={{
+                  title: "exercise",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="CreateWorkout"
+                component={CreateWorkoutScreen}
+                options={{
+                  title: "create workout",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="Workouts"
+                component={WorkoutsScreen}
+                options={{
+                  title: "workouts",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="Workout"
+                component={WorkoutScreen}
+                options={({ route }) => ({ 
+                  title: convertFromDatabaseFormat(route.params?.workout.name),
+                })}
+              />
+              <Stack.Screen
+                name="Weight"
+                component={WeightScreen}
+                options={{
+                  title: "weight",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="Supplement"
+                component={SupplementScreen}
+                options={{
+                  title: "supplements",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="BarcodeScanner"
+                component={BarcodeScanner}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="NutritionLabelParser"
+                component={NutritionLabelParser}
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+          <Toast />
+        </RealmProvider>
+      </ApplicationProvider>
+    </>
       
   );
 };
