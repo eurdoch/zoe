@@ -1,9 +1,16 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { 
+  Layout, 
+  Button, 
+  Text, 
+  Card, 
+  List, 
+  Icon 
+} from '@ui-kitten/components';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkouts } from '../network/workout';
-import FloatingActionButton from '../components/FloatingActionButton';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRealm } from '@realm/react';
 
 interface WorkoutsScreenProps {
@@ -26,62 +33,68 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
     navigation.navigate('Workout', { workout: entry })
   }
 
-  return (
-    <>
-      <ScrollView contentContainerStyle={styles.container}>
-        {workoutEntries.map(entry => (
-          <View style={styles.row} key={entry._id}>
-            <TouchableOpacity onPress={() => handleStartWorkout(entry)} style={styles.entryContainer}> 
-              <Text style={styles.entryText}>{entry.name}</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
-      <FloatingActionButton onPress={() => navigation.navigate('CreateWorkout')} />
+  const renderAddButton = () => (
+    <Button
+      style={styles.floatingButton}
+      status="primary"
+      accessoryLeft={(props: any) => <Icon {...props} name="plus-outline" />}
+      onPress={() => navigation.navigate('CreateWorkout')}
+    />
+  );
 
-    </>
+  const renderItem = ({ item }: { item: WorkoutEntry }) => (
+    <Card style={styles.card} key={item._id}>
+      <Button
+        appearance="filled"
+        status="primary"
+        onPress={() => handleStartWorkout(item)}
+      >
+        {item.name}
+      </Button>
+    </Card>
+  );
+
+  return (
+    <Layout style={styles.container}>
+      <List
+        style={styles.list}
+        contentContainerStyle={styles.contentContainer}
+        data={workoutEntries}
+        renderItem={renderItem}
+      />
+      {renderAddButton()}
+    </Layout>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
   },
-  entryContainer: {
-    backgroundColor: '#f0f0f0',
+  list: {
+    flex: 1,
+  },
+  contentContainer: {
     padding: 16,
-    borderRadius: 8,
-    marginVertical: 8,
-  },
-  row: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: 10,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  entryText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  card: {
+    marginVertical: 8,
+    width: '80%',
+    alignSelf: 'center',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 3,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  startButton: {
-    backgroundColor: '#008000',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  startButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  floatingButton: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    borderRadius: 28,
+    width: 56,
+    height: 56,
   },
 });
 
