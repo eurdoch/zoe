@@ -26,6 +26,10 @@ import SupplementEntry from '../types/SupplementEntry';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo, getCurrentDayUnixTime } from '../utils';
 import DropdownItem from '../types/DropdownItem';
 import { useRealm } from '@realm/react';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import Supplement from '../types/Supplement';
 
 const options = [
     { label: "unit", value: "" },
@@ -54,7 +58,7 @@ interface Option {
   value: string;
 }
 
-const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: SupplementScreenProps) => {
+const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNavigation }: SupplementScreenProps) => {
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [supplementEntries, setSupplementEntries] = useState<SupplementEntry[]>([]);
@@ -66,6 +70,28 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
   const [recentEntriesVisible, setRecentEntriesVisible] = useState<boolean>(false);
   const slideAnim = useState(new Animated.Value(0))[0];
   const realm = useRealm();
+  const navigation = useNavigation();
+  
+  // Function to handle authentication errors
+  const handleAuthError = async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing token from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  };
   
   
   // Function to show the slide-up panel
@@ -150,7 +176,12 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
           setAmount("");
         } catch (error) {
           console.error('Error adding supplement:', error);
-          showToastError('Supplement could not be added, try again.');
+          
+          if (error instanceof AuthenticationError) {
+            handleAuthError(error);
+          } else {
+            showToastError('Supplement could not be added, try again.');
+          }
         }
       } else {
         showToastError('Please select or enter a supplement name.');
@@ -235,6 +266,9 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
           })
           .catch(error => {
             console.error('Error fetching recent supplements:', error);
+            if (error instanceof AuthenticationError) {
+              handleAuthError(error);
+            }
           });
       }}
     />
@@ -279,8 +313,14 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
               hideRecentEntries();
             })
             .catch(error => {
-              console.error('Error adding supplement from history:', error);
-              showToastError('Could not add supplement, try again.');
+              console.log('Error: ', error);
+              
+              if (error instanceof AuthenticationError) {
+                handleAuthError(error);
+              } else {
+                console.error('Error adding supplement from history:', error);
+                showToastError('Could not add supplement, try again.');
+              }
             });
         }}
       />

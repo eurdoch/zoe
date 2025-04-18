@@ -1,4 +1,4 @@
-export default class NetworkError extends Error { 
+export class NetworkError extends Error { 
   public statusCode: number;
   public errorCode?: string;
 
@@ -20,3 +20,13 @@ export default class NetworkError extends Error {
     };
   }
 }
+
+export class AuthenticationError extends NetworkError {
+  constructor(message: string = "Authentication failed. Please log in again.", statusCode: number = 401) {
+    super(message, statusCode);
+    this.name = this.constructor.name;
+    Object.setPrototypeOf(this, AuthenticationError.prototype);
+  }
+}
+
+export default NetworkError;
