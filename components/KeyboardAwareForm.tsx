@@ -107,6 +107,7 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
       <Layout style={styles.form}>
         {/* No custom modal needed - UI Kitten Datepicker handles this */}
@@ -161,10 +162,15 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
 };
 
 const styles = StyleSheet.create({
+  container: {
+    width: '90%',
+    alignSelf: 'center',
+  },
   form: {
     padding: 20,
     display: 'flex',
     flexDirection: 'column',
+    width: '100%',
   },
   input: {
     marginBottom: 15,
