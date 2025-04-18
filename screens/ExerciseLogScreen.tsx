@@ -69,6 +69,7 @@ const exerciseLogInputs = [
 ];
 
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
+  // State hooks - always declare these first and unconditionally
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [data, setData] = useState<DataPoint[]>([]);
@@ -77,38 +78,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const [formModalVisible, setFormModalVisible] = useState<boolean>(false);
-  const formModalAnim = useState(new Animated.Value(0))[0];
+  const [formModalAnim] = useState(new Animated.Value(0));
+  
+  // Context hooks
   const realm = useRealm();
   const navigation = useNavigation();
-  
-  // Function to show the add exercise form slide-up panel
-  const showFormModal = React.useCallback(() => {
-    setFormModalVisible(true);
-    // Use requestAnimationFrame to avoid state updates during render
-    requestAnimationFrame(() => {
-      Animated.timing(formModalAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    });
-  }, [formModalAnim]);
-  
-  // Function to hide the add exercise form slide-up panel
-  const hideFormModal = React.useCallback(() => {
-    // Use requestAnimationFrame to avoid state updates during render
-    requestAnimationFrame(() => {
-      Animated.timing(formModalAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setFormModalVisible(false);
-      });
-    });
-  }, [formModalAnim]);
-  
-  // Function to handle authentication errors
+
+  // Callback hooks - declare all of these before any useEffect
   const handleAuthError = React.useCallback(async (error: AuthenticationError) => {
     console.log('Authentication error detected:', error);
     showToastError('Authentication failed. Please log in again.');
@@ -129,50 +105,35 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }, [navigation]);
 
-  useEffect(() => {
-    getExerciseNames(realm)
-      .then(names => {
-        if (route.params?.name && !names.includes(route.params.name)) {
-          names.push(route.params.name);
-        }
-        const sortedItems = names
-          .sort((a, b) => a.localeCompare(b)).map(name => ({
-            label: convertFromDatabaseFormat(name),
-            value: name,
-          }));
-        setDropdownItems([
-          {
-            value: 'new_exercise',
-            label: 'Add New Exercise'
-          }, 
-          ...sortedItems
-        ]);
-      })
-      .catch(err => {
-        showToastError('Could not get exercises, please try again.');
-        console.log(err);
-      });
-    if (route.params && route.params.name) {
-      const item = {
-        label: convertFromDatabaseFormat(route.params.name),
-        value: route.params.name,
-      };
-      setSelectedItem(item);
-      handleSelect(item);
-    }
-  }, []);
-
   const handleSelect = React.useCallback(async (item: DropdownItem) => {
     const result = await getExercisesByNameAndConvertToDataPoint(item.value, realm);
     setData(result.dataPoints);
     setExerciseEntries(result.exerciseEntries);
-  }, [realm, setData, setExerciseEntries]);
+  }, [realm]);
 
   const reloadData = React.useCallback(async (name: string) => {
     const result = await getExercisesByNameAndConvertToDataPoint(name, realm);
     setData(result.dataPoints);
     setExerciseEntries(result.exerciseEntries);
-  }, [realm, setData, setExerciseEntries]);
+  }, [realm]);
+
+  const handleDataPointClick = React.useCallback((point: DataPoint) => {
+    getExerciseById(point.label!, realm)
+      .then(m => {
+        setCurrentExercisePoint(m);
+        setModalKey('exerciseContent');
+        setModalVisible(true);
+      })
+      .catch(error => {
+        console.error('Error fetching exercise:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not fetch exercise details.');
+        }
+      });
+  }, [realm, handleAuthError]);
 
   const handleAddDataPoint = React.useCallback((formData: ExerciseFormData) => {
     try {
@@ -221,24 +182,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }, [selectedItem, realm, reloadData, handleAuthError]);
 
-  const handleDataPointClick = React.useCallback((point: DataPoint) => {
-    getExerciseById(point.label!, realm)
-      .then(m => {
-        setCurrentExercisePoint(m);
-        setModalKey('exerciseContent');
-        setModalVisible(true);
-      })
-      .catch(error => {
-        console.error('Error fetching exercise:', error);
-        
-        if (error instanceof AuthenticationError) {
-          handleAuthError(error);
-        } else {
-          showToastError('Could not fetch exercise details.');
-        }
-      });
-  }, [realm, handleAuthError, setCurrentExercisePoint, setModalKey, setModalVisible]);
-
   const onDropdownChange = React.useCallback((item: DropdownItem) => {
     console.log("Dropdown change:", item);
     
@@ -261,9 +204,68 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     setSelectedItem(item);
     handleSelect(item);
   }, [setModalKey, setModalVisible, setSelectedItem, handleSelect]);
+  
+  const showFormModal = React.useCallback(() => {
+    setFormModalVisible(true);
+    // Use requestAnimationFrame to avoid state updates during render
+    requestAnimationFrame(() => {
+      Animated.timing(formModalAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [formModalAnim]);
+  
+  const hideFormModal = React.useCallback(() => {
+    // Use requestAnimationFrame to avoid state updates during render
+    requestAnimationFrame(() => {
+      Animated.timing(formModalAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setFormModalVisible(false);
+      });
+    });
+  }, [formModalAnim]);
+
+  // Effect hooks
+  useEffect(() => {
+    getExerciseNames(realm)
+      .then(names => {
+        if (route.params?.name && !names.includes(route.params.name)) {
+          names.push(route.params.name);
+        }
+        const sortedItems = names
+          .sort((a, b) => a.localeCompare(b)).map(name => ({
+            label: convertFromDatabaseFormat(name),
+            value: name,
+          }));
+        setDropdownItems([
+          {
+            value: 'new_exercise',
+            label: 'Add New Exercise'
+          }, 
+          ...sortedItems
+        ]);
+      })
+      .catch(err => {
+        showToastError('Could not get exercises, please try again.');
+        console.log(err);
+      });
+    if (route.params && route.params.name) {
+      const item = {
+        label: convertFromDatabaseFormat(route.params.name),
+        value: route.params.name,
+      };
+      setSelectedItem(item);
+      handleSelect(item);
+    }
+  }, [handleSelect, realm, route.params]);
 
   // Calculate slide up transform for form modal
-  const formModalTransform = {
+  const formModalTransform = React.useMemo(() => ({
     transform: [
       {
         translateY: formModalAnim.interpolate({
@@ -272,18 +274,18 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         }),
       },
     ],
-  };
+  }), [formModalAnim]);
 
-  const renderAddButton = () => (
+  const renderAddButton = React.useCallback(() => (
     <Button
       style={styles.floatingButton}
       status="primary"
       accessoryLeft={(props) => <Icon {...props} name="plus-outline" />}
       onPress={showFormModal}
     />
-  );
+  ), [showFormModal]);
 
-  const renderExerciseItem = ({ item }: { item: ExerciseEntry }) => (
+  const renderExerciseItem = React.useCallback(({ item }: { item: ExerciseEntry }) => (
     <ListItem
       title={() => (
         <View style={styles.listItemRow}>
@@ -291,13 +293,23 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           <Text category="s1" style={styles.weightReps}>{`${item.weight}lbs × ${item.reps} reps`}</Text>
         </View>
       )}
-      onPress={() => getExerciseById(item._id, realm).then(m => {
-        setCurrentExercisePoint(m);
-        setModalKey('exerciseContent');
-        setModalVisible(true);
-      })}
+      onPress={() => {
+        getExerciseById(item._id, realm)
+          .then(m => {
+            setCurrentExercisePoint(m);
+            setModalKey('exerciseContent');
+            setModalVisible(true);
+          })
+          .catch(error => {
+            if (error instanceof AuthenticationError) {
+              handleAuthError(error);
+            } else {
+              showToastError('Could not fetch exercise details.');
+            }
+          });
+      }}
     />
-  );
+  ), [realm, handleAuthError]);
 
   return (
     <Layout style={styles.container}>
@@ -394,10 +406,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
               <Divider />
               <KeyboardAwareForm
                 inputs={exerciseLogInputs}
-                onSubmit={React.useCallback((formData: any) => {
+                onSubmit={(formData: any) => {
                   handleAddDataPoint(formData as ExerciseFormData);
                   hideFormModal();
-                }, [handleAddDataPoint, hideFormModal])}
+                }}
                 submitButtonText="Add"
               />
             </View>
