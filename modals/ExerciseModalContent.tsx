@@ -6,6 +6,9 @@ import ExerciseEntry from '../types/ExerciseEntry';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { deleteExerciseById } from '../network/exercise';
 import { useRealm } from '@realm/react';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 interface Props {
   entry: ExerciseEntry;
@@ -15,14 +18,44 @@ interface Props {
 
 const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisible }) => {
   const realm = useRealm();
+  const navigation = useNavigation();
+  
+  // Function to handle authentication errors
+  const handleAuthError = async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing token from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  };
 
   const handleDeleteExercise = (_e: any) => {
-    deleteExerciseById(entry._id, realm).then(() => {
-      reloadData(entry.name);
-      setModalVisible(false);
-    }).catch(err => {
-      showToastError('Could not delete exercise, try again.');
-    });
+    deleteExerciseById(entry._id, realm)
+      .then(() => {
+        reloadData(entry.name);
+        setModalVisible(false);
+      })
+      .catch(error => {
+        console.error('Error deleting exercise:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not delete exercise, try again.');
+        }
+      });
   }
 
   return (
