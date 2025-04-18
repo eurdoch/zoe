@@ -4,8 +4,6 @@ import { StyleSheet, View, Text, Modal, Pressable, TouchableOpacity } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Menu from '../components/Menu';
-import SyncStatusIndicator from '../components/SyncStatusIndicator';
-import { SYNC_ENABLED } from '../config';
 
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
@@ -72,9 +70,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           menuItems={menuItems}
           navigation={navigation}
         />
-        
-        {/* Show sync status indicator only if sync is enabled */}
-        {SYNC_ENABLED && <SyncStatusIndicator />}
       </View>
       
       {/* Logout confirmation modal */}

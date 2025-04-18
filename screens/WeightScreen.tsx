@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, Button, TouchableOpacity, FlatList } from 'react-native';
-import { Text } from 'react-native-paper';
-import FloatingActionButton from '../components/FloatingActionButton';
+import { View, StyleSheet } from 'react-native';
+import { 
+  Layout, 
+  Text, 
+  Button, 
+  Card, 
+  List, 
+  ListItem, 
+  Modal, 
+  Input,
+  Icon,
+  Divider 
+} from '@ui-kitten/components';
 import { getWeight, postWeight, deleteWeight } from '../network/weight';
 import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime, formatTimeWithYear } from '../utils';
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
-import CustomModal from '../CustomModal';
 import { useRealm } from '@realm/react';
 import WeightEntry from '../types/WeightEntry';
 import Weight from '../types/Weight';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const WeightScreen = () => {
   const [data, setData] = useState<DataPoint[]>([]);
@@ -91,109 +99,155 @@ const WeightScreen = () => {
   }
 
   const renderItem = ({ item }: { item: Weight }) => (
-    <View style={styles.weightItem}>
-      <Text style={styles.weightDate}>{formatTimeWithYear(item.createdAt)}</Text>
-      <Text style={styles.weightValue}>{item.value.toFixed(1)} lbs</Text>
-    </View>
+    <ListItem
+      title={() => (
+        <View style={styles.weightItem}>
+          <Text category="p1">{formatTimeWithYear(item.createdAt)}</Text>
+          <Text category="s1" style={styles.weightValue}>{item.value.toFixed(1)} lbs</Text>
+        </View>
+      )}
+    />
+  );
+  
+  const DeleteIcon = (props: any) => (
+    <Icon {...props} name="trash-2-outline" />
+  );
+
+  const AddIcon = (props: any) => (
+    <Icon {...props} name="plus-outline" />
   );
 
   return (
-    <View style={styles.container}>
-      <ScatterPlot
-        datasets={[data]}
-        onDataPointClick={handleDataPointClick}
-        zoomAndPanEnabled={false}
-      />
-      
-      <FlatList
-        data={weightEntries.sort((a, b) => b.createdAt - a.createdAt)}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.createdAt.toString()}
-        style={styles.listContainer}
-      />
-      
-      <FloatingActionButton onPress={() => setModalVisible(true)} />
-      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <TextInput
-          value={weight}
-          onChangeText={setWeight}
-          placeholder="Enter weight"
-          keyboardType="numeric"
-          style={styles.input}
+    <Layout style={styles.container}>
+      <Card style={styles.card}>
+        <ScatterPlot
+          datasets={[data]}
+          onDataPointClick={handleDataPointClick}
+          zoomAndPanEnabled={false}
         />
-        <Button title="Add" onPress={handleAddWeight} />
-      </CustomModal>
+      </Card>
+      
+      <Card style={styles.listCard}>
+        <Text category="h6" style={styles.listTitle}>Weight History</Text>
+        <Divider />
+        <List
+          data={weightEntries.sort((a, b) => b.createdAt - a.createdAt)}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.createdAt.toString()}
+        />
+      </Card>
+      
+      <Button
+        style={styles.floatingButton}
+        status="primary"
+        accessoryLeft={AddIcon}
+        onPress={() => setModalVisible(true)}
+      />
+      
+      <Modal
+        visible={modalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setModalVisible(false)}
+      >
+        <Card disabled>
+          <Input
+            value={weight}
+            onChangeText={setWeight}
+            placeholder="Enter weight"
+            keyboardType="numeric"
+            style={styles.input}
+          />
+          <Button status="primary" onPress={handleAddWeight}>
+            ADD
+          </Button>
+        </Card>
+      </Modal>
 
-      <CustomModal visible={weightModalVisible} setVisible={setWeightModalVisible}>
-        {selectedWeight ? (
-          <View style={styles.modalContainer}>
-            <Text style={[styles.text, styles.bold]}>{formatTime(selectedWeight.createdAt)}</Text>
-            <Text style={styles.text}>{selectedWeight.value.toString()} lbs</Text>
-            <TouchableOpacity onPress={handleDeleteWeight}> 
-              <MaterialCommunityIcons name="delete" size={20}/>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.modalContainer}>
-            <Text style={styles.text}>No weight data available</Text>
-          </View>
-        )}
-      </CustomModal>
-    </View>
+      <Modal
+        visible={weightModalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setWeightModalVisible(false)}
+      >
+        <Card disabled>
+          {selectedWeight ? (
+            <View style={styles.modalContainer}>
+              <Text category="h6">{formatTime(selectedWeight.createdAt)}</Text>
+              <Text category="s1" style={styles.modalWeightValue}>{selectedWeight.value.toString()} lbs</Text>
+              <Button
+                status="danger"
+                appearance="ghost"
+                accessoryLeft={DeleteIcon}
+                onPress={handleDeleteWeight}
+              >
+                DELETE
+              </Button>
+            </View>
+          ) : (
+            <View style={styles.modalContainer}>
+              <Text category="s1">No weight data available</Text>
+            </View>
+          )}
+        </Card>
+      </Modal>
+    </Layout>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: 16,
+  },
+  card: {
+    marginVertical: 8,
+  },
+  listCard: {
+    marginVertical: 8,
+    flex: 1,
+  },
+  listTitle: {
+    marginBottom: 8,
   },
   modalContainer: {
     flexDirection: 'column',
-    gap: 10,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    paddingVertical: 8,
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
+    marginBottom: 16,
     width: '100%',
-  },
-  text: {
-    fontFamily: 'System',
-    fontSize: 20,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  listContainer: {
-    flex: 1,
-    width: '100%',
-    marginTop: 10,
   },
   weightItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     width: '100%',
-  },
-  weightDate: {
-    fontSize: 16,
+    alignItems: 'center',
   },
   weightValue: {
-    fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalWeightValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 12,
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 32,
+    bottom: 32,
+    borderRadius: 28,
+    width: 60,
+    height: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   }
 });
 
