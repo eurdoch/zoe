@@ -1,4 +1,3 @@
-// No longer using native DateTimePicker
 import React, { useRef, useState } from 'react';
 import {
   View,
@@ -39,7 +38,6 @@ interface KeyboardAwareFormProps {
   buttonTextStyle?: StyleProp<TextStyle>;
 }
 
-// Type for input refs
 type InputRefs = {
   [key: string]: any;
 };
@@ -50,7 +48,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
   submitButtonText = 'Submit',
   inputStyle,
   buttonStyle,
-  buttonTextStyle,
 }) => {
   // Create refs object for all inputs
   const inputRefs = useRef<InputRefs>({});
@@ -163,8 +160,6 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: '90%',
-    alignSelf: 'center',
   },
   form: {
     padding: 20,
@@ -179,6 +174,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   dateContainer: {
+    alignSelf: 'center',
     marginBottom: 15,
   },
   dateLabel: {

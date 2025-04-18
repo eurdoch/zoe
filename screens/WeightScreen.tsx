@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import { 
   Layout, 
   Text, 
@@ -210,7 +210,7 @@ const WeightScreen = () => {
         backdropStyle={styles.backdrop}
         onBackdropPress={() => setModalVisible(false)}
       >
-        <Card disabled>
+        <Card style={styles.weightForm} disabled>
           <Input
             value={weight}
             onChangeText={setWeight}
@@ -309,6 +309,9 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  weightForm: {
+    width: Dimensions.get("window").width * 0.70,
   }
 });
 

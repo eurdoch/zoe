@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+    Dimensions,
   StyleSheet,
   View,
 } from 'react-native';
@@ -23,7 +24,6 @@ import Toast from 'react-native-toast-message'
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
-import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
 import { useRealm } from '@realm/react';
@@ -331,7 +331,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         backdropStyle={styles.backdrop}
         onBackdropPress={() => setFormModalVisible(false)}
       >
-        <Card disabled>
+        <Card style={styles.exerciseSetForm} disabled>
           <KeyboardAwareForm
             inputs={exerciseLogInputs}
             onSubmit={(formData: any) => {
@@ -395,6 +395,9 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  exerciseSetForm: {
+    width: Dimensions.get('window').width * 0.9,
   }
 });
 export default ExerciseLogScreen;
