@@ -258,7 +258,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         }}
       >
         <Card disabled>
-          {console.log("Modal rendered. modalKey:", modalKey)}
           {modalKey === "newExercise" ? (
             <>
               {console.log("Rendering NewExerciseModalContent")}

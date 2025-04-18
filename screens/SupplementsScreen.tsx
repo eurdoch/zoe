@@ -1,23 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ScrollView, 
   View, 
-  Text, 
   StyleSheet, 
   Dimensions, 
-  TextInput, 
+  Animated, 
+  Pressable,
+  ScrollView
+} from 'react-native';
+import { 
+  Layout, 
+  Text, 
+  Input, 
   Button, 
   Modal, 
-  TouchableOpacity, 
-  Animated, 
-  Pressable 
-} from 'react-native';
+  Card,
+  Select,
+  SelectItem,
+  Icon,
+  List,
+  ListItem,
+  Divider
+} from '@ui-kitten/components';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
-import FloatingActionButton from '../components/FloatingActionButton';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo, getCurrentDayUnixTime } from '../utils';
-import CustomModal from '../CustomModal';
-import { Dropdown } from 'react-native-element-dropdown';
 import DropdownItem from '../types/DropdownItem';
 import { useRealm } from '@realm/react';
 
@@ -51,7 +57,6 @@ interface Option {
 const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: SupplementScreenProps) => {
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
-  const [isFocus, setIsFocus] = useState<boolean>(false);
   const [supplementEntries, setSupplementEntries] = useState<SupplementEntry[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [amount, setAmount] = useState<string>("");
@@ -193,321 +198,258 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
     ],
   };
 
+  const renderAddButton = () => (
+    <Button
+      style={styles.floatingButton}
+      status="primary"
+      accessoryLeft={(props) => <Icon {...props} name="plus-outline" />}
+      onPress={() => setModalVisible(true)}
+    />
+  );
+  
+  const renderHistoryButton = () => (
+    <Button
+      style={styles.historyButton}
+      status="success"
+      accessoryLeft={(props) => <Icon {...props} name="clock-outline" />}
+      onPress={() => {
+        // Fetch the last 10 supplement entries and show in slide-up panel
+        getSupplement(realm, undefined, undefined, 20)
+          .then(entries => {
+            // Process entries to remove duplicates (keeping only the most recent entry)
+            const uniqueEntries = removeDuplicates(entries);
+            
+            // Set the unique entries (limited to 10)
+            setRecentEntries(uniqueEntries.slice(0, 10));
+            
+            // Show the panel
+            showRecentEntries();
+            
+            // If we removed any duplicates, show a notification
+            const duplicatesRemoved = entries.length - uniqueEntries.length;
+            if (duplicatesRemoved > 0) {
+              showToastInfo(`Removed ${duplicatesRemoved} duplicate entries`);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching recent supplements:', error);
+            showToastError('Error fetching recent supplement entries');
+          });
+      }}
+    />
+  );
+  
+  const renderItem = ({ item }: { item: SupplementEntry }) => (
+    <ListItem
+      title={() => (
+        <View style={styles.entryTextContainer}>
+          <Text category="s1" style={styles.boldText}>{formatTime(item.createdAt)}</Text>
+          <Text category="p1">{convertFromDatabaseFormat(item.name)}</Text>
+        </View>
+      )}
+      accessoryRight={() => <Text category="p2">{item.amount + ' ' + item.amount_unit}</Text>}
+    />
+  );
+
+  const renderRecentItem = (entry: SupplementEntry) => (
+    <ListItem
+      key={entry._id}
+      title={() => (
+        <View>
+          <Text category="s2">{convertFromDatabaseFormat(entry.name)}</Text>
+          <Text category="c1">{formatTime(entry.createdAt)}</Text>
+        </View>
+      )}
+      accessoryRight={() => <Text>{entry.amount} {entry.amount_unit}</Text>}
+      onPress={() => {
+        // Add a new supplement entry with the same details but current timestamp
+        postSupplement({
+          name: entry.name,
+          amount: entry.amount,
+          createdAt: Math.floor(Date.now() / 1000),
+          amount_unit: entry.amount_unit,
+        }, realm)
+          .then(() => {
+            showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
+            loadData();
+            hideRecentEntries();
+          })
+          .catch(error => {
+            console.error('Error adding supplement from history:', error);
+            showToastError('Could not add supplement, try again.');
+          });
+      }}
+    />
+  );
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.dateHeader}>Today: {getTodayDate()}</Text>
-      </View>
-      
+    <Layout style={styles.container}>
       {supplementEntries.length === 0 ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>No supplements taken today</Text>
+          <Text category="h6" appearance="hint">No supplements taken today</Text>
         </View>
       ) : (
-        supplementEntries.map(entry => (
-          <View style={styles.supplementEntry} key={entry._id}>
-            <View style={styles.entryTextContainer}>
-              <Text style={[styles.entryText, styles.boldText]}>{formatTime(entry.createdAt)}</Text>
-              <Text style={styles.entryText}>{convertFromDatabaseFormat(entry.name)}</Text>
-            </View>
-            <Text style={styles.entryText}>{entry.amount + ' ' + entry.amount_unit}</Text>
-          </View>
-        ))
+        <Card style={styles.card}>
+          <Text category="h6" style={styles.listTitle}>Today's Supplements</Text>
+          <Divider />
+          <List
+            data={supplementEntries}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+          />
+        </Card>
       )}
       
-      <FloatingActionButton onPress={() => setModalVisible(true)} />
-      <FloatingActionButton 
-        onPress={() => {
-          // Fetch the last 10 supplement entries and show in slide-up panel
-          getSupplement(realm, undefined, undefined, 20)
-            .then(entries => {
-              // Process entries to remove duplicates (keeping only the most recent entry)
-              const uniqueEntries = removeDuplicates(entries);
-              
-              // Set the unique entries (limited to 10)
-              setRecentEntries(uniqueEntries.slice(0, 10));
-              
-              // Show the panel
-              showRecentEntries();
-              
-              // If we removed any duplicates, show a notification
-              const duplicatesRemoved = entries.length - uniqueEntries.length;
-              if (duplicatesRemoved > 0) {
-                showToastInfo(`Removed ${duplicatesRemoved} duplicate entries`);
-              }
-            })
-            .catch(error => {
-              console.error('Error fetching recent supplements:', error);
-              showToastError('Error fetching recent supplement entries');
-            });
-        }}
-        icon="history"
-        style={{ left: 20, right: undefined, backgroundColor: '#4CAF50' }}
-      />
+      {renderAddButton()}
+      {renderHistoryButton()}
       
       {/* Recent Entries Slide-up Panel */}
       {recentEntriesVisible && (
         <View style={styles.slideUpOverlay}>
           <Pressable style={styles.closeOverlayArea} onPress={hideRecentEntries} />
           <Animated.View style={[styles.slideUpPanel, slideUpTransform]}>
-            <View style={styles.slideUpHeader}>
-              <Text style={styles.slideUpTitle}>Recent Supplements</Text>
-              <TouchableOpacity onPress={hideRecentEntries}>
-                <Text style={styles.closeButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.recentEntriesList}>
-              {recentEntries.map(entry => (
-                <TouchableOpacity 
-                  key={entry._id} 
-                  style={styles.recentEntryItem}
-                  onPress={() => {
-                    // Add a new supplement entry with the same details but current timestamp
-                    postSupplement({
-                      name: entry.name,
-                      amount: entry.amount,
-                      createdAt: Math.floor(Date.now() / 1000),
-                      amount_unit: entry.amount_unit,
-                    }, realm)
-                      .then(() => {
-                        showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
-                        loadData();
-                        hideRecentEntries();
-                      })
-                      .catch(error => {
-                        console.error('Error adding supplement from history:', error);
-                        showToastError('Could not add supplement, try again.');
-                      });
-                  }}
-                >
-                  <View style={styles.recentEntryContent}>
-                    <Text style={styles.recentEntryTime}>{formatTime(entry.createdAt)}</Text>
-                    <Text style={styles.recentEntryName}>
-                      {convertFromDatabaseFormat(entry.name)}
-                    </Text>
-                    <Text style={styles.recentEntryAmount}>{entry.amount} {entry.amount_unit}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <Card disabled>
+              <View style={styles.slideUpHeader}>
+                <Text category="h6">Recent Supplements</Text>
+                <Button
+                  appearance="ghost"
+                  size="small"
+                  accessoryLeft={(props) => <Icon {...props} name="close-outline" />}
+                  onPress={hideRecentEntries}
+                />
+              </View>
+              <Divider />
+              <ScrollView style={styles.recentEntriesList}>
+                {recentEntries.map(entry => renderRecentItem(entry))}
+              </ScrollView>
+            </Card>
           </Animated.View>
         </View>
       )}
       
-      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        {selectedItem?.value === 'new_supplement' ? (
-          <TextInput
-            style={styles.newSupplementInput}
-            placeholder="Enter new supplement name"
-            value={newSupplementName}
-            onChangeText={setNewSupplementName}
-          />
-        ) : (
-          <Dropdown
-            style={[styles.dropdown, isFocus && { borderColor: 'blue', minWidth: '100%' }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            data={dropdownItems}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            searchPlaceholder="Search..."
-            placeholder={!isFocus ? 'Select supplement' : '...'}
-            value={selectedItem === undefined ? '' : selectedItem.value}
-            onFocus={() => setIsFocus(true)}
-            onBlur={() => setIsFocus(false)}
-            onChange={item => {
-              setSelectedItem(item);
-              setNewSupplementName("");
-            }}
-          />
-        )}
-        <View style={styles.amountContainer}>
-          <TextInput style={styles.amountInput} placeholder="Amount" value={amount} onChangeText={setAmount} />
-          <Dropdown
-            style={[styles.dropdown, { width: longestOptionLabel.length * 10 + 20 }]}
-            data={options}
-            labelField="label"
-            valueField="value"
-            placeholder={selectedUnit.label}
-            value={selectedUnit.value}
-            onChange={item => setSelectedUnit(item)}
-          />
-        </View>
-        <Button title="Add" onPress={handleAddSupplement} />
-        {/* <Button 
-          title="Nutrition Label Parser" 
-          onPress={() => {
-            setModalVisible(false);
-            navigation.navigate('NutritionLabelParser')
-          }} 
-        /> */}
-
-      </CustomModal>
-    </ScrollView>
+      <Modal
+        visible={modalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setModalVisible(false)}
+      >
+        <Card disabled>
+          {selectedItem?.value === 'new_supplement' ? (
+            <Input
+              style={styles.input}
+              placeholder="Enter new supplement name"
+              value={newSupplementName}
+              onChangeText={setNewSupplementName}
+            />
+          ) : (
+            <Select
+              style={styles.select}
+              placeholder="Select supplement"
+              value={selectedItem ? selectedItem.label : ''}
+              onSelect={(index) => {
+                const item = dropdownItems[index as number];
+                setSelectedItem(item);
+                setNewSupplementName("");
+              }}
+            >
+              {dropdownItems.map(item => (
+                <SelectItem key={item.value} title={item.label} />
+              ))}
+            </Select>
+          )}
+          
+          <View style={styles.amountContainer}>
+            <Input
+              style={styles.amountInput}
+              placeholder="Amount"
+              value={amount}
+              onChangeText={setAmount}
+            />
+            <Select
+              style={styles.unitSelect}
+              placeholder={selectedUnit.label}
+              value={selectedUnit.label}
+              onSelect={(index) => setSelectedUnit(options[index as number])}
+            >
+              {options.map(option => (
+                <SelectItem key={option.value} title={option.label} />
+              ))}
+            </Select>
+          </View>
+          
+          <Button onPress={handleAddSupplement}>ADD</Button>
+        </Card>
+      </Modal>
+    </Layout>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: Dimensions.get("window").width,
-    padding: 10,
-    gap: 10,
+    padding: 16,
   },
-  headerContainer: {
-    width: '100%',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    marginBottom: 5,
-  },
-  dateHeader: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    fontFamily: 'Inter',
+  card: {
+    marginBottom: 16,
   },
   emptyStateContainer: {
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  emptyStateText: {
-    fontSize: 18,
-    color: '#888',
-    fontFamily: 'Inter',
+    marginTop: 40,
   },
   boldText: {
     fontWeight: 'bold',
-  },
-  supplementEntry: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    marginRight: 10,
   },
   entryTextContainer: {
     flexDirection: 'row',
-    gap: 5,
-  },
-  entryText: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
     alignItems: 'center',
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonClose: {
-    backgroundColor: '#2196F3',
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  selectedOption: {
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-  },
-  optionsList: {
-    maxHeight: 150,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  option: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    overflow: 'hidden', // This helps contain the picker within the border
-    marginVertical: 10,
-  },
-  picker: {
-    height: 50, // Fixed height makes it more controllable
-    width: '100%',
   },
   amountContainer: {
-    display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    marginVertical: 16,
+    gap: 8,
   },
   amountInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginRight: 8,
   },
-  dropdown: {
-    height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
-    borderRadius: 8,
-    paddingHorizontal: 8,
+  unitSelect: {
+    width: 120,
   },
-  placeholderStyle: {
-    fontSize: 16,
+  input: {
+    marginBottom: 8,
   },
-  selectedTextStyle: {
-    fontSize: 16,
+  select: {
+    marginBottom: 8,
   },
-  iconStyle: {
-    width: 20,
-    height: 20,
+  listTitle: {
+    marginBottom: 8,
   },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
+  floatingButton: {
+    position: 'absolute',
+    right: 24,
+    bottom: 24,
+    borderRadius: 28,
+    width: 56,
+    height: 56,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  newSupplementInput: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    height: 50,
+  historyButton: {
+    position: 'absolute',
+    left: 24,
+    bottom: 24,
+    borderRadius: 28,
+    width: 56,
+    height: 56,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   // Slide-up panel styles
   slideUpOverlay: {
@@ -529,66 +471,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   slideUpPanel: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
     height: 300,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -3,
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
   },
   slideUpHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    paddingBottom: 10,
-  },
-  slideUpTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    fontFamily: 'Inter',
-  },
-  closeButton: {
-    fontSize: 22,
-    color: '#555',
+    marginBottom: 8,
   },
   recentEntriesList: {
     flex: 1,
+    marginTop: 8,
   },
-  recentEntryItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  recentEntryContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  recentEntryTime: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    fontFamily: 'Inter',
-  },
-  recentEntryName: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'Inter',
-    marginLeft: 10,
-  },
-  recentEntryAmount: {
-    fontSize: 16,
-    fontFamily: 'Inter',
-    color: '#555',
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 });
 
