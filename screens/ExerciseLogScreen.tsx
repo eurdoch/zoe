@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
-  FlatList
 } from 'react-native';
 import { 
   Layout, 
@@ -14,7 +13,6 @@ import {
   ListItem,
   Modal,
   Icon,
-  useTheme
 } from '@ui-kitten/components';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
@@ -29,6 +27,9 @@ import CustomModal from '../CustomModal';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
 import { useRealm } from '@realm/react';
+import { useNavigation } from '@react-navigation/native';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ExerciseLogScreenProps {
   route: any;
@@ -75,6 +76,28 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const [formModalVisible, setFormModalVisible] = useState<boolean>(false);
   const realm = useRealm();
+  const navigation = useNavigation();
+  
+  // Function to handle authentication errors
+  const handleAuthError = async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing token from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  };
 
   useEffect(() => {
     getExerciseNames(realm)
@@ -151,6 +174,15 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
                   text2: 'Entry could not be added, please try again.'
                 });
               }
+            })
+            .catch(error => {
+              console.error('Error posting exercise:', error);
+              
+              if (error instanceof AuthenticationError) {
+                handleAuthError(error);
+              } else {
+                showToastError('Entry could not be added, please try again.');
+              }
             });
         }
       }
@@ -160,11 +192,21 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }
 
   const handleDataPointClick = (point: DataPoint) => {
-    getExerciseById(point.label!, realm).then(m => {
-      setCurrentExercisePoint(m);
-      setModalKey('exerciseContent');
-      setModalVisible(true);
-    });
+    getExerciseById(point.label!, realm)
+      .then(m => {
+        setCurrentExercisePoint(m);
+        setModalKey('exerciseContent');
+        setModalVisible(true);
+      })
+      .catch(error => {
+        console.error('Error fetching exercise:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not fetch exercise details.');
+        }
+      });
   }
 
   const onDropdownChange = (item: DropdownItem) => {
