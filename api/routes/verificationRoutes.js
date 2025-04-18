@@ -16,17 +16,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'zoe-app-jwt-secret-key-development
 const JWT_EXPIRES_IN = '30d'; // 30 days
 const DEMO_JWT_EXPIRES_IN = '2h'; // 2 hours for demo account
 
-// MongoDB connection
-const uri = 'mongodb://localhost:27017';
-const mongoClient = new MongoClient(uri);
-
 // Phone number hashing function - must match client-side implementation exactly
 const generateConsistentHash = (phone) => {
   // Normalize the phone number by removing non-digit characters
   const normalizedPhone = phone.replace(/\D/g, '');
   
   // Fixed salt - should be stored in environment variables in production
-  const salt = "Z0E_APP_SALT_37219864";
+  const salt = process.env.SALT;
   
   // Function to create a hash segment
   const hashSegment = (input, seed) => {
