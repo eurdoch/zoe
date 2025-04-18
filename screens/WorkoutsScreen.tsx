@@ -42,26 +42,22 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
     />
   );
 
-  const renderItem = ({ item }: { item: WorkoutEntry }) => (
-    <Card style={styles.card} key={item._id}>
-      <Button
-        appearance="filled"
-        status="primary"
-        onPress={() => handleStartWorkout(item)}
-      >
-        {item.name}
-      </Button>
-    </Card>
-  );
-
   return (
     <Layout style={styles.container}>
-      <List
-        style={styles.list}
-        contentContainerStyle={styles.contentContainer}
-        data={workoutEntries}
-        renderItem={renderItem}
-      />
+      <Layout style={styles.buttonContainer}>
+        {workoutEntries.map(entry => (
+          <Button
+            key={entry._id}
+            style={styles.workoutButton}
+            appearance="filled"
+            status="primary"
+            size="large"
+            onPress={() => handleStartWorkout(entry)}
+          >
+            {entry.name}
+          </Button>
+        ))}
+      </Layout>
       {renderAddButton()}
     </Layout>
   );
@@ -71,30 +67,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  list: {
+  buttonContainer: {
     flex: 1,
-  },
-  contentContainer: {
     padding: 16,
-    alignItems: 'center',
+    justifyContent: 'center',
+    alignItems: 'stretch',
   },
-  card: {
+  workoutButton: {
     marginVertical: 8,
-    width: '80%',
-    alignSelf: 'center',
-    shadowColor: 'rgba(0, 0, 0, 0.1)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 3,
   },
   floatingButton: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
+    right: 32,
+    bottom: 32,
     borderRadius: 28,
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
 });
 
