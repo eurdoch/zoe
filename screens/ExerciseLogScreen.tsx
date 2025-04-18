@@ -177,8 +177,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }
 
-  const theme = useTheme();
-  
   const renderAddButton = () => (
     <Button
       style={styles.floatingButton}
@@ -190,8 +188,12 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   const renderExerciseItem = ({ item }: { item: ExerciseEntry }) => (
     <ListItem
-      title={`${item.weight}lbs × ${item.reps} reps`}
-      description={new Date(item.createdAt * 1000).toLocaleDateString()}
+      title={() => (
+        <View style={styles.listItemRow}>
+          <Text category="p1" style={styles.dateText}>{new Date(item.createdAt * 1000).toLocaleDateString()}</Text>
+          <Text category="s1" style={styles.weightReps}>{`${item.weight}lbs × ${item.reps} reps`}</Text>
+        </View>
+      )}
       onPress={() => getExerciseById(item._id, realm).then(m => {
         setCurrentExercisePoint(m);
         setModalKey('exerciseContent');
@@ -292,13 +294,31 @@ const styles = StyleSheet.create({
   listTitle: {
     marginBottom: 8,
   },
+  listItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: 4,
+  },
+  dateText: {
+    fontSize: 16,
+  },
+  weightReps: {
+    fontWeight: 'bold',
+  },
   floatingButton: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
+    right: 32,
+    bottom: 32,
     borderRadius: 28,
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
