@@ -62,13 +62,18 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   const [dropdownItems, setDropdownItems] = useState<DropdownItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
   const [supplementEntries, setSupplementEntries] = useState<SupplementEntry[]>([]);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [amount, setAmount] = useState<string>("");
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const [newSupplementName, setNewSupplementName] = useState<string>("");
   const [recentEntries, setRecentEntries] = useState<SupplementEntry[]>([]);
+  
+  // Animation state for Recent Entries panel
   const [recentEntriesVisible, setRecentEntriesVisible] = useState<boolean>(false);
   const slideAnim = useState(new Animated.Value(0))[0];
+  
+  // Animation state for Add Supplement panel
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const addSupplementAnim = useState(new Animated.Value(0))[0];
   const realm = useRealm();
   const navigation = useNavigation();
   
@@ -94,7 +99,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   };
   
   
-  // Function to show the slide-up panel
+  // Function to show the recent entries slide-up panel
   const showRecentEntries = () => {
     setRecentEntriesVisible(true);
     Animated.timing(slideAnim, {
@@ -104,7 +109,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     }).start();
   };
   
-  // Function to hide the slide-up panel
+  // Function to hide the recent entries slide-up panel
   const hideRecentEntries = () => {
     Animated.timing(slideAnim, {
       toValue: 0,
@@ -112,6 +117,27 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       useNativeDriver: true,
     }).start(() => {
       setRecentEntriesVisible(false);
+    });
+  };
+  
+  // Function to show the add supplement slide-up panel
+  const showAddSupplementModal = () => {
+    setModalVisible(true);
+    Animated.timing(addSupplementAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+  
+  // Function to hide the add supplement slide-up panel
+  const hideAddSupplementModal = () => {
+    Animated.timing(addSupplementAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false);
     });
   };
 
@@ -130,9 +156,12 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   }
 
   useEffect(() => {
-    if (!modalVisible) {
-      setSelectedItem(undefined);
-      setAmount("");
+    if (modalVisible === false) {
+      // Reset form fields when modal is fully hidden
+      setTimeout(() => {
+        setSelectedItem(undefined);
+        setAmount("");
+      }, 300); // Match the animation duration
     }
   }, [modalVisible]);
 
@@ -172,7 +201,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
           }, realm);
           showToastInfo('Supplement added.');
           loadData();
-          setModalVisible(false);
+          hideAddSupplementModal();
           setAmount("");
         } catch (error) {
           console.error('Error adding supplement:', error);
@@ -191,7 +220,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     }
   }
 
-  // Calculate slide up transform
+  // Calculate slide up transform for recent entries panel
   const slideUpTransform = {
     transform: [
       {
@@ -203,12 +232,24 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     ],
   };
 
+  // Calculate slide up transform for add supplement panel
+  const addSupplementTransform = {
+    transform: [
+      {
+        translateY: addSupplementAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [500, 0], // Use a large enough value to ensure it's off-screen
+        }),
+      },
+    ],
+  };
+
   const renderAddButton = () => (
     <Button
       style={styles.floatingButton}
       status="primary"
       accessoryLeft={(props) => <Icon {...props} name="plus-outline" style={styles.buttonIcon} />}
-      onPress={() => setModalVisible(true)}
+      onPress={showAddSupplementModal}
     />
   );
   
@@ -342,8 +383,22 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       {/* Recent Entries Slide-up Panel */}
       {recentEntriesVisible && (
         <View style={styles.slideUpOverlay}>
-          <Pressable style={styles.closeOverlayArea} onPress={hideRecentEntries} />
-          <Animated.View style={[styles.slideUpPanel, slideUpTransform]}>
+          <Pressable 
+            style={[styles.closeOverlayArea, { bottom: 0 }]} // Cover full screen
+            onPress={hideRecentEntries} 
+          />
+          <Animated.View 
+            style={[
+              styles.slideUpPanel, 
+              slideUpTransform,
+              { 
+                backgroundColor: 'white', 
+                borderTopLeftRadius: 15, 
+                borderTopRightRadius: 15,
+                zIndex: 1001 // Higher than the overlay
+              }
+            ]}
+          >
             <Card disabled style={styles.recentCard}>
               <View style={styles.slideUpHeader}>
                 <Text category="h6">Recent Supplements</Text>
@@ -365,66 +420,88 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         </View>
       )}
       
-      <Modal
-        visible={modalVisible}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setModalVisible(false)}
-      >
-        <Card disabled style={styles.modalCard}>
-          {selectedItem?.value === 'new_supplement' ? (
-            <Input
-              style={styles.input}
-              placeholder="Enter new supplement name"
-              value={newSupplementName}
-              onChangeText={setNewSupplementName}
-            />
-          ) : (
-            <Select
-              style={styles.select}
-              placeholder="Select supplement"
-              value={selectedItem ? selectedItem.label : ''}
-              onSelect={(index) => {
-                // Convert IndexPath to number
-                const selectedIndex = typeof index === 'object' ? 
-                  Array.isArray(index) ? index[0].row : index.row : 0;
-                const item = dropdownItems[selectedIndex];
-                setSelectedItem(item);
-                setNewSupplementName("");
-              }}
-            >
-              {dropdownItems.map(item => (
-                <SelectItem key={item.value} title={item.label} />
-              ))}
-            </Select>
-          )}
-          
-          <View style={styles.amountContainer}>
-            <Input
-              style={styles.amountInput}
-              placeholder="Amount"
-              value={amount}
-              onChangeText={setAmount}
-            />
-            <Select
-              style={styles.unitSelect}
-              placeholder={selectedUnit.label}
-              value={selectedUnit.label}
-              onSelect={(index) => {
-                // Convert IndexPath to number
-                const selectedIndex = typeof index === 'object' ? 
-                  Array.isArray(index) ? index[0].row : index.row : 0;
-                setSelectedUnit(options[selectedIndex]);
-              }}
-            >
-              {options.map(option => (
-                <SelectItem key={option.value} title={option.label} />
-              ))}
-            </Select>
-          </View>
-          
-          <Button onPress={handleAddSupplement}>ADD</Button>
-        </Card>
-      </Modal>
+      {/* Add Supplement Slide-up Panel */}
+      {modalVisible && (
+        <View style={styles.slideUpOverlay}>
+          <Pressable 
+            style={[styles.closeOverlayArea, { bottom: 0 }]} // Cover full screen
+            onPress={hideAddSupplementModal} 
+          />
+          <Animated.View 
+            style={[
+              styles.slideUpPanel, 
+              styles.addSupplementPanel, // Add specific style for the add supplement panel
+              addSupplementTransform,
+              { 
+                backgroundColor: 'white', 
+                borderTopLeftRadius: 15, 
+                borderTopRightRadius: 15,
+                zIndex: 1001 // Higher than the overlay
+              }
+            ]}
+          >
+            <View>
+              <View style={styles.slideUpHeader}>
+                <Text category="h6">Add Supplement</Text>
+              </View>
+              <Divider />
+              
+              {selectedItem?.value === 'new_supplement' ? (
+                <Input
+                  style={styles.input}
+                  placeholder="Enter new supplement name"
+                  value={newSupplementName}
+                  onChangeText={setNewSupplementName}
+                />
+              ) : (
+                <Select
+                  style={styles.select}
+                  placeholder="Select supplement"
+                  value={selectedItem ? selectedItem.label : ''}
+                  onSelect={(index) => {
+                    // Convert IndexPath to number
+                    const selectedIndex = typeof index === 'object' ? 
+                      Array.isArray(index) ? index[0].row : index.row : 0;
+                    const item = dropdownItems[selectedIndex];
+                    setSelectedItem(item);
+                    setNewSupplementName("");
+                  }}
+                >
+                  {dropdownItems.map(item => (
+                    <SelectItem key={item.value} title={item.label} />
+                  ))}
+                </Select>
+              )}
+              
+              <View style={styles.amountContainer}>
+                <Input
+                  style={styles.amountInput}
+                  placeholder="Amount"
+                  value={amount}
+                  onChangeText={setAmount}
+                />
+                <Select
+                  style={styles.unitSelect}
+                  placeholder={selectedUnit.label}
+                  value={selectedUnit.label}
+                  onSelect={(index) => {
+                    // Convert IndexPath to number
+                    const selectedIndex = typeof index === 'object' ? 
+                      Array.isArray(index) ? index[0].row : index.row : 0;
+                    setSelectedUnit(options[selectedIndex]);
+                  }}
+                >
+                  {options.map(option => (
+                    <SelectItem key={option.value} title={option.label} />
+                  ))}
+                </Select>
+              </View>
+              
+              <Button style={styles.addButton} onPress={handleAddSupplement}>ADD</Button>
+            </View>
+          </Animated.View>
+        </View>
+      )}
     </Layout>
   );
 };
@@ -453,8 +530,9 @@ const styles = StyleSheet.create({
   },
   amountContainer: {
     flexDirection: 'row',
-    marginVertical: 16,
-    gap: 8,
+    marginTop: 0,
+    marginBottom: 16,
+    gap: 12,
   },
   amountInput: {
     flex: 1,
@@ -463,13 +541,18 @@ const styles = StyleSheet.create({
     width: 120,
   },
   input: {
-    marginBottom: 8,
+    marginBottom: 16,
+    marginTop: 8,
   },
   select: {
-    marginBottom: 8,
+    marginBottom: 16,
+    marginTop: 8,
   },
   listTitle: {
     marginBottom: 8,
+  },
+  addButton: {
+    marginTop: 8,
   },
   floatingButton: {
     position: 'absolute',
@@ -513,17 +596,24 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: 400, // Same height as the panel
-    backgroundColor: 'transparent',
+    bottom: 400, // Default height for the panel
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
   },
   slideUpPanel: {
-    height: 400,
+    height: 400, // Default height
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  addSupplementPanel: {
+    // Remove fixed height to let content determine the size
+    minHeight: 300, // Minimum height for the panel
   },
   slideUpHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   recentCard: {
     height: 400,
