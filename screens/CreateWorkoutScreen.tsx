@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { 
   Layout, 
   Text, 
@@ -9,7 +9,8 @@ import {
   Card, 
   Divider,
   List,
-  ListItem
+  ListItem,
+  Icon
 } from '@ui-kitten/components';
 import { getExerciseNames } from '../network/exercise';
 import { convertFromDatabaseFormat } from '../utils';
@@ -25,6 +26,8 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [availableExercises, setAvailableExercises] = useState<string[]>([]);
   const [workoutName, setWorkoutName] = useState<string>('');
+  const [showNewExerciseInput, setShowNewExerciseInput] = useState<boolean>(false);
+  const [newExerciseName, setNewExerciseName] = useState<string>('');
   const realm = useRealm();
 
   useEffect(() => {
@@ -39,6 +42,46 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     } else {
       setSelectedExercises([...selectedExercises, workout]);
     }
+  };
+  
+  const handleAddNewExercise = () => {
+    if (!newExerciseName.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Whoops!',
+        text2: 'Please enter an exercise name.'
+      });
+      return;
+    }
+    
+    // Convert to database format (using the same convention as elsewhere)
+    const formattedName = newExerciseName.trim().toLowerCase().replace(/\s+/g, '_');
+    
+    // Check if exercise already exists
+    if (availableExercises.includes(formattedName)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Whoops!',
+        text2: 'This exercise already exists.'
+      });
+      return;
+    }
+    
+    // Add to available exercises
+    setAvailableExercises([...availableExercises, formattedName]);
+    
+    // Select the new exercise
+    setSelectedExercises([...selectedExercises, formattedName]);
+    
+    // Reset input and hide it
+    setNewExerciseName('');
+    setShowNewExerciseInput(false);
+    
+    Toast.show({
+      type: 'success',
+      text1: 'Success!',
+      text2: 'New exercise added.'
+    });
   };
 
   const handleAddWorkout = async () => {
@@ -69,6 +112,11 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     }
   };
 
+  // Icon definition for the add button
+  const AddIcon = (props: any) => (
+    <Icon {...props} name='plus-outline'/>
+  );
+  
   const renderExerciseItem = (exercise: string, index: number) => (
     <ListItem
       key={index}
@@ -80,10 +128,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
         />
       )}
       onPress={() => handleWorkoutPress(exercise)}
-      style={[
-        styles.listItem,
-        selectedExercises.includes(exercise) && styles.selectedItem
-      ]}
+      style={selectedExercises.includes(exercise) ? styles.selectedItem : null}
     />
   );
 
@@ -108,15 +153,54 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
         </Button>
       </Card>
       
-      <Card style={styles.exercisesCard}>
-        <Text category="h6" style={styles.cardTitle}>Select Exercises</Text>
-        <Divider style={styles.divider} />
-        <List
-          data={availableExercises}
-          renderItem={({ item, index }) => renderExerciseItem(item, index)}
-          style={styles.list}
+      <View style={styles.exerciseHeader}>
+        <Text category="h6" style={styles.headerTitle}>Select Exercises</Text>
+        <Button
+          appearance="ghost"
+          status="primary"
+          accessoryLeft={AddIcon}
+          size="small"
+          onPress={() => setShowNewExerciseInput(true)}
         />
-      </Card>
+      </View>
+      
+      {showNewExerciseInput && (
+        <Card style={styles.newExerciseInputContainer}>
+          <Input
+            placeholder="Enter new exercise name"
+            value={newExerciseName}
+            onChangeText={setNewExerciseName}
+            style={styles.newExerciseInput}
+          />
+          <View style={styles.newExerciseButtons}>
+            <Button
+              appearance="outline"
+              status="basic"
+              style={styles.cancelButton}
+              onPress={() => {
+                setNewExerciseName('');
+                setShowNewExerciseInput(false);
+              }}
+            >
+              CANCEL
+            </Button>
+            <Button
+              status="success"
+              style={styles.addExerciseButton}
+              onPress={handleAddNewExercise}
+            >
+              ADD
+            </Button>
+          </View>
+        </Card>
+      )}
+      
+      <Divider style={styles.divider} />
+      <List
+        data={availableExercises}
+        renderItem={({ item, index }) => renderExerciseItem(item, index)}
+        style={styles.list}
+      />
     </Layout>
   );
 };
@@ -130,9 +214,6 @@ const styles = StyleSheet.create({
   formCard: {
     marginBottom: 16,
   },
-  exercisesCard: {
-    flex: 1,
-  },
   cardTitle: {
     marginBottom: 16,
     textAlign: 'center',
@@ -144,17 +225,44 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   divider: {
-    marginBottom: 8,
+    marginVertical: 16,
   },
   list: {
-    maxHeight: '100%',
-  },
-  listItem: {
-    borderRadius: 4,
-    marginVertical: 4,
+    flex: 1,
+    backgroundColor: 'transparent',
   },
   selectedItem: {
     backgroundColor: '#eafbea',
+  },
+  exerciseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    position: 'relative',
+  },
+  headerTitle: {
+    textAlign: 'center',
+  },
+  newExerciseInputContainer: {
+    marginBottom: 16,
+    padding: 8,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+  },
+  newExerciseInput: {
+    marginBottom: 8,
+  },
+  newExerciseButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
+  },
+  addExerciseButton: {
+    flex: 1,
   },
 });
 
