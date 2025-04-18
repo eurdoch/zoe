@@ -332,7 +332,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
         backdropStyle={styles.backdrop}
         onBackdropPress={() => setModalVisible(false)}
       >
-        <Card disabled>
+        <Card disabled style={styles.modalCard}>
           {selectedItem?.value === 'new_supplement' ? (
             <Input
               style={styles.input}
@@ -485,6 +485,10 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalCard: {
+    width: Dimensions.get('window').width * 0.9,
+    maxWidth: 500,
   },
 });
 
