@@ -119,16 +119,22 @@ export async function deleteWeight(id: string, realm: Realm): Promise<void> {
         if (!response.ok) {
           console.warn(`Failed to delete weight with ID ${id} from server: ${response.status} ${response.statusText}`);
           
-          // If unauthorized, log it specifically
+          // If unauthorized, throw an AuthenticationError
           if (response.status === 401 || response.status === 403) {
             console.error('Authentication failed when deleting weight from server');
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           }
         } else {
           console.log(`Successfully deleted weight with ID ${id} from server`);
         }
       } catch (syncError) {
         console.warn(`Failed to sync deletion of weight with ID ${id}:`, syncError);
-        // This doesn't affect the local deletion, it just means we'll have inconsistency with the server
+        
+        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+        if (syncError instanceof AuthenticationError) {
+          throw syncError;
+        }
+        // For other errors, we just log them but don't rethrow
       }
     }
   } catch (error) {

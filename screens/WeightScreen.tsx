@@ -19,6 +19,9 @@ import DataPoint from '../types/DataPoint';
 import { useRealm } from '@realm/react';
 import WeightEntry from '../types/WeightEntry';
 import Weight from '../types/Weight';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 const WeightScreen = () => {
   const [data, setData] = useState<DataPoint[]>([]);
@@ -28,15 +31,47 @@ const WeightScreen = () => {
   const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
   const [weightModalVisible, setWeightModalVisible] = useState<boolean>(false);
   const realm = useRealm();
+  const navigation = useNavigation();
+  
+  // Function to handle authentication errors
+  const handleAuthError = async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing token from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  };
 
   const loadData = () => {
-    getWeight(realm).then(result => {
-      setData(mapWeightEntriesToDataPoint(result));
-      setWeightEntries(result.map(entry => ({
-        value: entry.value,
-        createdAt: entry.createdAt
-      })));
-    });
+    getWeight(realm)
+      .then(result => {
+        setData(mapWeightEntriesToDataPoint(result));
+        setWeightEntries(result.map(entry => ({
+          value: entry.value,
+          createdAt: entry.createdAt
+        })));
+      })
+      .catch(error => {
+        console.error('Error loading weights:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not load weight data, please try again.');
+        }
+      });
   }
 
   const handleAddWeight = async (_e: any) => {
@@ -51,8 +86,14 @@ const WeightScreen = () => {
         loadData();
         setModalVisible(false);
         setWeight("");
-      } catch {
-        showToastError('Weight could not be added, try again.');
+      } catch (error) {
+        console.error('Error adding weight:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Weight could not be added, try again.');
+        }
       }
     } else {
       showToastError('Weight must be a number.')
@@ -66,31 +107,51 @@ const WeightScreen = () => {
   const handleDataPointClick = (point: DataPoint) => {
     console.log('handleDataPointClick: ', point);
     if (point.label) {
-      const weightItem = realm.objectForPrimaryKey<WeightEntry>('WeightEntry', point.label);
-      console.log('weightItem found:', weightItem);
-      if (weightItem) {
-        setSelectedWeight(weightItem);
-        setWeightModalVisible(true);
-      } else {
-        console.log('No weight entry found with ID:', point.label);
+      try {
+        const weightItem = realm.objectForPrimaryKey<WeightEntry>('WeightEntry', point.label);
+        console.log('weightItem found:', weightItem);
+        if (weightItem) {
+          setSelectedWeight(weightItem);
+          setWeightModalVisible(true);
+        } else {
+          console.log('No weight entry found with ID:', point.label);
+          showToastError('Weight entry not found');
+        }
+      } catch (error) {
+        console.error('Error finding weight entry:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Error loading weight details');
+        }
       }
     } else {
       console.log('Data point has no label property');
     }
   }
 
-  const handleDeleteWeight = () => {
+  const handleDeleteWeight = async () => {
     if (selectedWeight && selectedWeight._id) {
       try {
         const weightId = selectedWeight._id;
         
-        deleteWeight(weightId, realm).then(() => {
+        try {
+          await deleteWeight(weightId, realm);
           showToastInfo("Weight deleted successfully");
           
           setSelectedWeight(null);
           setWeightModalVisible(false);
           loadData();
-        });
+        } catch (deleteError) {
+          console.error('Error deleting weight:', deleteError);
+          
+          if (deleteError instanceof AuthenticationError) {
+            handleAuthError(deleteError);
+          } else {
+            showToastError("Could not delete weight, please try again");
+          }
+        }
       } catch (error) {
         showToastError("Could not delete weight, please try again");
         console.error(error);
