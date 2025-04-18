@@ -82,28 +82,34 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const navigation = useNavigation();
   
   // Function to show the add exercise form slide-up panel
-  const showFormModal = () => {
+  const showFormModal = React.useCallback(() => {
     setFormModalVisible(true);
-    Animated.timing(formModalAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
+    // Use requestAnimationFrame to avoid state updates during render
+    requestAnimationFrame(() => {
+      Animated.timing(formModalAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [formModalAnim]);
   
   // Function to hide the add exercise form slide-up panel
-  const hideFormModal = () => {
-    Animated.timing(formModalAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setFormModalVisible(false);
+  const hideFormModal = React.useCallback(() => {
+    // Use requestAnimationFrame to avoid state updates during render
+    requestAnimationFrame(() => {
+      Animated.timing(formModalAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setFormModalVisible(false);
+      });
     });
-  };
+  }, [formModalAnim]);
   
   // Function to handle authentication errors
-  const handleAuthError = async (error: AuthenticationError) => {
+  const handleAuthError = React.useCallback(async (error: AuthenticationError) => {
     console.log('Authentication error detected:', error);
     showToastError('Authentication failed. Please log in again.');
     
@@ -121,7 +127,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       console.error('Error removing token from storage:', storageError);
       showToastError('Error logging out. Please restart the app.');
     }
-  };
+  }, [navigation]);
 
   useEffect(() => {
     getExerciseNames(realm)
@@ -156,19 +162,19 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }, []);
 
-  const handleSelect = async (item: DropdownItem) => {
+  const handleSelect = React.useCallback(async (item: DropdownItem) => {
     const result = await getExercisesByNameAndConvertToDataPoint(item.value, realm);
     setData(result.dataPoints);
     setExerciseEntries(result.exerciseEntries);
-  }
+  }, [realm, setData, setExerciseEntries]);
 
-  const reloadData = async (name: string) => {
+  const reloadData = React.useCallback(async (name: string) => {
     const result = await getExercisesByNameAndConvertToDataPoint(name, realm);
     setData(result.dataPoints);
     setExerciseEntries(result.exerciseEntries);
-  }
+  }, [realm, setData, setExerciseEntries]);
 
-  const handleAddDataPoint = (formData: ExerciseFormData) => {
+  const handleAddDataPoint = React.useCallback((formData: ExerciseFormData) => {
     try {
       if (selectedItem) {
         const parsedWeight = parseFloat(formData.weight);
@@ -213,9 +219,9 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     } catch (err) {
       console.log(err);
     }
-  }
+  }, [selectedItem, realm, reloadData, handleAuthError]);
 
-  const handleDataPointClick = (point: DataPoint) => {
+  const handleDataPointClick = React.useCallback((point: DataPoint) => {
     getExerciseById(point.label!, realm)
       .then(m => {
         setCurrentExercisePoint(m);
@@ -231,9 +237,9 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           showToastError('Could not fetch exercise details.');
         }
       });
-  }
+  }, [realm, handleAuthError, setCurrentExercisePoint, setModalKey, setModalVisible]);
 
-  const onDropdownChange = (item: DropdownItem) => {
+  const onDropdownChange = React.useCallback((item: DropdownItem) => {
     console.log("Dropdown change:", item);
     
     if (item.value === "new_exercise") {
@@ -242,10 +248,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       // Set modal key before making modal visible
       setModalKey("newExercise");
       
-      // Use setTimeout to ensure state update happens first
-      setTimeout(() => {
+      // Use requestAnimationFrame to avoid state updates during render
+      requestAnimationFrame(() => {
         setModalVisible(true);
-      }, 100);
+      });
       
       // Return early to prevent setting this as selected item
       return;
@@ -254,7 +260,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     // For regular exercise items
     setSelectedItem(item);
     handleSelect(item);
-  }
+  }, [setModalKey, setModalVisible, setSelectedItem, handleSelect]);
 
   // Calculate slide up transform for form modal
   const formModalTransform = {
@@ -388,10 +394,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
               <Divider />
               <KeyboardAwareForm
                 inputs={exerciseLogInputs}
-                onSubmit={(formData: any) => {
+                onSubmit={React.useCallback((formData: any) => {
                   handleAddDataPoint(formData as ExerciseFormData);
                   hideFormModal();
-                }}
+                }, [handleAddDataPoint, hideFormModal])}
                 submitButtonText="Add"
               />
             </View>
