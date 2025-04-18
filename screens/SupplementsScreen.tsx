@@ -399,12 +399,12 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
               }
             ]}
           >
-            <Card disabled style={styles.recentCard}>
+            <View>
               <View style={styles.slideUpHeader}>
                 <Text category="h6">Recent Supplements</Text>
               </View>
               <Divider />
-              <View style={{height: 220}}>
+              <View style={{minHeight: 220}}>
                 <List
                   style={styles.transparentList}
                   data={recentEntries}
@@ -415,7 +415,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
                   )}
                 />
               </View>
-            </Card>
+            </View>
           </Animated.View>
         </View>
       )}
@@ -614,10 +614,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  recentCard: {
-    height: 400,
-    width: '100%',
   },
   transparentList: {
     backgroundColor: 'transparent',
