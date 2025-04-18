@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Dimensions,
+  Dimensions,
   StyleSheet,
   View,
+  Animated,
+  Pressable,
 } from 'react-native';
 import { 
   Layout, 
@@ -75,8 +77,30 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [modalKey, setModalKey] = useState<string | null>(null);
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const [formModalVisible, setFormModalVisible] = useState<boolean>(false);
+  const formModalAnim = useState(new Animated.Value(0))[0];
   const realm = useRealm();
   const navigation = useNavigation();
+  
+  // Function to show the add exercise form slide-up panel
+  const showFormModal = () => {
+    setFormModalVisible(true);
+    Animated.timing(formModalAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+  
+  // Function to hide the add exercise form slide-up panel
+  const hideFormModal = () => {
+    Animated.timing(formModalAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setFormModalVisible(false);
+    });
+  };
   
   // Function to handle authentication errors
   const handleAuthError = async (error: AuthenticationError) => {
@@ -232,12 +256,24 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     handleSelect(item);
   }
 
+  // Calculate slide up transform for form modal
+  const formModalTransform = {
+    transform: [
+      {
+        translateY: formModalAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [500, 0], // Use a large enough value to ensure it's off-screen
+        }),
+      },
+    ],
+  };
+
   const renderAddButton = () => (
     <Button
       style={styles.floatingButton}
       status="primary"
       accessoryLeft={(props) => <Icon {...props} name="plus-outline" />}
-      onPress={() => setFormModalVisible(true)}
+      onPress={showFormModal}
     />
   );
 
@@ -326,22 +362,42 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         </Card>
       </Modal>
       
-      <Modal
-        visible={formModalVisible}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setFormModalVisible(false)}
-      >
-        <Card style={styles.exerciseSetForm} disabled>
-          <KeyboardAwareForm
-            inputs={exerciseLogInputs}
-            onSubmit={(formData: any) => {
-              handleAddDataPoint(formData as ExerciseFormData);
-              setFormModalVisible(false);
-            }}
-            submitButtonText="Add"
+      {/* Add Exercise Form Slide-up Panel */}
+      {formModalVisible && (
+        <View style={styles.slideUpOverlay}>
+          <Pressable 
+            style={[styles.closeOverlayArea]} 
+            onPress={hideFormModal} 
           />
-        </Card>
-      </Modal>
+          <Animated.View 
+            style={[
+              styles.slideUpPanel,
+              formModalTransform,
+              { 
+                backgroundColor: 'white', 
+                borderTopLeftRadius: 15, 
+                borderTopRightRadius: 15,
+                zIndex: 1001 // Higher than the overlay
+              }
+            ]}
+          >
+            <View>
+              <View style={styles.slideUpHeader}>
+                <Text category="h6">Add Exercise Entry</Text>
+              </View>
+              <Divider />
+              <KeyboardAwareForm
+                inputs={exerciseLogInputs}
+                onSubmit={(formData: any) => {
+                  handleAddDataPoint(formData as ExerciseFormData);
+                  hideFormModal();
+                }}
+                submitButtonText="Add"
+              />
+            </View>
+          </Animated.View>
+        </View>
+      )}
     </Layout>
   );
 }
@@ -392,6 +448,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
+  },
+  // Slide-up panel styles
+  slideUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  closeOverlayArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0, // Cover full screen
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+  slideUpPanel: {
+    minHeight: 350, // Minimum height
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
+  },
+  slideUpHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
