@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, GestureResponderEvent } from 'react-native';
 import { 
   Layout, 
   Button, 
@@ -188,7 +188,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
                   <Icon 
                     {...props} 
                     name="trash-2-outline" 
-                    onPress={(e) => {
+                    onPress={(e: GestureResponderEvent) => {
                       e.stopPropagation();
                       handleDeleteExercise(index);
                     }}
