@@ -263,13 +263,17 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
         onPress={() => {
           console.log(`👉 Pressed recent item: ${entry.name}`);
           // Add a new supplement entry with the same details but current timestamp
-          postSupplement({
+          // Note: _id will be created automatically by postSupplement
+          const newSupplementData: Supplement = {
             name: entry.name,
             amount: entry.amount,
             createdAt: Math.floor(Date.now() / 1000),
             amount_unit: entry.amount_unit,
-          }, realm)
-            .then(() => {
+          };
+          
+          postSupplement(newSupplementData, realm)
+            .then((newEntry) => {
+              console.log(`👉 Created new entry with ID: ${newEntry._id}`);
               showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
               loadData();
               hideRecentEntries();
