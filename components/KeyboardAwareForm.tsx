@@ -1,10 +1,7 @@
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+// No longer using native DateTimePicker
 import React, { useRef, useState } from 'react';
 import {
   View,
-  TextInput,
-  TouchableOpacity,
-  Text,
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
@@ -13,7 +10,14 @@ import {
   TextStyle,
   StyleProp,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {
+  Input,
+  Button,
+  Text,
+  Icon,
+  Layout,
+  Datepicker
+} from '@ui-kitten/components';
 
 interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
@@ -37,7 +41,7 @@ interface KeyboardAwareFormProps {
 
 // Type for input refs
 type InputRefs = {
-  [key: string]: TextInput | null;
+  [key: string]: any;
 };
 
 const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({ 
@@ -85,47 +89,51 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
     }
   };
 
-  const onChange = (_event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      updateFormData('createdAt', Math.floor(selectedDate.getTime() / 1000));
-    }
+  // Get current date from the form data
+  const currentDate = formData.createdAt 
+    ? new Date((formData.createdAt as number) * 1000) 
+    : new Date();
+  
+  // Handle date selection from datepicker
+  const onDateSelect = (date: Date) => {
+    // Set the selected date in formData
+    updateFormData('createdAt', Math.floor(date.getTime() / 1000));
   };
 
-  const showDatePicker = () => {
-    DateTimePickerAndroid.open({
-      value: new Date(formData.createdAt as number * 1000),
-      onChange,
-      mode: 'date',
-      is24Hour: true,
-      display: 'default'
-    });
-  };
+  const CalendarIcon = (props: any) => (
+    <Icon {...props} name='calendar-outline'/>
+  );
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.form}>
+      <Layout style={styles.form}>
+        {/* No custom modal needed - UI Kitten Datepicker handles this */}
         {inputs.map((input, index) => {
-          // Destructure name and other props to avoid passing name to TextInput
+          // Destructure name and other props to avoid passing name to Input
           const { name, defaultValue, ...inputProps } = input;
           
           if (name === 'createdAt') {
             return (
-              <TouchableOpacity
-                onPress={showDatePicker}
-                style={styles.dateButton}
-                key={name}
-              >
-                <MaterialCommunityIcons name="calendar" size={24} color="#007AFF" />
-                <Text style={styles.dateText}>{new Date((formData[name] as number) * 1000).toLocaleDateString()}</Text>
-              </TouchableOpacity>
+              <View key={name} style={styles.dateContainer}>
+                <Text category="label" style={styles.dateLabel}>Date</Text>
+                <Datepicker
+                  date={currentDate}
+                  onSelect={onDateSelect}
+                  accessoryLeft={CalendarIcon}
+                  style={styles.datePicker}
+                  placeholder="Select Date"
+                  min={new Date(2000, 0, 1)}
+                  max={new Date(2030, 11, 31)}
+                />
+              </View>
             )
           } else {
             return (
-              <TextInput
+              <Input
                 key={name}
-                ref={(ref: TextInput | null) => {
+                ref={(ref) => {
                   inputRefs.current[name] = ref;
                 }}
                 style={[styles.input, inputStyle]}
@@ -134,20 +142,20 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
                 returnKeyType={index === inputs.length - 2 ? 'done' : 'next'}
                 onSubmitEditing={() => index === inputs.length - 2 ? handleSubmit() : focusNextInput(index)}
                 blurOnSubmit={index === inputs.length - 1}
+                size="medium"
                 {...inputProps}
               />
             );
           }
         })}
-        <TouchableOpacity 
+        <Button 
           style={[styles.button, buttonStyle]}
           onPress={handleSubmit}
+          status="primary"
         >
-          <Text style={[styles.buttonText, buttonTextStyle]}>
-            {submitButtonText}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {submitButtonText}
+        </Button>
+      </Layout>
     </KeyboardAvoidingView>
   );
 };
@@ -159,36 +167,20 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
     marginBottom: 15,
-    paddingHorizontal: 15,
-    backgroundColor: '#fff',
-  },
-  dateText: {
-    fontWeight: 'bold',
-    fontSize: 20,
   },
   button: {
-    backgroundColor: '#007AFF',
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: 5,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  dateButton: {
-    gap: 5,
-    flexDirection: 'row',
-    alignSelf: 'center',
-    justifyContent: 'center',
+  dateContainer: {
     marginBottom: 15,
+  },
+  dateLabel: {
+    marginBottom: 4,
+  },
+  datePicker: {
+    marginBottom: 8,
+    width: '100%',
   }
 });
 
