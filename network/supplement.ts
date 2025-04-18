@@ -76,25 +76,35 @@ export async function getSupplementNames(realm: Realm): Promise<string[]> {
 
 export async function getSupplement(realm: Realm, startDate?: number, endDate?: number, last_logged?: number): Promise<SupplementEntry[]> {
   try {
+    console.log(`👉 getSupplement called with startDate: ${startDate}, endDate: ${endDate}, last_logged: ${last_logged}`);
     let supplements = realm.objects<SupplementEntry>('SupplementEntry');
+    console.log(`👉 Total supplements in Realm: ${supplements.length}`);
     
     if (startDate && endDate) {
       supplements = supplements.filtered('createdAt >= $0 && createdAt <= $1', startDate, endDate);
+      console.log(`👉 After date range filter: ${supplements.length}`);
     } else if (startDate) {
       supplements = supplements.filtered('createdAt >= $0', startDate);
+      console.log(`👉 After start date filter: ${supplements.length}`);
     } else if (endDate) {
       supplements = supplements.filtered('createdAt <= $0', endDate);
+      console.log(`👉 After end date filter: ${supplements.length}`);
     }
     
     // If last_logged is specified, sort by createdAt descending and limit results
     if (last_logged && last_logged > 0) {
       const sortedSupplements = supplements.sorted('createdAt', true); // true for descending
-      return Array.from(sortedSupplements.slice(0, last_logged)).map(supplement => ({ ...supplement }));
+      const limitedSupplements = Array.from(sortedSupplements.slice(0, last_logged)).map(supplement => ({ ...supplement }));
+      console.log(`👉 After sorting and limiting to ${last_logged}: ${limitedSupplements.length}`);
+      console.log(`👉 First entry:`, limitedSupplements[0] || 'No entries');
+      return limitedSupplements;
     }
     
     // Default behavior: sort by createdAt ascending
     const sortedSupplements = supplements.sorted('createdAt');
-    return Array.from(sortedSupplements).map(supplement => ({ ...supplement }));
+    const resultSupplements = Array.from(sortedSupplements).map(supplement => ({ ...supplement }));
+    console.log(`👉 Final result (sorted ascending): ${resultSupplements.length}`);
+    return resultSupplements;
   } catch (error) {
     console.error('Error getting supplements:', error);
     throw error;

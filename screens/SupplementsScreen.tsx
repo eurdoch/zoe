@@ -67,23 +67,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
   const slideAnim = useState(new Animated.Value(0))[0];
   const realm = useRealm();
   
-  // Remove duplicates and keep only the most recent entry for each unique combination
-  const removeDuplicates = (entries: SupplementEntry[]): SupplementEntry[] => {
-    const uniqueEntries: { [key: string]: SupplementEntry } = {};
-    
-    // Process entries, keeping only the most recent one for each unique combination
-    entries.forEach(entry => {
-      const key = `${entry.name}_${entry.amount}_${entry.amount_unit}`;
-      
-      // If this key doesn't exist yet, or if this entry is more recent than the stored one
-      if (!uniqueEntries[key] || entry.createdAt > uniqueEntries[key].createdAt) {
-        uniqueEntries[key] = entry;
-      }
-    });
-    
-    // Convert the object back to an array and sort by createdAt (newest first)
-    return Object.values(uniqueEntries).sort((a, b) => b.createdAt - a.createdAt);
-  };
   
   // Function to show the slide-up panel
   const showRecentEntries = () => {
@@ -213,27 +196,45 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
       status="success"
       accessoryLeft={(props) => <Icon {...props} name="clock-outline" style={styles.buttonIcon} />}
       onPress={() => {
-        // Fetch the last 10 supplement entries and show in slide-up panel
-        getSupplement(realm, undefined, undefined, 20)
+        console.log("👉 Fetching supplement history...");
+        // Fetch most recent supplement entries
+        getSupplement(realm, undefined, undefined, 100)
           .then(entries => {
-            // Process entries to remove duplicates (keeping only the most recent entry)
-            const uniqueEntries = removeDuplicates(entries);
+            console.log(`👉 Got ${entries.length} supplement entries from database`);
+            console.log("👉 First few entries:", entries.slice(0, 3));
             
-            // Set the unique entries (limited to 10)
-            setRecentEntries(uniqueEntries.slice(0, 10));
+            // Process entries to remove duplicates (keeping only the most recent entry for each supplement name)
+            const supplementNameMap: { [name: string]: SupplementEntry } = {};
             
-            // Show the panel
+            // Group by name and keep only the most recent entry for each supplement
+            entries.forEach(entry => {
+              console.log(`👉 Processing entry: ${entry._id}, name: ${entry.name}, amount: ${entry.amount}${entry.amount_unit}, time: ${new Date(entry.createdAt * 1000).toLocaleString()}`);
+              const name = entry.name;
+              if (!supplementNameMap[name] || entry.createdAt > supplementNameMap[name].createdAt) {
+                supplementNameMap[name] = entry;
+              }
+            });
+            
+            console.log(`👉 Unique supplement names: ${Object.keys(supplementNameMap).length}`);
+            
+            // Convert to array and sort by most recent first
+            const uniqueEntries = Object.values(supplementNameMap).sort((a, b) => b.createdAt - a.createdAt);
+            console.log(`👉 Sorted unique entries: ${uniqueEntries.length}`);
+            
+            // Take the top 10
+            const recentUniqueEntries = uniqueEntries.slice(0, 10);
+            console.log(`👉 Recent unique entries (top 10): ${recentUniqueEntries.length}`);
+            console.log(`👉 Recent entry sample:`, recentUniqueEntries[0] || 'No entries');
+            
+            setRecentEntries(recentUniqueEntries);
+            console.log(`👉 Set recent entries state. Length: ${recentUniqueEntries.length}`);
+            
+            // Always show the panel, even if empty
             showRecentEntries();
-            
-            // If we removed any duplicates, show a notification
-            const duplicatesRemoved = entries.length - uniqueEntries.length;
-            if (duplicatesRemoved > 0) {
-              showToastInfo(`Removed ${duplicatesRemoved} duplicate entries`);
-            }
+            console.log("👉 Showing history panel");
           })
           .catch(error => {
             console.error('Error fetching recent supplements:', error);
-            showToastError('Error fetching recent supplement entries');
           });
       }}
     />
@@ -251,36 +252,36 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
     />
   );
 
-  const renderRecentItem = (entry: SupplementEntry) => (
-    <ListItem
-      key={entry._id}
-      title={() => (
-        <View>
-          <Text category="s2">{convertFromDatabaseFormat(entry.name)}</Text>
-          <Text category="c1">{formatTime(entry.createdAt)}</Text>
-        </View>
-      )}
-      accessoryRight={() => <Text>{entry.amount} {entry.amount_unit}</Text>}
-      onPress={() => {
-        // Add a new supplement entry with the same details but current timestamp
-        postSupplement({
-          name: entry.name,
-          amount: entry.amount,
-          createdAt: Math.floor(Date.now() / 1000),
-          amount_unit: entry.amount_unit,
-        }, realm)
-          .then(() => {
-            showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
-            loadData();
-            hideRecentEntries();
-          })
-          .catch(error => {
-            console.error('Error adding supplement from history:', error);
-            showToastError('Could not add supplement, try again.');
-          });
-      }}
-    />
-  );
+  const renderRecentItem = (entry: SupplementEntry) => {
+    console.log(`👉 Rendering recent item: ${entry._id}, name: ${entry.name}`);
+    return (
+      <ListItem
+        key={entry._id}
+        title={convertFromDatabaseFormat(entry.name)}
+        description={formatTime(entry.createdAt)}
+        accessoryRight={() => <Text>{entry.amount} {entry.amount_unit}</Text>}
+        onPress={() => {
+          console.log(`👉 Pressed recent item: ${entry.name}`);
+          // Add a new supplement entry with the same details but current timestamp
+          postSupplement({
+            name: entry.name,
+            amount: entry.amount,
+            createdAt: Math.floor(Date.now() / 1000),
+            amount_unit: entry.amount_unit,
+          }, realm)
+            .then(() => {
+              showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
+              loadData();
+              hideRecentEntries();
+            })
+            .catch(error => {
+              console.error('Error adding supplement from history:', error);
+              showToastError('Could not add supplement, try again.');
+            });
+        }}
+      />
+    );
+  };
 
   return (
     <Layout style={styles.container}>
@@ -308,20 +309,22 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
         <View style={styles.slideUpOverlay}>
           <Pressable style={styles.closeOverlayArea} onPress={hideRecentEntries} />
           <Animated.View style={[styles.slideUpPanel, slideUpTransform]}>
-            <Card disabled>
+            <Card disabled style={styles.recentCard}>
               <View style={styles.slideUpHeader}>
                 <Text category="h6">Recent Supplements</Text>
-                <Button
-                  appearance="ghost"
-                  size="small"
-                  accessoryLeft={(props) => <Icon {...props} name="close-outline" />}
-                  onPress={hideRecentEntries}
-                />
               </View>
               <Divider />
-              <ScrollView style={styles.recentEntriesList}>
-                {recentEntries.map(entry => renderRecentItem(entry))}
-              </ScrollView>
+              <View style={{height: 220}}>
+                <List
+                  style={styles.transparentList}
+                  data={recentEntries}
+                  renderItem={({ item }) => renderRecentItem(item)}
+                  ItemSeparatorComponent={Divider}
+                  ListEmptyComponent={() => (
+                    <Text category="p1" style={styles.emptyHistoryText}>No recent supplement entries</Text>
+                  )}
+                />
+              </View>
             </Card>
           </Animated.View>
         </View>
@@ -346,7 +349,10 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
               placeholder="Select supplement"
               value={selectedItem ? selectedItem.label : ''}
               onSelect={(index) => {
-                const item = dropdownItems[index as number];
+                // Convert IndexPath to number
+                const selectedIndex = typeof index === 'object' ? 
+                  Array.isArray(index) ? index[0].row : index.row : 0;
+                const item = dropdownItems[selectedIndex];
                 setSelectedItem(item);
                 setNewSupplementName("");
               }}
@@ -368,7 +374,12 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
               style={styles.unitSelect}
               placeholder={selectedUnit.label}
               value={selectedUnit.label}
-              onSelect={(index) => setSelectedUnit(options[index as number])}
+              onSelect={(index) => {
+                // Convert IndexPath to number
+                const selectedIndex = typeof index === 'object' ? 
+                  Array.isArray(index) ? index[0].row : index.row : 0;
+                setSelectedUnit(options[selectedIndex]);
+              }}
             >
               {options.map(option => (
                 <SelectItem key={option.value} title={option.label} />
@@ -479,9 +490,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  recentEntriesList: {
-    flex: 1,
-    marginTop: 8,
+  recentCard: {
+    height: 300,
+    width: '100%',
+  },
+  transparentList: {
+    backgroundColor: 'transparent',
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -493,6 +507,11 @@ const styles = StyleSheet.create({
   buttonIcon: {
     width: 32,
     height: 32,
+  },
+  emptyHistoryText: {
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#888',
   },
 });
 
