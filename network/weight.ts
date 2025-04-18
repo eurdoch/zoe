@@ -3,6 +3,7 @@ import Weight from "../types/Weight";
 import WeightEntry from "../types/WeightEntry";
 import { API_BASE_URL, SYNC_ENABLED } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthenticationError } from '../errors/NetworkError';
 
 export async function postWeight(weight: Weight, realm: Realm): Promise<WeightEntry> {
   let newWeightEntry!: WeightEntry;
@@ -39,16 +40,22 @@ export async function postWeight(weight: Weight, realm: Realm): Promise<WeightEn
       if (!response.ok) {
         console.warn(`Failed to save weight to server: ${response.status} ${response.statusText}`);
         
-        // If unauthorized, log it specifically
+        // If unauthorized, throw an AuthenticationError
         if (response.status === 401 || response.status === 403) {
           console.error('Authentication failed when saving weight to server');
+          throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
         }
       } else {
         console.log(`Successfully saved weight with ID ${newWeightEntry._id} to server`);
       }
     } catch (syncError) {
       console.warn('Failed to sync new weight to server:', syncError);
-      // This doesn't affect the local save, it just means we'll have inconsistency with the server
+      
+      // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+      if (syncError instanceof AuthenticationError) {
+        throw syncError;
+      }
+      // For other errors, we just log them but still return the local result
     }
   }
 

@@ -3,6 +3,7 @@ import Workout from "../types/Workout";
 import WorkoutEntry from "../types/WorkoutEntry";
 import { API_BASE_URL, SYNC_ENABLED } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthenticationError } from '../errors/NetworkError';
 
 export async function postWorkout(workout: Workout, realm: Realm): Promise<WorkoutEntry> {
   try {
@@ -43,16 +44,22 @@ export async function postWorkout(workout: Workout, realm: Realm): Promise<Worko
         if (!response.ok) {
           console.warn(`Failed to save workout to server: ${response.status} ${response.statusText}`);
           
-          // If unauthorized, log it specifically
+          // If unauthorized, throw an AuthenticationError
           if (response.status === 401 || response.status === 403) {
             console.error('Authentication failed when saving workout to server');
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           }
         } else {
           console.log(`Successfully saved workout with ID ${workoutEntry._id} to server`);
         }
       } catch (syncError) {
         console.warn('Failed to sync new workout to server:', syncError);
-        // This doesn't affect the local save, it just means we'll have inconsistency with the server
+        
+        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+        if (syncError instanceof AuthenticationError) {
+          throw syncError;
+        }
+        // For other errors, we just log them but still return the local result
       }
     }
     
@@ -127,16 +134,22 @@ export async function deleteWorkout(id: string, realm: Realm): Promise<void> {
         if (!response.ok) {
           console.warn(`Failed to delete workout with ID ${id} from server: ${response.status} ${response.statusText}`);
           
-          // If unauthorized, log it specifically
+          // If unauthorized, throw an AuthenticationError
           if (response.status === 401 || response.status === 403) {
             console.error('Authentication failed when deleting workout from server');
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           }
         } else {
           console.log(`Successfully deleted workout with ID ${id} from server`);
         }
       } catch (syncError) {
         console.warn(`Failed to sync deletion of workout with ID ${id}:`, syncError);
-        // This doesn't affect the local deletion, it just means we'll have inconsistency with the server
+        
+        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+        if (syncError instanceof AuthenticationError) {
+          throw syncError;
+        }
+        // For other errors, we just log them but don't rethrow
       }
     }
   } catch (error) {
@@ -187,16 +200,22 @@ export async function updateWorkout(workoutEntry: WorkoutEntry, realm: Realm): P
         if (!response.ok) {
           console.warn(`Failed to update workout with ID ${workoutEntry._id} on server: ${response.status} ${response.statusText}`);
           
-          // If unauthorized, log it specifically
+          // If unauthorized, throw an AuthenticationError
           if (response.status === 401 || response.status === 403) {
             console.error('Authentication failed when updating workout on server');
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           }
         } else {
           console.log(`Successfully updated workout with ID ${workoutEntry._id} on server`);
         }
       } catch (syncError) {
         console.warn(`Failed to sync update of workout with ID ${workoutEntry._id}:`, syncError);
-        // This doesn't affect the local update, it just means we'll have inconsistency with the server
+        
+        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+        if (syncError instanceof AuthenticationError) {
+          throw syncError;
+        }
+        // For other errors, we just log them but don't rethrow
       }
     }
     

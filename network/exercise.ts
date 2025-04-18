@@ -3,6 +3,7 @@ import Exercise from "../types/Exercise";
 import ExerciseEntry from "../types/ExerciseEntry";
 import { API_BASE_URL, SYNC_ENABLED } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthenticationError } from '../errors/NetworkError';
 
 export async function postExercise(exercise: Exercise, realm: Realm): Promise<ExerciseEntry> {
   try {
@@ -41,16 +42,22 @@ export async function postExercise(exercise: Exercise, realm: Realm): Promise<Ex
         if (!response.ok) {
           console.warn(`Failed to save exercise to server: ${response.status} ${response.statusText}`);
           
-          // If unauthorized, log it specifically
+          // If unauthorized, throw an AuthenticationError
           if (response.status === 401 || response.status === 403) {
             console.error('Authentication failed when saving exercise to server');
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           }
         } else {
           console.log(`Successfully saved exercise with ID ${exerciseEntry._id} to server`);
         }
       } catch (syncError) {
         console.warn('Failed to sync new exercise to server:', syncError);
-        // This doesn't affect the local save, it just means we'll have inconsistency with the server
+        
+        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+        if (syncError instanceof AuthenticationError) {
+          throw syncError;
+        }
+        // For other errors, we just log them but still return the local result
       }
     }
     
@@ -129,16 +136,22 @@ export async function deleteExerciseById(id: string, realm: Realm): Promise<void
         if (!response.ok) {
           console.warn(`Failed to delete exercise with ID ${id} from server: ${response.status} ${response.statusText}`);
           
-          // If unauthorized, log it specifically
+          // If unauthorized, throw an AuthenticationError
           if (response.status === 401 || response.status === 403) {
             console.error('Authentication failed when deleting exercise from server');
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           }
         } else {
           console.log(`Successfully deleted exercise with ID ${id} from server`);
         }
       } catch (syncError) {
         console.warn(`Failed to sync deletion of exercise with ID ${id}:`, syncError);
-        // This doesn't affect the local deletion, it just means we'll have inconsistency with the server
+        
+        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
+        if (syncError instanceof AuthenticationError) {
+          throw syncError;
+        }
+        // For other errors, we just log them but don't rethrow
       }
     }
   } catch (error) {
