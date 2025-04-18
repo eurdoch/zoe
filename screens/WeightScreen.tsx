@@ -229,19 +229,20 @@ const WeightScreen = () => {
         backdropStyle={styles.backdrop}
         onBackdropPress={() => setWeightModalVisible(false)}
       >
-        <Card disabled>
+        <Card disabled style={styles.modalCard}>
           {selectedWeight ? (
             <View style={styles.modalContainer}>
-              <Text category="h6">{formatTime(selectedWeight.createdAt)}</Text>
-              <Text category="s1" style={styles.modalWeightValue}>{selectedWeight.value.toString()} lbs</Text>
+              <View style={styles.modalInfoRow}>
+                <Text category="h6" style={styles.dateText}>{formatTime(selectedWeight.createdAt)}</Text>
+                <Text category="h6" style={styles.modalWeightValue}>{selectedWeight.value.toString()} lbs</Text>
+              </View>
               <Button
+                style={styles.deleteButton}
                 status="danger"
                 appearance="ghost"
                 accessoryLeft={DeleteIcon}
                 onPress={handleDeleteWeight}
-              >
-                DELETE
-              </Button>
+              />
             </View>
           ) : (
             <View style={styles.modalContainer}>
@@ -276,6 +277,21 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 8,
   },
+  modalInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  deleteButton: {
+    marginTop: 8,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  modalCard: {
+    width: 'auto',
+  },
   input: {
     marginBottom: 16,
     width: '100%',
@@ -292,7 +308,10 @@ const styles = StyleSheet.create({
   modalWeightValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginVertical: 12,
+    marginLeft: 12,
+  },
+  dateText: {
+    fontWeight: 'normal',
   },
   floatingButton: {
     position: 'absolute',
