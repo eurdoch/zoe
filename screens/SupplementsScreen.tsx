@@ -191,15 +191,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     }
   }
 
-  // Get today's date in MM/DD/YYYY format
-  const getTodayDate = () => {
-    const today = new Date();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    const year = today.getFullYear();
-    return `${month}/${day}/${year}`;
-  }
-
   // Calculate slide up transform
   const slideUpTransform = {
     transform: [
@@ -522,11 +513,11 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: 300, // Same height as the panel
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    bottom: 400, // Same height as the panel
+    backgroundColor: 'transparent',
   },
   slideUpPanel: {
-    height: 300,
+    height: 400,
   },
   slideUpHeader: {
     flexDirection: 'row',
@@ -535,7 +526,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   recentCard: {
-    height: 300,
+    height: 400,
     width: '100%',
   },
   transparentList: {
