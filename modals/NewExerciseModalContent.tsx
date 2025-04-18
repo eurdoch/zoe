@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Button, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Input, Button, Text } from "@ui-kitten/components";
 import { convertToDatabaseFormat } from "../utils";
 import Toast from "react-native-toast-message";
 import DropdownItem from "../types/DropdownItem";
@@ -39,19 +40,38 @@ const NewExerciseModalContent = ({
     }
   }
 
+  const handleCancel = () => {
+    setValue('');
+    setModalVisible(false);
+  };
+
   return (
-    <View>
-      <TextInput
+    <View style={styles.container}>
+      <Text category="h6" style={styles.title}>Add New Exercise</Text>
+      <Input
         placeholder="Enter new exercise name"
         value={value}
         onChangeText={(text) => setValue(text)}
         style={styles.input}
+        autoFocus
       />
-      <Button
-        title="Add"
-        onPress={handleAddNewExerciseOption}
-        color="#007AFF"
-      />
+      <View style={styles.buttonContainer}>
+        <Button
+          onPress={handleCancel}
+          appearance="outline"
+          status="basic"
+          style={styles.cancelButton}
+        >
+          CANCEL
+        </Button>
+        <Button
+          onPress={handleAddNewExerciseOption}
+          status="primary"
+          style={styles.addButton}
+        >
+          ADD
+        </Button>
+      </View>
     </View>
   );
 }
@@ -59,13 +79,28 @@ const NewExerciseModalContent = ({
 export default NewExerciseModalContent;
 
 const styles = StyleSheet.create({
+  container: {
+    width: 280,
+    padding: 8,
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
   input: {
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-    fontSize: 16,
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
+  },
+  addButton: {
+    flex: 1,
+    marginLeft: 8,
   },
 });
 

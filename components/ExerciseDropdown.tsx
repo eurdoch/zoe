@@ -21,7 +21,11 @@ const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDro
       return; // We're not using multi-select
     }
     
+    console.log("Selected index:", index.row);
+    console.log("Dropdown items:", dropdownItems);
     const selected = dropdownItems[index.row];
+    console.log("Selected item:", selected);
+    
     onChange(selected);
   };
   

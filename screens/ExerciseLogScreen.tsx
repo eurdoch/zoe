@@ -168,13 +168,26 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }
 
   const onDropdownChange = (item: DropdownItem) => {
+    console.log("Dropdown change:", item);
+    
     if (item.value === "new_exercise") {
+      console.log("Setting modalKey to newExercise");
+      
+      // Set modal key before making modal visible
       setModalKey("newExercise");
-      setModalVisible(true);
-    } else {
-      setSelectedItem(item);
-      handleSelect(item);
+      
+      // Use setTimeout to ensure state update happens first
+      setTimeout(() => {
+        setModalVisible(true);
+      }, 100);
+      
+      // Return early to prevent setting this as selected item
+      return;
     }
+    
+    // For regular exercise items
+    setSelectedItem(item);
+    handleSelect(item);
   }
 
   const renderAddButton = () => (
@@ -204,11 +217,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   return (
     <Layout style={styles.container}>
-      <ExerciseDropdown 
-        dropdownItems={dropdownItems}
-        onChange={onDropdownChange} 
-        selectedItem={selectedItem}
-      />
+      <View style={styles.dropdownContainer}>
+        <ExerciseDropdown 
+          dropdownItems={dropdownItems}
+          onChange={onDropdownChange} 
+          selectedItem={selectedItem}
+        />
+      </View>
       
       {data && selectedItem && (
         <>
@@ -237,25 +252,36 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       <Modal
         visible={modalVisible}
         backdropStyle={styles.backdrop}
-        onBackdropPress={() => setModalVisible(false)}
+        onBackdropPress={() => {
+          console.log("Modal backdrop pressed");
+          setModalVisible(false);
+        }}
       >
         <Card disabled>
-          {modalKey && modalKey === "newExercise" ? 
-            <NewExerciseModalContent
-              setData={setData}
-              setDropdownItems={setDropdownItems}
-              dropdownItems={dropdownItems}
-              setSelectedItem={setSelectedItem}
-              setModalVisible={setModalVisible}
-            /> :
-            currentExercisePoint && (
+          {console.log("Modal rendered. modalKey:", modalKey)}
+          {modalKey === "newExercise" ? (
+            <>
+              {console.log("Rendering NewExerciseModalContent")}
+              <NewExerciseModalContent
+                setData={setData}
+                setDropdownItems={setDropdownItems}
+                dropdownItems={dropdownItems}
+                setSelectedItem={setSelectedItem}
+                setModalVisible={setModalVisible}
+              />
+            </>
+          ) : currentExercisePoint ? (
+            <>
+              {console.log("Rendering ExerciseModalContent")}
               <ExerciseModalContent
                 setModalVisible={setModalVisible}
                 reloadData={reloadData}
                 entry={currentExercisePoint}
               />
-            )
-          }
+            </>
+          ) : (
+            <Text>No content to display</Text>
+          )}
         </Card>
       </Modal>
       
@@ -283,6 +309,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  dropdownContainer: {
+    marginBottom: 16,
+  },
+  addNewButton: {
+    marginTop: 8,
   },
   card: {
     marginVertical: 8,
