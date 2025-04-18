@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Button } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
+import { 
+  Layout, 
+  Text, 
+  Input, 
+  Button, 
+  CheckBox, 
+  Card, 
+  Divider,
+  List,
+  ListItem
+} from '@ui-kitten/components';
 import { getExerciseNames } from '../network/exercise';
 import { convertFromDatabaseFormat } from '../utils';
 import { postWorkout } from '../network/workout';
@@ -20,7 +31,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     getExerciseNames(realm).then((names: string[]) => {
       setAvailableExercises(names);
     });
-  });
+  }, [realm]); // Add dependency array to prevent continuous re-rendering
 
   const handleWorkoutPress = (workout: string) => {
     if (selectedExercises.includes(workout)) {
@@ -58,32 +69,55 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     }
   };
 
+  const renderExerciseItem = (exercise: string, index: number) => (
+    <ListItem
+      key={index}
+      title={convertFromDatabaseFormat(exercise)}
+      accessoryRight={() => (
+        <CheckBox
+          checked={selectedExercises.includes(exercise)}
+          onChange={() => handleWorkoutPress(exercise)}
+        />
+      )}
+      onPress={() => handleWorkoutPress(exercise)}
+      style={[
+        styles.listItem,
+        selectedExercises.includes(exercise) && styles.selectedItem
+      ]}
+    />
+  );
+
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter workout name"
-        value={workoutName}
-        onChangeText={setWorkoutName}
-      />
-      <Button title="Add Workout" onPress={handleAddWorkout} />
-      <ScrollView>
-        { availableExercises.map((exercise: string, index: number) => 
-          <TouchableOpacity 
-            style={[
-              styles.listItem, 
-              selectedExercises.includes(exercise) && styles.selectedItem
-            ]} 
-            onPress={() => handleWorkoutPress(exercise)} 
-            key={index}
-          >
-            <Text style={styles.exerciseText}>
-              {convertFromDatabaseFormat(exercise)}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
-    </View>
+    <Layout style={styles.container}>
+      <Card style={styles.formCard}>
+        <Text category="h6" style={styles.cardTitle}>Create New Workout</Text>
+        <Input
+          style={styles.input}
+          placeholder="Enter workout name"
+          value={workoutName}
+          onChangeText={setWorkoutName}
+          label="Workout Name"
+          size="large"
+        />
+        <Button 
+          style={styles.addButton}
+          onPress={handleAddWorkout}
+          status="primary"
+        >
+          ADD WORKOUT
+        </Button>
+      </Card>
+      
+      <Card style={styles.exercisesCard}>
+        <Text category="h6" style={styles.cardTitle}>Select Exercises</Text>
+        <Divider style={styles.divider} />
+        <List
+          data={availableExercises}
+          renderItem={({ item, index }) => renderExerciseItem(item, index)}
+          style={styles.list}
+        />
+      </Card>
+    </Layout>
   );
 };
 
@@ -91,39 +125,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#f5f5f5',
   },
-  workoutItem: {
-    padding: 12,
-    backgroundColor: '#f0f0f0',
-    marginVertical: 8,
-    borderRadius: 8,
+  formCard: {
+    marginBottom: 16,
   },
-  selectedWorkoutItem: {
-    backgroundColor: '#00ff00',
+  exercisesCard: {
+    flex: 1,
   },
-  selectedWorkoutsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 16,
-  },
-  exerciseText: {
-    fontSize: 30,
-  },
-  listItem: {
-    padding: 12,
-    backgroundColor: '#f0f0f0',
-    marginVertical: 8,
-    borderRadius: 8,
-  },
-  selectedItem: {
-    backgroundColor: '#00ff00',
+  cardTitle: {
+    marginBottom: 16,
+    textAlign: 'center',
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
     marginBottom: 16,
-    paddingHorizontal: 8,
+  },
+  addButton: {
+    marginTop: 8,
+  },
+  divider: {
+    marginBottom: 8,
+  },
+  list: {
+    maxHeight: '100%',
+  },
+  listItem: {
+    borderRadius: 4,
+    marginVertical: 4,
+  },
+  selectedItem: {
+    backgroundColor: '#eafbea',
   },
 });
 
