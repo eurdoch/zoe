@@ -3,15 +3,11 @@ import { StyleSheet, View, GestureResponderEvent } from 'react-native';
 import { 
   Layout, 
   Button, 
-  Text, 
   Card, 
-  List, 
-  ListItem, 
   Modal, 
   Icon,
   TopNavigationAction,
   Input,
-  Divider
 } from '@ui-kitten/components';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
@@ -20,6 +16,8 @@ import ExerciseDropdown from '../components/ExerciseDropdown';
 import DropdownItem from '../types/DropdownItem';
 import { getExerciseNames } from '../network/exercise';
 import { useRealm } from '@realm/react';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface WorkoutScreenProps {
   navigation: any;
@@ -34,9 +32,41 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
   const realm = useRealm();
+  
+  // Function to handle authentication errors
+  const handleAuthError = async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token from AsyncStorage
+    try {
+      await AsyncStorage.removeItem('token');
+      console.log('Token removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (storageError) {
+      console.error('Error removing token from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  };
 
-  const handleDeleteWorkout = () => {
-    deleteWorkout(route.params.workout._id, realm).then(() => navigation.goBack());
+  const handleDeleteWorkout = async () => {
+    try {
+      await deleteWorkout(route.params.workout._id, realm);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      
+      if (error instanceof AuthenticationError) {
+        handleAuthError(error);
+      } else {
+        showToastError('Could not delete workout, please try again.');
+      }
+    }
   }
 
   const DeleteIcon = (props: any) => (
@@ -70,20 +100,46 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     })
   }, [navigation, isEditMode]);
 
-  const handleDeleteExercise = (index: number) => {
+  const handleDeleteExercise = async (index: number) => {
     if (workoutEntry) {
-      const newExercises = [...workoutEntry.exercises];
-      newExercises.splice(index, 1);
-      const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
-      updateWorkout(newWorkoutEntry, realm).then(updatedWorkout => {
+      try {
+        const newExercises = [...workoutEntry.exercises];
+        newExercises.splice(index, 1);
+        const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
+        
+        const updatedWorkout = await updateWorkout(newWorkoutEntry, realm);
         setWorkoutEntry(updatedWorkout);
         showToastInfo('Exercise removed.');
-      }).catch(console.log);
+      } catch (error) {
+        console.error('Error deleting exercise from workout:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not remove exercise, please try again.');
+        }
+      }
     }
   }
 
   useEffect(() => {
-    getWorkout(route.params.workout._id, realm).then(w => setWorkoutEntry(w));
+    const loadWorkout = async () => {
+      try {
+        const w = await getWorkout(route.params.workout._id, realm);
+        setWorkoutEntry(w);
+      } catch (error) {
+        console.error('Error loading workout:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not load workout, please try again.');
+        }
+      }
+    };
+    
+    loadWorkout();
+    
     getExerciseNames(realm)
       .then(names => {
         const sortedNames = names
@@ -99,9 +155,14 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
           ...sortedNames
         ]);
       })
-      .catch(err => {
-        showToastError('Could not get exercises, please try again.');
-        console.log(err);
+      .catch(error => {
+        console.error('Error loading exercise names:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not get exercises, please try again.');
+        }
       });
   }, []);
 
@@ -109,7 +170,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     navigation.navigate('ExerciseLog', { name: exerciseName })
   }
 
-  const handleAddToWorkout = (_e: any) => {
+  const handleAddToWorkout = async (_e: any) => {
     if (selectedItem && workoutEntry) {
       const newWorkoutEntry = {
         _id: workoutEntry._id,
@@ -121,14 +182,23 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         ],
         createdAt: Math.floor(Date.now() / 1000)
       };
+      
       try {
-        updateWorkout(newWorkoutEntry, realm).then(result => {
-          setWorkoutEntry(newWorkoutEntry);
-        });
-      } catch (_e: any) {
-        showToastError('Exercise could not be added, try again.');
+        const result = await updateWorkout(newWorkoutEntry, realm);
+        setWorkoutEntry(newWorkoutEntry);
+        showToastInfo('Exercise added to workout.');
+      } catch (error) {
+        console.error('Error adding exercise to workout:', error);
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+          return; // Stop further execution if we're redirecting to login
+        } else {
+          showToastError('Exercise could not be added, try again.');
+        }
       }
     }
+    
     setIsEditMode(false);
     setSelectedItem(undefined);
     setNewExerciseName('');
