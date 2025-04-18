@@ -202,7 +202,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
     <Button
       style={styles.floatingButton}
       status="primary"
-      accessoryLeft={(props) => <Icon {...props} name="plus-outline" />}
+      accessoryLeft={(props) => <Icon {...props} name="plus-outline" style={styles.buttonIcon} />}
       onPress={() => setModalVisible(true)}
     />
   );
@@ -211,7 +211,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation}: Supple
     <Button
       style={styles.historyButton}
       status="success"
-      accessoryLeft={(props) => <Icon {...props} name="clock-outline" />}
+      accessoryLeft={(props) => <Icon {...props} name="clock-outline" style={styles.buttonIcon} />}
       onPress={() => {
         // Fetch the last 10 supplement entries and show in slide-up panel
         getSupplement(realm, undefined, undefined, 20)
@@ -429,9 +429,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 24,
     bottom: 24,
-    borderRadius: 28,
-    width: 56,
-    height: 56,
+    borderRadius: 35,
+    width: 70,
+    height: 70,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -442,9 +442,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 24,
     bottom: 24,
-    borderRadius: 28,
-    width: 56,
-    height: 56,
+    borderRadius: 35,
+    width: 70,
+    height: 70,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -489,6 +489,10 @@ const styles = StyleSheet.create({
   modalCard: {
     width: Dimensions.get('window').width * 0.9,
     maxWidth: 500,
+  },
+  buttonIcon: {
+    width: 32,
+    height: 32,
   },
 });
 
