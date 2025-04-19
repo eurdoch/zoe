@@ -27,14 +27,14 @@ export default function exerciseRoutes(exerciseCollection) {
     const query = name ? { ...baseQuery, name } : id ? { ...baseQuery, _id: id } : baseQuery;
     
     try {
-      if (!name && !id) {
+      if (!name) {
         console.log(`GET /exercise - fetching all exercises for user: ${userId}`);
         const exercises = await exerciseCollection.find(baseQuery).toArray();
         res.json(exercises);
       } else {
         console.log(`GET /exercise?${new URLSearchParams(req.query)} for user: ${userId}`);
-        const exercise = await exerciseCollection.findOne(query);
-        res.json(exercise);
+        const exercises = await exerciseCollection.find(query).toArray();
+        res.json(exercises);
       }
     } catch (err) {
       console.error(`Error fetching exercises: ${err}`);
