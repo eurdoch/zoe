@@ -11,4 +11,5 @@ export default interface Food {
     protein: number;
   };
   createdAt: number;
+  user_id?: string; // Optional for backward compatibility, but will be required in DB
 }

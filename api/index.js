@@ -88,11 +88,11 @@ async function connectToDatabase() {
     });
 
     // Public routes (no authentication required)
-    app.use('/food', foodRoutes(foodCollection));
     app.use('/nutritionimg', nutritionParserRoutes());
     app.use('/verify', verificationRoutes(userCollection));
     
     // Protected routes (require JWT authentication)
+    app.use('/food', authenticateToken, foodRoutes(foodCollection));
     app.use('/exercise', authenticateToken, exerciseRoutes(exerciseCollection));
     app.use('/workout', authenticateToken, workoutRoutes(workoutCollection));
     app.use('/weight', authenticateToken, weightRoutes(weightCollection));
