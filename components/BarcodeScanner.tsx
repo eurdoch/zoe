@@ -30,8 +30,8 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
           // Log the product data to console
           console.log('Scanned product data:', productResponse);
           
-          // Navigate back to DietScreen
-          navigation.navigate('Diet', { productResponse: productResponse });
+          // Navigate back to DietScreen with product data
+          navigation.navigate('Diet', { scannedProduct: productResponse });
         } catch(err: any) {
           if (err instanceof NetworkError) {
             showToastError("Product could not be found.");

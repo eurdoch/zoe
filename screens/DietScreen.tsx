@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
-import FloatingActionButton from '../components/FloatingActionButton';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
+import MacroCalculator from '../components/MacroCalculator';
 import { Icon } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 
@@ -21,6 +21,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo | null>(null);
+  const [scannedProduct, setScannedProduct] = useState<any>(null);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
   
   // Animation values for the expanding FAB menu
@@ -44,6 +45,13 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         loadData();
         if (route.params?.nutritionInfo) {
           setNutritionInfo(route.params.nutritionInfo);
+          setScannedProduct(null);
+          setDeleteEntry(null);
+          setModalVisible(true);
+        }
+        else if (route.params?.scannedProduct) {
+          setScannedProduct(route.params.scannedProduct);
+          setNutritionInfo(null);
           setDeleteEntry(null);
           setModalVisible(true);
         }
@@ -267,6 +275,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           nutritionInfo && (
             <MacroByLabelCalculator loadDat={loadData} setModalVisible={setModalVisible} nutritionInfo={nutritionInfo} />
           ) 
+        }
+        {
+          scannedProduct && (
+            <MacroCalculator productResponse={scannedProduct} setModalVisible={setModalVisible} />
+          )
         }
       </CustomModal>
     </View>

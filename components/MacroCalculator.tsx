@@ -69,6 +69,21 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
       macros: calculatedMacros,
       createdAt: Math.floor(Date.now() / 1000),
     };
+    
+    // Log product details and calculated macros to console
+    console.log('--- Product Nutrition Information ---');
+    console.log(`Product: ${productResponse.name}`);
+    if (productResponse.brand) {
+      console.log(`Brand: ${productResponse.brand}`);
+    }
+    console.log(`Amount: ${servingAmount} ${servingUnit}`);
+    console.log('Calculated Macros:');
+    console.log(`  Calories: ${calculatedMacros.calories}`);
+    console.log(`  Protein: ${calculatedMacros.protein}g`);
+    console.log(`  Carbs: ${calculatedMacros.carbs}g`);
+    console.log(`  Fat: ${calculatedMacros.fat}g`);
+    console.log(`  Fiber: ${calculatedMacros.fiber}g`);
+    
     const result = await postFood(newFood);
     if (result.acknowledged) {
       setModalVisible(false);
