@@ -7,6 +7,8 @@ import MacroCalculator from '../components/MacroCalculator';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
+import { Text } from 'react-native-svg';
+import { Icon } from '@ui-kitten/components';
 
 interface DietLogScreenProps {
   route: any;
@@ -97,6 +99,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             onSubmitEditing={handleSearchByText}
           />
           <TouchableOpacity style={styles.searchButton} onPress={handleSearchByText}>
+            <Text>Search</Text>
           </TouchableOpacity>
         </View>
         {isLoading ? (
@@ -113,9 +116,17 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
           </ScrollView>
         )}
         <View style={styles.iconTray}>
-          <TouchableOpacity onPress={() => navigation.navigate('BarcodeScanner')}>
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            onPress={() => navigation.navigate('BarcodeScanner')}
+          >
+            <Icon name='camera-outline' style={styles.icon} fill='#007AFF' />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('NutritionLabelParser')}>
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            onPress={() => navigation.navigate('NutritionLabelParser')}
+          >
+            <Icon name='file-text-outline' style={styles.icon} fill='#007AFF' />
           </TouchableOpacity>
         </View>
       </View>
@@ -178,6 +189,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     gap: 20,
+  },
+  iconButton: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  icon: {
+    width: 28,
+    height: 28,
   },
   loadingContainer: {
     flex: 1,

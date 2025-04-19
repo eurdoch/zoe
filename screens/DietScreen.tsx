@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -7,6 +7,7 @@ import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
+import { Icon } from '@ui-kitten/components';
 
 interface DietScreenProps {
   navigation: any;
@@ -19,6 +20,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo | null>(null);
+  const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
+  
+  // Animation values for the expanding FAB menu
+  const animation = useState(new Animated.Value(0))[0];
 
   const loadData = () => {
     const today = Math.floor(Date.now() / 1000);
@@ -64,7 +69,20 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setModalVisible(true);
   }
 
-  // TODO add dropdown menu with search so dropdown is filled with search results on autocomplete
+  const toggleFabMenu = () => {
+    const toValue = isFabMenuOpen ? 0 : 1;
+    Animated.spring(animation, {
+      toValue,
+      friction: 5,
+      useNativeDriver: true,
+    }).start();
+    setIsFabMenuOpen(!isFabMenuOpen);
+  };
+
+  const navigateToScreen = (screen: string) => {
+    toggleFabMenu();
+    navigation.navigate(screen);
+  };
   return (
     <View style={styles.rootContainer}>
       <View style={styles.headerContainer}>
@@ -78,12 +96,110 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             <View style={styles.rightSection}>
               <Text style={{fontSize: 18}}>{entry.macros.calories}</Text>
               <TouchableOpacity onPress={() => checkDelete(entry)}>
+                <Icon name="trash-2-outline" style={{width: 24, height: 24}} fill="#FF3B30" />
               </TouchableOpacity>
             </View>
           </View>
         ))}
       </ScrollView>
-      <FloatingActionButton onPress={() => navigation.navigate('DietLog')} />
+      {/* Expanded FAB menu buttons */}
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 220,
+            transform: [
+              { scale: animation },
+              { 
+                translateY: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: animation
+          }
+        ]}
+      >
+        <TouchableOpacity 
+          style={styles.fabMenuButton} 
+          onPress={() => navigateToScreen('DietLog')}
+        >
+          <Icon name='search-outline' style={styles.fabMenuIcon} fill='white' />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 155,
+            transform: [
+              { scale: animation },
+              { 
+                translateY: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: animation
+          }
+        ]}
+      >
+        <TouchableOpacity 
+          style={styles.fabMenuButton} 
+          onPress={() => navigateToScreen('NutritionLabelParser')}
+        >
+          <Icon name='file-text-outline' style={styles.fabMenuIcon} fill='white' />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 90,
+            transform: [
+              { scale: animation },
+              { 
+                translateY: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: animation
+          }
+        ]}
+      >
+        <TouchableOpacity 
+          style={styles.fabMenuButton} 
+          onPress={() => navigateToScreen('BarcodeScanner')}
+        >
+          <Icon name='camera-outline' style={styles.fabMenuIcon} fill='white' />
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Main FAB button */}
+      <TouchableOpacity 
+        style={[styles.fab, isFabMenuOpen ? styles.fabActive : null]} 
+        onPress={toggleFabMenu}
+      >
+        <Animated.View style={{
+          transform: [
+            { 
+              rotate: animation.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0deg', '45deg']
+              })
+            }
+          ]
+        }}>
+          <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
+        </Animated.View>
+      </TouchableOpacity>
+
       <CustomModal
         visible={modalVisible}
         setVisible={setModalVisible}
@@ -142,6 +258,55 @@ const styles = StyleSheet.create({
   },
   rootContainer: {
     flex: 1,
+  },
+  // FAB and FAB menu styles
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 999,
+  },
+  fabActive: {
+    backgroundColor: '#FF3B30',
+  },
+  fabIcon: {
+    width: 30,
+    height: 30,
+  },
+  fabMenuItem: {
+    position: 'absolute',
+    right: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 998,
+  },
+  fabMenuButton: {
+    backgroundColor: '#007AFF',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  fabMenuIcon: {
+    width: 30,
+    height: 30,
   }
 });
 export default DietScreen;
