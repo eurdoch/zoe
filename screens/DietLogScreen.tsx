@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
@@ -7,7 +7,19 @@ import MacroCalculator from '../components/MacroCalculator';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
-import { Text } from 'react-native-svg';
+import { 
+  Layout, 
+  Text, 
+  Input, 
+  Button, 
+  Icon, 
+  Spinner, 
+  List, 
+  ListItem, 
+  Card,
+  Divider,
+  TopNavigation
+} from '@ui-kitten/components';
 
 interface DietLogScreenProps {
   route: any;
@@ -86,44 +98,70 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
     setModalVisible(true);
   }
 
+  const renderItem = ({ item, index }) => (
+    <Card
+      style={styles.card}
+      onPress={() => handleFoodOptionPress(item)}
+      status='basic'
+    >
+      <FoodOptionComponent option={item} />
+    </Card>
+  );
+
+  const searchIcon = (props) => (
+    <Icon {...props} name='search' />
+  );
+
   return (
-    <>
-      <View style={styles.container}>
-        <View style={styles.searchBar}>
-          <TextInput
-            style={styles.input}
-            onChangeText={setSearchText}
-            value={searchText}
-            placeholder="Search for food"
-            onSubmitEditing={handleSearchByText}
-          />
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearchByText}>
-            <Text>Search</Text>
-          </TouchableOpacity>
-        </View>
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" />
-          </View>
-        ) : (
-          <ScrollView>
-            {foodOptions.map((option, index) => (
-              <TouchableOpacity key={index} onPress={() => handleFoodOptionPress(option)}>
-                <FoodOptionComponent option={option} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-      </View>
+    <Layout style={styles.container}>
+      <TopNavigation
+        title="Food Search"
+        alignment="center"
+      />
+      <Divider />
+      
+      <Layout style={styles.searchBar}>
+        <Input
+          style={styles.input}
+          value={searchText}
+          placeholder="Search for food"
+          onChangeText={setSearchText}
+          onSubmitEditing={handleSearchByText}
+          accessoryRight={searchIcon}
+          size="large"
+        />
+        <Button
+          onPress={handleSearchByText}
+          style={styles.searchButton}
+          appearance="filled"
+          status="primary"
+        >
+          Search
+        </Button>
+      </Layout>
+      
+      {isLoading ? (
+        <Layout style={styles.loadingContainer}>
+          <Spinner size="large" status="primary" />
+        </Layout>
+      ) : (
+        <List
+          style={styles.list}
+          data={foodOptions}
+          renderItem={renderItem}
+          keyExtractor={(_, index) => index.toString()}
+        />
+      )}
+      
       <CustomModal
         visible={modalVisible}
         setVisible={setModalVisible}
       >
         {
           isModalLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" />
-            </View>
+            <Layout style={styles.loadingContainer}>
+              <Spinner size="large" status="primary" />
+            </Layout>
           ) : (
             <>
               {modalContent === 'product' && (
@@ -139,34 +177,36 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
           )
         }
       </CustomModal>
-    </>
+    </Layout>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    width: Dimensions.get("window").width - 20,
-    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    width: Dimensions.get("window").width,
   },
   input: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 10,
     flex: 1,
+    marginRight: 8,
   },
   searchButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 4,
+  },
+  list: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  card: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 8,
   },
   loadingContainer: {
     flex: 1,
