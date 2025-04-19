@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError } from '../utils';
 import MacroCalculator from '../components/MacroCalculator';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
@@ -98,7 +97,6 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             onSubmitEditing={handleSearchByText}
           />
           <TouchableOpacity style={styles.searchButton} onPress={handleSearchByText}>
-            <MaterialCommunityIcons name="magnify" size={24} color="white" />
           </TouchableOpacity>
         </View>
         {isLoading ? (
@@ -116,10 +114,8 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         )}
         <View style={styles.iconTray}>
           <TouchableOpacity onPress={() => navigation.navigate('BarcodeScanner')}>
-            <MaterialCommunityIcons name="barcode-scan" size={60} color="black" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('NutritionLabelParser')}>
-            <MaterialCommunityIcons name="alpha-n-box" size={60} color="black" />
           </TouchableOpacity>
         </View>
       </View>

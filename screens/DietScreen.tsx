@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button } from 're
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import FloatingActionButton from '../components/FloatingActionButton';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
@@ -79,7 +78,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             <View style={styles.rightSection}>
               <Text style={{fontSize: 18}}>{entry.macros.calories}</Text>
               <TouchableOpacity onPress={() => checkDelete(entry)}>
-                <MaterialCommunityIcons name="delete" size={18} />
               </TouchableOpacity>
             </View>
           </View>

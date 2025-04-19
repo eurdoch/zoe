@@ -3,7 +3,6 @@ import {StyleSheet, Text, View, TouchableOpacity, Dimensions} from "react-native
 import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomModal from "../CustomModal";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
@@ -82,7 +81,6 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.cancelButton} onPress={() => setCameraActive(false)}>
-        <Icon name="close" size={30} color="#fff" />
       </TouchableOpacity>
       <CustomModal visible={modalVisible} setVisible={setModalVisible}>
         <Text>hello</Text>

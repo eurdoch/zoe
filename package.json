@@ -1,6 +1,6 @@
 {
   "name": "zotik",
-  "version": "0.0.1",
+  "version": "0.0.9-beta",
   "private": true,
   "scripts": {
     "android": "tsc --noEmit && react-native run-android",
@@ -38,7 +38,6 @@
     "react-native-screens": "^4.10.0",
     "react-native-svg": "^15.11.2",
     "react-native-toast-message": "^2.2.1",
-    "react-native-vector-icons": "^10.2.0",
     "react-native-vision-camera": "^4.6.4",
     "realm": "^12.14.1",
     "twilio": "^5.5.1",
