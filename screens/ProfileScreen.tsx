@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Button, Card, Layout } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../config';
 
 interface User {
+  user_id?: string;
   name: string;
   email: string;
-  createdAt?: string;
+  premium?: boolean;
+  created_at?: string;
+  last_login?: string;
 }
 
 const ProfileScreen = () => {
@@ -14,26 +18,64 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUserData = async () => {
+    const fetchUserData = async () => {
       try {
-        const userData = await AsyncStorage.getItem('user');
-        if (userData) {
-          setUser(JSON.parse(userData));
+        // First try to fetch from API
+        const token = await AsyncStorage.getItem('token');
+        
+        if (token) {
+          // Make API request to fetch user data
+          const response = await fetch(`${API_URL}/auth/user`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+            // Update local storage with the latest user data
+            await AsyncStorage.setItem('user', JSON.stringify(userData));
+          } else {
+            // If API call fails, fall back to local storage
+            const userData = await AsyncStorage.getItem('user');
+            if (userData) {
+              setUser(JSON.parse(userData));
+            }
+          }
+        } else {
+          // No token, try local storage
+          const userData = await AsyncStorage.getItem('user');
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error fetching user data:', error);
+        // If network error, try local storage as fallback
+        try {
+          const userData = await AsyncStorage.getItem('user');
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
+        } catch (localError) {
+          console.error('Error loading local user data:', localError);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserData();
+    fetchUserData();
   }, []);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading profile...</Text>
+        <ActivityIndicator size="large" color="#3366FF" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
   }
@@ -54,21 +96,27 @@ const ProfileScreen = () => {
             <Text style={styles.title}>Profile</Text>
           </View>
           
-          <View style={styles.infoContainer}>
-            <Text style={styles.label}>Name</Text>
-            <Text style={styles.value}>{user.name}</Text>
-          </View>
-          
-          <View style={styles.infoContainer}>
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{user.email}</Text>
-          </View>
+          {user.premium !== undefined && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.label}>Account Type</Text>
+              <Text style={styles.value}>{user.premium ? 'Premium' : 'Free'}</Text>
+            </View>
+          )}
 
-          {user.createdAt && (
+          {user.created_at && (
             <View style={styles.infoContainer}>
               <Text style={styles.label}>Member Since</Text>
               <Text style={styles.value}>
-                {new Date(user.createdAt).toLocaleDateString()}
+                {new Date(user.created_at).toLocaleDateString()}
+              </Text>
+            </View>
+          )}
+
+          {user.last_login && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.label}>Last Login</Text>
+              <Text style={styles.value}>
+                {new Date(user.last_login).toLocaleDateString()}
               </Text>
             </View>
           )}
@@ -87,6 +135,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#8F9BB3',
   },
   profileContainer: {
     padding: 16,

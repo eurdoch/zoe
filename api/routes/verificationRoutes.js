@@ -2,6 +2,7 @@ import express from 'express';
 import twilio from 'twilio';
 import { MongoClient } from 'mongodb';
 import jwt from 'jsonwebtoken';
+import authenticateToken from '../middleware/auth.js';
 
 // Initialize Twilio client at module level
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -248,6 +249,46 @@ export default function verificationRoutes(userCollection) {
       console.error('Error checking verification code:', error);
       res.status(500).json({
         error: error.message || 'Failed to check verification code'
+      });
+    }
+  });
+
+  // Get user information route
+  router.get('/user', authenticateToken, async (req, res) => {
+    try {
+      // Extract user_id from the authenticated token
+      const { user_id } = req.user;
+      
+      if (!user_id) {
+        return res.status(400).json({ error: 'Invalid user token' });
+      }
+
+      // Look up user in the database
+      if (userCollection) {
+        const user = await userCollection.findOne({ user_id });
+        
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Return user information, excluding sensitive data
+        res.status(200).json({
+          user_id: user.user_id,
+          name: user.name || '',
+          email: user.email || '',
+          premium: user.premium || false,
+          created_at: user.created_at,
+          last_login: user.last_login,
+          // Add any other non-sensitive user fields as needed
+        });
+      } else {
+        // If no database connection, return error
+        res.status(503).json({ error: 'Database service unavailable' });
+      }
+    } catch (error) {
+      console.error('Error getting user information:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to retrieve user information'
       });
     }
   });
