@@ -212,7 +212,7 @@ export const handleLogout = async (navigation: NavigationProp<any>) => {
   }
 };
 
-// Header Right component with three dots menu
+// Header Right component with dropdown menu
 export const HomeScreenHeaderRight: React.FC<{ navigation: NavigationProp<any> }> = ({ navigation }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   
@@ -242,6 +242,11 @@ export const HomeScreenHeaderRight: React.FC<{ navigation: NavigationProp<any> }
     />
   );
   
+  const navigateToProfile = () => {
+    setMenuVisible(false);
+    navigation.navigate('Profile');
+  };
+  
   return (
     <OverflowMenu
       anchor={renderMenuAction}
@@ -249,6 +254,11 @@ export const HomeScreenHeaderRight: React.FC<{ navigation: NavigationProp<any> }
       onBackdropPress={() => setMenuVisible(false)}
       placement="bottom end"
     >
+      <MenuItem
+        title="Profile"
+        accessoryLeft={(props) => <Icon {...props} name="person-outline" />}
+        onPress={navigateToProfile}
+      />
       <MenuItem
         title="Logout"
         accessoryLeft={(props) => <Icon {...props} name="log-out-outline" fill="#ff6b6b" />}

@@ -16,6 +16,7 @@ import { convertFromDatabaseFormat } from './utils';
 import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
 import SupplementScreen from './screens/SupplementsScreen';
+import ProfileScreen from './screens/ProfileScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import NutritionLabelParser from './components/NutritionLabelParser.tsx';
 import { Realm, RealmProvider } from '@realm/react';
@@ -40,6 +41,7 @@ type RootStackParamList = {
   Workout: { workout: { name: string } };
   Weight: undefined;
   Supplement: undefined;
+  Profile: undefined;
   BarcodeScanner: undefined;
   NutritionLabelParser: undefined;
 };
@@ -299,6 +301,14 @@ const App = () => {
                 component={NutritionLabelParser}
                 options={{
                   headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{
+                  title: "profile",
+                  headerTitleAlign: "center",
                 }}
               />
             </Stack.Navigator>
