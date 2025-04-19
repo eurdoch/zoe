@@ -1,7 +1,7 @@
 import NetworkError from "../errors/NetworkError";
 import MacroInfo from "../types/MacroInfo";
 import MacrosByServing from "../types/MacrosByServing";
-import OldProductResponse, { ProductResponse } from "../types/ProductResponse";
+import { ProductResponse } from "../types/ProductResponse";
 
 const VITALE_BOX_URL = "https://directto.link";
 
@@ -90,28 +90,6 @@ export const searchFoodItemByText = async (searchQuery: string, options: SearchO
 }
 
 /**
- * Parses a serving size string to extract the amount and unit
- * @param servingSize - Serving size string (e.g., "100 g", "1 cup (240 ml)")
- * @returns Object containing amount and unit
- */
-function parseServingSize(servingSize: string): { amount: number; unit: string } {
-  // Remove parenthetical content
-  const cleanServing = servingSize.replace(/\([^)]*\)/g, '').trim();
-  
-  // Extract number and unit
-  const match = cleanServing.match(/^([\d.]+)\s*([a-zA-Z]+)?/);
-  
-  if (!match) {
-    throw new Error(`Unable to parse serving size: ${servingSize}`);
-  }
-
-  return {
-    amount: parseFloat(match[1]),
-    unit: (match[2] || 'g').toLowerCase()
-  };
-}
-
-/**
  * Converts a serving amount to grams if necessary
  * @param amount - The amount to convert
  * @param unit - The unit to convert from
@@ -162,11 +140,11 @@ export function calculateMacrosByServing(
 
   // Calculate scaled macros, rounding to 1 decimal place
   const scaledMacros = {
-    calories: Math.round(nutriments['energy-kcal_100g'] * ratio * 10) / 10,
-    protein: Math.round(nutriments.proteins_100g * ratio * 10) / 10,
-    carbs: Math.round(nutriments.carbohydrates_100g * ratio * 10) / 10,
-    fat: Math.round(nutriments.fat_100g * ratio * 10) / 10,
-    fiber: Math.round(nutriments.fiber_100g * ratio * 10) / 10,
+    calories: Math.round(((nutriments['energy-kcal_100g'] || 0) * ratio * 10)) / 10,
+    protein: Math.round(((nutriments.proteins_100g || 0) * ratio * 10)) / 10,
+    carbs: Math.round(((nutriments.carbohydrates_100g || 0) * ratio * 10)) / 10,
+    fat: Math.round(((nutriments.fat_100g || 0) * ratio * 10)) / 10,
+    fiber: Math.round(((nutriments.fiber_100g || 0) * ratio * 10)) / 10,
   };
 
   return {
@@ -222,11 +200,11 @@ export async function getMacros(upc: string): Promise<MacroInfo> {
       servingSize: product.serving_size || null,
       brand: product.brands || null,
       macros: {
-        calories: Math.round(nutriments['energy-kcal_100g'] * 100) / 100,
-        protein: Math.round(nutriments.proteins_100g * 100) / 100,
-        carbs: Math.round(nutriments.carbohydrates_100g * 100) / 100,
-        fat: Math.round(nutriments.fat_100g * 100) / 100,
-        fiber: Math.round(nutriments.fiber_100g * 100) / 100,
+        calories: Math.round(((nutriments['energy-kcal_100g'] || 0) * 100)) / 100,
+        protein: Math.round(((nutriments.proteins_100g || 0) * 100)) / 100,
+        carbs: Math.round(((nutriments.carbohydrates_100g || 0) * 100)) / 100,
+        fat: Math.round(((nutriments.fat_100g || 0) * 100)) / 100,
+        fiber: Math.round(((nutriments.fiber_100g || 0) * 100)) / 100,
       },
     };
   } catch (error) {

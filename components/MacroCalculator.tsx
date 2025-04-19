@@ -73,7 +73,6 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
         fiber: 
           nutriments['fiber_100g'] || 
           nutriments['fibers_100g'] || 
-          nutriments['fiber'] || 
           nutriments['fibers'] || 0,
       };
     } else {
