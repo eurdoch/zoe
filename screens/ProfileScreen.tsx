@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Button, Card, Layout } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../config';
+import { BASE_API_URL } from '../config';
 
 interface User {
   user_id?: string;
@@ -25,7 +25,7 @@ const ProfileScreen = () => {
         
         if (token) {
           // Make API request to fetch user data
-          const response = await fetch(`${API_URL}/auth/user`, {
+          const response = await fetch(`${BASE_API_URL}/auth/user`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
