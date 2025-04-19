@@ -26,11 +26,18 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
         try {
           const item = await getFoodItemByUpc(upc);
           const productResponse = transformToProductResponse(item);
-          navigation.popTo('DietLog', { productResponse: productResponse });
+          
+          // Log the product data to console
+          console.log('Scanned product data:', productResponse);
+          
+          // Navigate back to DietScreen
+          navigation.navigate('Diet', { productResponse: productResponse });
         } catch(err: any) {
           if (err instanceof NetworkError) {
             showToastError("Product could not be found.");
             setCameraActive(false);
+            // Navigate back to DietScreen even on error
+            navigation.navigate('Diet');
           }
         }
       }
@@ -60,7 +67,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
 
   const closeCamera = () => {
     setCameraActive(true);
-    navigation.goBack();
+    navigation.navigate('Diet');
   }
 
   return (
