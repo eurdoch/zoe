@@ -94,13 +94,13 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
     setModalVisible(true);
   }
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item, index }: { item: any; index: number }) => (
     <TouchableOpacity onPress={() => handleFoodOptionPress(item)}>
       <FoodOptionComponent option={item} />
     </TouchableOpacity>
   );
 
-  const searchIcon = (props) => (
+  const searchIcon = (props: any) => (
     <Icon {...props} name='search' />
   );
 
