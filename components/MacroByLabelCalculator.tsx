@@ -25,7 +25,14 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: Mac
     try {
       const parsedAmount = parseFloat(amount);
       if (!isNaN(parsedAmount) && parsedAmount > 0) {
+        console.log("Calculating macros with input:", { 
+          amount: parsedAmount,
+          nutritionInfo: JSON.stringify(nutritionInfo, null, 2)
+        });
+        
         const macros = calculateMacros(nutritionInfo, parsedAmount);
+        console.log("Calculated macros:", macros);
+        
         setCalculatedMacros(macros);
       } else {
         setCalculatedMacros(null);
@@ -63,7 +70,14 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: Mac
       setIsSubmitting(true);
       
       // Calculate macros based on nutrition info and amount
+      console.log("Calculating macros for submission with input:", { 
+        amount: parsedAmount,
+        nutritionInfo: JSON.stringify(nutritionInfo, null, 2)
+      });
+      
       const macros = calculateMacros(nutritionInfo, parsedAmount);
+      console.log("Final calculated macros for submission:", macros);
+      
       const createdAt = Math.floor(Date.now() / 1000);
       
       // Create food object with proper structure matching Food type
@@ -79,6 +93,8 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: Mac
       console.log("Posting food from nutrition label:", food);
       
       const result = await postFood(food);
+      console.log("PostFood result:", result);
+      
       if (!result.acknowledged) {
         showToastError("Could not save food entry, please try again.");
         setIsSubmitting(false);

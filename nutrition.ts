@@ -47,11 +47,28 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
     const carbs = nutrition.carb_grams_per_serving || 0;
     const protein = nutrition.protein_grams_per_serving || 0;
     
-    macros.fat = fat * multiplier;
-    macros.carbs = carbs * multiplier;
-    macros.protein = protein * multiplier;
-    // Estimate calories based on macronutrients (4-4-9 rule)
-    macros.calories = (protein * 4 + carbs * 4 + fat * 9) * multiplier;
+    // Apply the multiplier to get the actual values for the requested amount
+    const adjustedFat = fat * multiplier;
+    const adjustedCarbs = carbs * multiplier;
+    const adjustedProtein = protein * multiplier;
+    
+    macros.fat = adjustedFat;
+    macros.carbs = adjustedCarbs;
+    macros.protein = adjustedProtein;
+    
+    // Calculate calories using the 4-4-9 rule (4 calories per gram of protein/carbs, 9 calories per gram of fat)
+    macros.calories = (adjustedProtein * 4) + (adjustedCarbs * 4) + (adjustedFat * 9);
+    
+    // Log the values for debugging
+    console.log("Nutrition calculation:", {
+      fat: adjustedFat,
+      carbs: adjustedCarbs,
+      protein: adjustedProtein,
+      multiplier,
+      calories: macros.calories,
+      original: { fat, carbs, protein }
+    });
+    
     // Not available in new format, default to 0
     macros.fiber = 0;
   } else {
