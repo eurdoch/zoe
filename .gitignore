@@ -87,3 +87,8 @@ upgrade_packages.sh
 *.bak
 
 android/zotik-456123-a116e792e9e6.json
+
+# Fastlane environment variables
+/ios/fastlane/.env*
+AuthKey_U4J9A6H3XW.p8
+ios/zotik.app.dSYM.zip
