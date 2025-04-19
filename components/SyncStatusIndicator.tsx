@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useSyncService } from '../hooks/useSyncService';
-import { SyncStatus } from '../services/SyncService';
+import { useSyncService, SyncStatus } from '../hooks/useSyncService';
 import { SYNC_ENABLED } from '../config';
 
 const SyncStatusIndicator: React.FC = () => {

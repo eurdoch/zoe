@@ -102,6 +102,7 @@ export async function getExerciseDataByName(name: string): Promise<ExerciseEntry
     }
     
     // Get all exercises from the server
+    console.log('URI: ', `${API_BASE_URL}/exercise?name=${encodeURIComponent(name)}`);
     const response = await fetch(`${API_BASE_URL}/exercise?name=${encodeURIComponent(name)}`, {
       method: 'GET',
       headers: {

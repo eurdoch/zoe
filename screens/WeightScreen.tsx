@@ -14,9 +14,10 @@ import {
 } from '@ui-kitten/components';
 import { getWeight, postWeight, deleteWeight } from '../network/weight';
 import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime, formatTimeWithYear } from '../utils';
+import { API_BASE_URL } from '../config';
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
-import { useRealm } from '@realm/react';
+//import { useRealm } from '@realm/react';
 import WeightEntry from '../types/WeightEntry';
 import Weight from '../types/Weight';
 import { AuthenticationError } from '../errors/NetworkError';
@@ -30,7 +31,6 @@ const WeightScreen = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
   const [weightModalVisible, setWeightModalVisible] = useState<boolean>(false);
-  const realm = useRealm();
   const navigation = useNavigation();
   
   // Function to handle authentication errors
@@ -55,7 +55,7 @@ const WeightScreen = () => {
   };
 
   const loadData = () => {
-    getWeight(realm)
+    getWeight()
       .then(result => {
         setData(mapWeightEntriesToDataPoint(result));
         setWeightEntries(result.map(entry => ({
@@ -81,7 +81,7 @@ const WeightScreen = () => {
         await postWeight({
           value: parsedWeight,
           createdAt: Math.floor(Date.now() / 1000),
-        }, realm);
+        });
         showToastInfo("Weight added.");
         loadData();
         setModalVisible(false);
@@ -104,12 +104,25 @@ const WeightScreen = () => {
     loadData();
   }, []);
 
-  const handleDataPointClick = (point: DataPoint) => {
+  const handleDataPointClick = async (point: DataPoint) => {
     console.log('handleDataPointClick: ', point);
     if (point.label) {
       try {
-        const weightItem = realm.objectForPrimaryKey<WeightEntry>('WeightEntry', point.label);
+        // Get weight entry from API using the ID
+        const weightResponse = await fetch(`${API_BASE_URL}/weight/${point.label}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
+          }
+        });
+        
+        if (!weightResponse.ok) {
+          throw new Error(`Failed to get weight by ID: ${weightResponse.status}`);
+        }
+        
+        const weightItem = await weightResponse.json();
         console.log('weightItem found:', weightItem);
+        
         if (weightItem) {
           setSelectedWeight(weightItem);
           setWeightModalVisible(true);
@@ -137,7 +150,7 @@ const WeightScreen = () => {
         const weightId = selectedWeight._id;
         
         try {
-          await deleteWeight(weightId, realm);
+          await deleteWeight(weightId);
           showToastInfo("Weight deleted successfully");
           
           setSelectedWeight(null);

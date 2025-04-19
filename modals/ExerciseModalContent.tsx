@@ -5,7 +5,6 @@ import { formatTime, showToastError } from '../utils';
 import ExerciseEntry from '../types/ExerciseEntry';
 import { Icon } from '@ui-kitten/components';
 import { deleteExerciseById } from '../network/exercise';
-import { useRealm } from '@realm/react';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -17,7 +16,6 @@ interface Props {
 }
 
 const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisible }) => {
-  const realm = useRealm();
   const navigation = useNavigation();
   
   // Function to handle authentication errors
@@ -42,7 +40,7 @@ const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisi
   };
 
   const handleDeleteExercise = (_e: any) => {
-    deleteExerciseById(entry._id, realm)
+    deleteExerciseById(entry._id)
       .then(() => {
         reloadData(entry.name);
         setModalVisible(false);

@@ -3,6 +3,9 @@
 // Remote API base URL
 export const API_BASE_URL = 'https://directto.link';
 
+// For backward compatibility
+export const SYNC_ENABLED = false;
+
 // Application settings
 export const APP_SETTINGS = {
   // Whether to show detailed error messages

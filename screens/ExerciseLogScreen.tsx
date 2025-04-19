@@ -19,7 +19,7 @@ import {
 } from '@ui-kitten/components';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
-import { convertFromDatabaseFormat, showToastError } from '../utils';
+import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
 import DropdownItem from '../types/DropdownItem';
 import DataPoint from '../types/DataPoint';
 import Toast from 'react-native-toast-message';
@@ -68,44 +68,6 @@ const exerciseLogInputs = [
   },
 ];
 
-// Helper function to convert exercise entries to data points
-async function getExercisesByNameAndConvertToDataPoint(name: string): Promise<{
-  dataPoints: DataPoint[],
-  exerciseEntries: ExerciseEntry[]
-}> {
-  try {
-    // Fetch exercise data from the server using the name filter
-    const response = await fetch(`${API_BASE_URL}/exercise?name=${encodeURIComponent(name)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to get exercises: ${response.status} ${response.statusText}`);
-    }
-    
-    const exercises: ExerciseEntry[] = await response.json();
-    
-    // Convert the exercise entries to data points for the chart
-    const dataPoints: DataPoint[] = exercises.map(entry => ({
-      x: entry.reps,
-      y: entry.weight,
-      label: entry._id,
-      date: new Date(entry.createdAt * 1000),
-    }));
-    
-    return {
-      dataPoints,
-      exerciseEntries: exercises
-    };
-  } catch (error) {
-    console.error('Error getting exercises by name:', error);
-    throw error;
-  }
-}
-
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   // State hooks - always declare these first and unconditionally
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
@@ -145,6 +107,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const handleSelect = React.useCallback(async (item: DropdownItem) => {
     try {
       const result = await getExercisesByNameAndConvertToDataPoint(item.value);
+      console.log('resultaaa: ', result);
       setData(result.dataPoints);
       setExerciseEntries(result.exerciseEntries);
     } catch (error) {

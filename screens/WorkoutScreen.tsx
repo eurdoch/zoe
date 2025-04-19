@@ -15,7 +15,7 @@ import { convertFromDatabaseFormat, convertToDatabaseFormat, showToastError, sho
 import ExerciseDropdown from '../components/ExerciseDropdown';
 import DropdownItem from '../types/DropdownItem';
 import { getExerciseNames } from '../network/exercise';
-import { useRealm } from '@realm/react';
+//import { useRealm } from '@realm/react';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -31,7 +31,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
-  const realm = useRealm();
+  // No realm instance used anymore
   
   // Function to handle authentication errors
   const handleAuthError = async (error: AuthenticationError) => {
@@ -56,7 +56,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
 
   const handleDeleteWorkout = async () => {
     try {
-      await deleteWorkout(route.params.workout._id, realm);
+      await deleteWorkout(route.params.workout._id);
       navigation.goBack();
     } catch (error) {
       console.error('Error deleting workout:', error);
@@ -107,7 +107,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
         newExercises.splice(index, 1);
         const newWorkoutEntry = { ...workoutEntry, exercises: newExercises };
         
-        const updatedWorkout = await updateWorkout(newWorkoutEntry, realm);
+        const updatedWorkout = await updateWorkout(newWorkoutEntry);
         setWorkoutEntry(updatedWorkout);
         showToastInfo('Exercise removed.');
       } catch (error) {
@@ -125,7 +125,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   useEffect(() => {
     const loadWorkout = async () => {
       try {
-        const w = await getWorkout(route.params.workout._id, realm);
+        const w = await getWorkout(route.params.workout._id);
         setWorkoutEntry(w);
       } catch (error) {
         console.error('Error loading workout:', error);
@@ -140,7 +140,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     
     loadWorkout();
     
-    getExerciseNames(realm)
+    getExerciseNames()
       .then(names => {
         const sortedNames = names
           .sort((a, b) => a.localeCompare(b)).map(name => ({
@@ -184,7 +184,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
       };
       
       try {
-        const result = await updateWorkout(newWorkoutEntry, realm);
+        const result = await updateWorkout(newWorkoutEntry);
         setWorkoutEntry(newWorkoutEntry);
         showToastInfo('Exercise added to workout.');
       } catch (error) {

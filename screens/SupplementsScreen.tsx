@@ -25,7 +25,6 @@ import { getSupplement, getSupplementNames, postSupplement } from '../network/su
 import SupplementEntry from '../types/SupplementEntry';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo, getCurrentDayUnixTime } from '../utils';
 import DropdownItem from '../types/DropdownItem';
-import { useRealm } from '@realm/react';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -74,7 +73,6 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   // Animation state for Add Supplement panel
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const addSupplementAnim = useState(new Animated.Value(0))[0];
-  const realm = useRealm();
   const navigation = useNavigation();
   
   // Function to handle authentication errors
@@ -147,7 +145,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     // End of day is start of day + 24 hours (in seconds)
     const endOfDay = startOfDay + (24 * 60 * 60);
     
-    getSupplement(realm, startOfDay, endOfDay)
+    getSupplement(startOfDay, endOfDay)
       .then(entries => setSupplementEntries(entries))
       .catch(error => {
         console.error('Error loading supplements:', error);
@@ -167,7 +165,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
 
   useEffect(() => {
     loadData();
-    getSupplementNames(realm)
+    getSupplementNames()
       .then(names => {
         const sortedNames = names.sort((a, b) => a.localeCompare(b));
         const items = sortedNames.map(name => ({
@@ -185,7 +183,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       .catch(err => {
         showToastError('Could not get supplements: ' + err.toString());
       });
-  }, [realm]);
+  }, []);
 
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
@@ -198,7 +196,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
             amount: parsedAmount,
             createdAt: Math.floor(Date.now() / 1000),
             amount_unit: selectedUnit.value,
-          }, realm);
+          });
           showToastInfo('Supplement added.');
           loadData();
           hideAddSupplementModal();
@@ -261,7 +259,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       onPress={() => {
         console.log("👉 Fetching supplement history...");
         // Fetch most recent supplement entries
-        getSupplement(realm, undefined, undefined, 100)
+        getSupplement(undefined, undefined, 100)
           .then(entries => {
             console.log(`👉 Got ${entries.length} supplement entries from database`);
             console.log("👉 First few entries:", entries.slice(0, 3));
@@ -337,7 +335,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
             amount_unit: entry.amount_unit,
           };
           
-          postSupplement(newSupplementData, realm)
+          postSupplement(newSupplementData)
             .then((newEntry) => {
               console.log(`👉 Created new entry with ID: ${newEntry._id}`);
               showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);

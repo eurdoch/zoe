@@ -16,7 +16,7 @@ import { getExerciseNames } from '../network/exercise';
 import { convertFromDatabaseFormat } from '../utils';
 import { postWorkout } from '../network/workout';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import { useRealm } from '@realm/react';
+//import { useRealm } from '@realm/react';
 
 interface CreateWorkoutScreenProps {
   navigation: any;
@@ -28,13 +28,12 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   const [workoutName, setWorkoutName] = useState<string>('');
   const [showNewExerciseInput, setShowNewExerciseInput] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
-  const realm = useRealm();
 
   useEffect(() => {
-    getExerciseNames(realm).then((names: string[]) => {
+    getExerciseNames().then((names: string[]) => {
       setAvailableExercises(names);
     });
-  }, [realm]); // Add dependency array to prevent continuous re-rendering
+  }, []); // Empty dependency array to run only once
 
   const handleWorkoutPress = (workout: string) => {
     if (selectedExercises.includes(workout)) {
@@ -98,7 +97,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
       name: workoutName,
       exercises: selectedExercises,
       createdAt: Date.now(),
-    }, realm);
+    });
     if (result.name === workoutName && 
         JSON.stringify(result.exercises) === JSON.stringify(selectedExercises)) {
       navigation.pop(1);

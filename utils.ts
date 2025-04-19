@@ -3,7 +3,6 @@ import ExerciseEntry from "./types/ExerciseEntry";
 import DataPoint from "./types/DataPoint";
 import Toast from "react-native-toast-message";
 import WeightEntry from "./types/WeightEntry";
-import { Realm } from '@realm/react';
 
 export const formatTime = (unixTime: number): string => {
     const date = new Date(unixTime * 1000);
@@ -59,8 +58,8 @@ export const mapWeightEntriesToDataPoint = (entries: WeightEntry[]): DataPoint[]
   }));
 }
 
-export const getExercisesByNameAndConvertToDataPoint = async (name: string, realm: Realm): Promise<{dataPoints: DataPoint[], exerciseEntries: ExerciseEntry[]}> => {
-  const exerciseEntries = await getExerciseDataByName(name, realm);
+export const getExercisesByNameAndConvertToDataPoint = async (name: string): Promise<{dataPoints: DataPoint[], exerciseEntries: ExerciseEntry[]}> => {
+  const exerciseEntries = await getExerciseDataByName(name);
   const dataPoints = mapEntriesToDataPoint(exerciseEntries);
   return { dataPoints, exerciseEntries };
 }
