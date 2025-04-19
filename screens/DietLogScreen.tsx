@@ -14,9 +14,7 @@ import {
   Button, 
   Icon, 
   Spinner, 
-  List, 
-  Divider,
-  TopNavigation
+  List 
 } from '@ui-kitten/components';
 
 interface DietLogScreenProps {
@@ -108,12 +106,6 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
 
   return (
     <Layout style={styles.container}>
-      <TopNavigation
-        title="Food Search"
-        alignment="center"
-      />
-      <Divider />
-      
       <Layout style={styles.searchBar}>
         <Input
           style={styles.input}
@@ -186,6 +178,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
+    paddingTop: 16,
+    marginTop: 8,
     width: Dimensions.get("window").width,
   },
   input: {
