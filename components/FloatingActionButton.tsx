@@ -1,5 +1,5 @@
 import {StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Icon } from '@ui-kitten/components';
 
 interface FloatingActionButtonProps {
   onPress: any;
@@ -7,9 +7,14 @@ interface FloatingActionButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const FloatingActionButton = ({ onPress, icon = "plus", style }: FloatingActionButtonProps) => (
+const FloatingActionButton = ({ onPress, icon = "plus-outline", style }: FloatingActionButtonProps) => (
   <TouchableOpacity onPress={onPress} style={[styles.fab, style]}>
-    <MaterialCommunityIcons name={icon} size={30} color="white" />
+    <Icon
+      name={icon}
+      width={30}
+      height={30}
+      fill="white"
+    />
   </TouchableOpacity>
 );
 
