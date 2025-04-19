@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { formatTime, showToastError } from '../utils';
 import ExerciseEntry from '../types/ExerciseEntry';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Icon } from '@ui-kitten/components';
 import { deleteExerciseById } from '../network/exercise';
 import { useRealm } from '@realm/react';
 import { AuthenticationError } from '../errors/NetworkError';
@@ -62,8 +62,16 @@ const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisi
     <View style={styles.container}>
       <Text style={[styles.text, styles.bold]}>{formatTime(entry.createdAt)}</Text>
       <Text style={styles.text}>{entry.reps.toString() + ' @ ' + entry.weight.toString() + ' lbs'}</Text>
-      <TouchableOpacity onPress={() => handleDeleteExercise(entry)}> 
-        <MaterialCommunityIcons name="delete" size={20}/>
+      <TouchableOpacity 
+        onPress={() => handleDeleteExercise(entry)} 
+        style={styles.deleteButton}
+      > 
+        <Icon
+          name="trash-2-outline"
+          width={24}
+          height={24}
+          fill="#ff6b6b"
+        />
       </TouchableOpacity>
     </View>
   );
@@ -82,6 +90,11 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: 'bold',
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 20,
+    marginTop: 5,
   }
 });
 
