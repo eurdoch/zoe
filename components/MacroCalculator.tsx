@@ -14,7 +14,8 @@ import { postFood } from '../network/food';
 
 interface MacroCalculatorProps {
   productResponse: ProductResponse | OldProductResponse;
-  setModalVisible: any;
+  setModalVisible: (visible: boolean) => void;
+  onFoodAdded?: () => void; // Callback for when food is successfully added
 }
 
 const UNITS = [
@@ -29,6 +30,7 @@ const UNITS = [
 const MacroCalculator: React.FC<MacroCalculatorProps> = ({
   productResponse,
   setModalVisible,
+  onFoodAdded,
 }) => {
   const [servingAmount, setServingAmount] = useState<string>('100');
   const [servingUnit, setServingUnit] = useState<string>('g');
@@ -150,12 +152,22 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
     console.log(`  Fat: ${calculatedMacros.fat}g`);
     console.log(`  Fiber: ${calculatedMacros.fiber}g`);
     
-    const result = await postFood(newFood);
-    if (result.acknowledged) {
-      setModalVisible(false);
-      showToastInfo('Food added.');
-    } else {
-      showToastError('Food could not be added, try again.');
+    try {
+      const result = await postFood(newFood);
+      if (result.acknowledged) {
+        setModalVisible(false);
+        showToastInfo('Food added.');
+        
+        // Call the callback if provided
+        if (onFoodAdded) {
+          onFoodAdded();
+        }
+      } else {
+        showToastError('Food could not be added, try again.');
+      }
+    } catch (error) {
+      console.error('Error posting food:', error);
+      showToastError('Food could not be added: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 

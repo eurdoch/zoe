@@ -278,7 +278,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
         {
           scannedProduct && (
-            <MacroCalculator productResponse={scannedProduct} setModalVisible={setModalVisible} />
+            <MacroCalculator 
+              productResponse={scannedProduct} 
+              setModalVisible={setModalVisible} 
+              onFoodAdded={loadData} 
+            />
           )
         }
       </CustomModal>
