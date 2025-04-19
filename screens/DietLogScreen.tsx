@@ -8,7 +8,6 @@ import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
 import { Text } from 'react-native-svg';
-import { Icon } from '@ui-kitten/components';
 
 interface DietLogScreenProps {
   route: any;
@@ -115,20 +114,6 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             ))}
           </ScrollView>
         )}
-        <View style={styles.iconTray}>
-          <TouchableOpacity 
-            style={styles.iconButton} 
-            onPress={() => navigation.navigate('BarcodeScanner')}
-          >
-            <Icon name='camera-outline' style={styles.icon} fill='#007AFF' />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.iconButton} 
-            onPress={() => navigation.navigate('NutritionLabelParser')}
-          >
-            <Icon name='file-text-outline' style={styles.icon} fill='#007AFF' />
-          </TouchableOpacity>
-        </View>
       </View>
       <CustomModal
         visible={modalVisible}
@@ -182,27 +167,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 20,
-  },
-  iconTray: {
-    position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    gap: 20,
-  },
-  iconButton: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  icon: {
-    width: 28,
-    height: 28,
   },
   loadingContainer: {
     flex: 1,
