@@ -1,7 +1,9 @@
 import {useEffect, useRef, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity, Dimensions} from "react-native";
+import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator} from "react-native";
 import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { getNutritionLabelImgInfo } from "../network/nutrition";
+import { showToastError } from "../utils";
 import CustomModal from "../CustomModal";
 
 interface NavigationProps {
@@ -16,6 +18,8 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const device = Object.values(devices).find(d => d.position === 'back');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [nutritionInfo, setNutritionInfo] = useState<any>(null);
 
   useEffect(() => {
     if (!cameraActive) {
@@ -31,15 +35,47 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const takePhoto = async () => {
     try {
       setCaptureDisabled(true);
+      setIsProcessing(true);
+      
+      // Take photo
       const photo = await camera.current?.takePhoto();
-      navigation.navigate(
-        'DietLog',
-        { photo }
-      );
+      
+      if (!photo) {
+        throw new Error("Failed to take photo");
+      }
+      
+      // Process photo - convert to base64
+      const response = await fetch(`file://${photo.path}`);
+      const blob = await response.blob();
+      
+      // Convert blob to base64 string
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+      });
+      
+      // Extract the raw base64 data (remove data:image/jpeg;base64, prefix)
+      const rawImageString = base64Data.slice(base64Data.indexOf(',') + 1);
+      
+      // Process with API
+      const nutritionData = await getNutritionLabelImgInfo(rawImageString);
+      
+      // Log results to console
+      console.log("===== Nutrition Label Parsing Results =====");
+      console.log(JSON.stringify(nutritionData, null, 2));
+      
+      // Navigate to Diet screen with processed nutrition data
+      navigation.navigate('Diet', { nutritionInfo: nutritionData });
+      
       setCaptureDisabled(false);
+      setIsProcessing(false);
     } catch (error) {
-      console.error(error);
+      console.error("Error processing nutrition label:", error);
+      showToastError("Could not process nutrition label.");
       setCaptureDisabled(false);
+      setIsProcessing(false);
     }
   };
 
@@ -68,6 +104,14 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
         isActive={cameraActive}
         photo={true}
       />
+      
+      {isProcessing && (
+        <View style={styles.processingOverlay}>
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text style={styles.processingText}>Processing nutrition label...</Text>
+        </View>
+      )}
+      
       <View style={styles.controls}>
         <TouchableOpacity
           style={[styles.button, captureDisabled ? styles.disabledCaptureButton : styles.captureButton]}
@@ -77,11 +121,12 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
           <Text style={styles.buttonText}>Capture</Text>
         </TouchableOpacity>
       </View>
+      
       <TouchableOpacity style={styles.cancelButton} onPress={() => setCameraActive(false)}>
+        <Text style={styles.cancelButtonText}>Cancel</Text>
       </TouchableOpacity>
-      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <Text>hello</Text>
-      </CustomModal>
+      
+      {/* Modal no longer needed since we navigate directly */}
     </View>
   )
 }
@@ -132,12 +177,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   cancelButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     padding: 10,
     borderRadius: 10,
     position: 'absolute',
     top: 40,
     right: 20,
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
@@ -145,15 +195,43 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 10,
   },
-  activityIndicator: {
+  processingOverlay: {
     position: 'absolute',
     zIndex: 1,
     top: 0,
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  processingText: {
+    color: 'white',
+    fontSize: 18,
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  nutritionInfoContainer: {
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  navigateButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  navigateButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
