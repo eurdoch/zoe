@@ -74,7 +74,9 @@ async function connectToDatabase() {
       }
 
       if (req.body.ref === 'refs/heads/master') {
-        exec(`cd ${repoPath} && git pull origin master && yarn web:build && pm2 reload zoe`, (error, stdout, stderr) => {
+	      // TODO figure out where web:build is needed
+        exec(`cd ${repoPath} && git pull origin master pm2 reload zoe`, (error, stdout, stderr) => {
+        //exec(`cd ${repoPath} && git pull origin master && yarn web:build && pm2 reload zoe`, (error, stdout, stderr) => {
           if (error) {
             console.error(`Error: ${error}`);
             return res.status(500).send(error);
