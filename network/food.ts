@@ -1,35 +1,146 @@
 import FoodEntry from "../types/FoodEntry";
-
-const VITALE_BOX_URL = "https://directto.link";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../config';
+import { AuthenticationError } from '../errors/NetworkError';
 
 export async function postFood(food: any): Promise<any> {
-  const response = await fetch(`${VITALE_BOX_URL}/food`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(food),
-  });
-  return response.json();
+  try {
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/food`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(food),
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to post food: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to post food: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error posting food:', error);
+    throw error;
+  }
 }
 
 export async function getFood(id: string): Promise<FoodEntry> {
-  const response = await fetch(`${VITALE_BOX_URL}/food/${id}`, {
-    method: 'GET',
-  });
-  return response.json();
+  try {
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/food/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to get food with ID ${id}: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to get food: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error getting food:', error);
+    throw error;
+  }
 }
 
 export async function deleteFood(id: string): Promise<any> {
-  const response = await fetch(`${VITALE_BOX_URL}/food/${id}`, {
-    method: 'DELETE',
-  });
-  return response.json();
+  try {
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/food/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to delete food with ID ${id}: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to delete food: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error deleting food:', error);
+    throw error;
+  }
 }
 
 export async function getFoodByUnixTime(unixTime: number): Promise<FoodEntry[]> {
-  const response = await fetch(`${VITALE_BOX_URL}/food?unixTime=${unixTime}`, {
-    method: 'GET',
-  });
-  return response.json();
+  try {
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/food?unixTime=${unixTime}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to get food by Unix time ${unixTime}: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to get food by Unix time: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error getting food by Unix time:', error);
+    throw error;
+  }
 }
