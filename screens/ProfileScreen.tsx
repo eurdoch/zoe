@@ -25,7 +25,7 @@ const ProfileScreen = () => {
         
         if (token) {
           // Make API request to fetch user data
-          const response = await fetch(`${BASE_API_URL}/auth/user`, {
+          const response = await fetch(`${BASE_API_URL}/verify/user`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -58,6 +58,7 @@ const ProfileScreen = () => {
         try {
           const userData = await AsyncStorage.getItem('user');
           if (userData) {
+            console.log('userData: ', userData);
             setUser(JSON.parse(userData));
           }
         } catch (localError) {
