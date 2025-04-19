@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { showToastError, showToastInfo } from '../utils';
-import ProductResponse from '../types/ProductResponse';
+import OldProductResponse, { ProductResponse } from '../types/ProductResponse';
 import Food from '../types/Food';
 import { postFood } from '../network/food';
 
 interface MacroCalculatorProps {
-  productResponse: ProductResponse;
+  productResponse: ProductResponse | OldProductResponse;
   setModalVisible: any;
 }
 
@@ -43,6 +43,68 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
     l: 1000,
   };
 
+  // Helper function to determine if we're using the new or legacy product response
+  const isNewProductResponse = (prod: any): prod is ProductResponse => {
+    return 'product' in prod && 'code' in prod;
+  };
+  
+  // Helper function to extract nutrition values from the product response
+  const getNutritionValues = () => {
+    if (isNewProductResponse(productResponse)) {
+      const nutriments = productResponse.product.nutriments;
+      return {
+        calories: 
+          nutriments['energy-kcal_100g'] || 
+          nutriments['energy-kcal'] || 
+          nutriments['energy_kcal'] || 
+          nutriments['energy_100g'] || 
+          nutriments['energy'] || 0,
+        protein: 
+          nutriments['proteins_100g'] || 
+          nutriments['proteins'] || 0,
+        carbs: 
+          nutriments['carbohydrates_100g'] || 
+          nutriments['carbohydrates'] || 
+          nutriments['carbs_100g'] || 
+          nutriments['carbs'] || 0,
+        fat: 
+          nutriments['fat_100g'] || 
+          nutriments['fat'] || 0,
+        fiber: 
+          nutriments['fiber_100g'] || 
+          nutriments['fibers_100g'] || 
+          nutriments['fiber'] || 
+          nutriments['fibers'] || 0,
+      };
+    } else {
+      // Legacy format
+      return {
+        calories: productResponse.nutriments.calories || 0,
+        protein: productResponse.nutriments.protein || 0,
+        carbs: productResponse.nutriments.carbs || 0,
+        fat: productResponse.nutriments.fat || 0,
+        fiber: productResponse.nutriments.fiber || 0,
+      };
+    }
+  };
+  
+  // Helper function to get product name and brand
+  const getProductName = () => {
+    if (isNewProductResponse(productResponse)) {
+      return productResponse.product.product_name;
+    } else {
+      return productResponse.name;
+    }
+  };
+  
+  const getProductBrand = () => {
+    if (isNewProductResponse(productResponse)) {
+      return productResponse.product.brands;
+    } else {
+      return productResponse.brand;
+    }
+  };
+
   const calculateMacros = async () => {
     const amount = parseFloat(servingAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -52,29 +114,34 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
 
     const amountInGrams = amount * unitConversions[servingUnit];
     const ratio = amountInGrams / 100;
-    const nutriments = productResponse.nutriments;
+    const nutritionValues = getNutritionValues();
 
     const calculatedMacros = {
-      calories: Math.round(nutriments.calories * ratio * 10) / 10,
-      protein: Math.round(nutriments.protein * ratio * 10) / 10,
-      carbs: Math.round(nutriments.carbs * ratio * 10) / 10,
-      fat: Math.round(nutriments.fat * ratio * 10) / 10,
-      fiber: Math.round(nutriments.fiber * ratio * 10) / 10,
+      calories: Math.round(nutritionValues.calories * ratio * 10) / 10,
+      protein: Math.round(nutritionValues.protein * ratio * 10) / 10,
+      carbs: Math.round(nutritionValues.carbs * ratio * 10) / 10,
+      fat: Math.round(nutritionValues.fat * ratio * 10) / 10,
+      fiber: Math.round(nutritionValues.fiber * ratio * 10) / 10,
     };
+    
+    // Create new food entry
+    const productName = getProductName();
+    const productBrand = getProductBrand();
+    
     const newFood: Food = {
-      brand: productResponse.brand,
-      categories: productResponse.categories,
-      id: productResponse.id,
-      name: productResponse.name,
+      brand: productBrand,
+      categories: isNewProductResponse(productResponse) ? [] : productResponse.categories,
+      id: isNewProductResponse(productResponse) ? productResponse.code : productResponse.id,
+      name: productName,
       macros: calculatedMacros,
       createdAt: Math.floor(Date.now() / 1000),
     };
     
     // Log product details and calculated macros to console
     console.log('--- Product Nutrition Information ---');
-    console.log(`Product: ${productResponse.name}`);
-    if (productResponse.brand) {
-      console.log(`Brand: ${productResponse.brand}`);
+    console.log(`Product: ${productName}`);
+    if (productBrand) {
+      console.log(`Brand: ${productBrand}`);
     }
     console.log(`Amount: ${servingAmount} ${servingUnit}`);
     console.log('Calculated Macros:');
@@ -93,13 +160,16 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
     }
   };
 
+  const productName = getProductName();
+  const productBrand = getProductBrand();
+
   return (
     <View>
       <Text style={styles.productName}>
-        {productResponse.name}
+        {productName}
       </Text>
-      {productResponse.brand && (
-        <Text style={styles.brandName}>{productResponse.brand}</Text>
+      {productBrand && (
+        <Text style={styles.brandName}>{productBrand}</Text>
       )}
 
       {/* Serving Size Input */}
