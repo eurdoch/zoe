@@ -37,12 +37,9 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     }
   });
 
+  // Permission is now handled in DietScreen before navigating here
   useEffect(() => {
-    const checkPermission = async () => {
-      const cameraPermission = await Camera.requestCameraPermission();
-      setHasPermission(cameraPermission === 'granted');
-    };
-    checkPermission();
+    setHasPermission(true);
   }, []);
 
   if (!hasPermission) {

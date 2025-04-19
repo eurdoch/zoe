@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -8,6 +8,7 @@ import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import { Icon } from '@ui-kitten/components';
+import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 
 interface DietScreenProps {
   navigation: any;
@@ -79,9 +80,58 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setIsFabMenuOpen(!isFabMenuOpen);
   };
 
-  const navigateToScreen = (screen: string) => {
+  const requestCameraPermission = async () => {
+    try {
+      const permission = Platform.OS === 'ios' 
+        ? PERMISSIONS.IOS.CAMERA 
+        : PERMISSIONS.ANDROID.CAMERA;
+        
+      // First check the current permission status
+      const result = await check(permission);
+      
+      switch (result) {
+        case RESULTS.GRANTED:
+          return true;
+          
+        case RESULTS.DENIED:
+          // Permission hasn't been requested yet, so request it
+          const requestResult = await request(permission);
+          return requestResult === RESULTS.GRANTED;
+          
+        case RESULTS.BLOCKED:
+          // Permission is denied and not requestable anymore
+          Alert.alert(
+            "Camera Permission Required",
+            "Camera access is required to use this feature. Please enable camera permissions in your device settings.",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Open Settings", onPress: () => Linking.openSettings() }
+            ]
+          );
+          return false;
+          
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.error('Error checking camera permission:', error);
+      return false;
+    }
+  };
+
+  const navigateToScreen = async (screen: string) => {
     toggleFabMenu();
-    navigation.navigate(screen);
+    
+    if (screen === 'NutritionLabelParser' || screen === 'BarcodeScanner') {
+      const hasPermission = await requestCameraPermission();
+      
+      if (hasPermission) {
+        navigation.navigate(screen);
+      }
+    } else {
+      // For screens that don't need camera permission
+      navigation.navigate(screen);
+    }
   };
   return (
     <View style={styles.rootContainer}>
