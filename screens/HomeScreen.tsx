@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { NavigationProp } from '@react-navigation/native';
 import { StyleSheet, View, Text, Modal, Pressable, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Icon, OverflowMenu, MenuItem, TopNavigationAction } from '@ui-kitten/components';
 import Menu from '../components/Menu';
 
 type HomeScreenProps = {
@@ -31,10 +32,17 @@ const menuItems = [
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  
+  // Handle menu visibility
+  const toggleMenu = () => {
+    setMenuVisible(!menuVisible);
+  };
   
   // Handle logout button press
   const handleLogoutPress = () => {
     console.log('Logout button pressed');
+    setMenuVisible(false);
     setLogoutModalVisible(true);
   };
   
@@ -202,6 +210,52 @@ export const handleLogout = async (navigation: NavigationProp<any>) => {
   } catch (error) {
     console.error('Error during logout:', error);
   }
+};
+
+// Header Right component with three dots menu
+export const HomeScreenHeaderRight: React.FC<{ navigation: NavigationProp<any> }> = ({ navigation }) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+  
+  const handleLogout = useCallback(() => {
+    setMenuVisible(false);
+    setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+      AsyncStorage.multiRemove(['user', 'token'])
+        .then(() => console.log('User logged out successfully'))
+        .catch(error => console.error('Error during logout:', error));
+    }, 100);
+  }, [navigation]);
+  
+  const renderMenuAction = () => (
+    <TopNavigationAction
+      icon={(props) => (
+        <Icon
+          {...props}
+          name="more-vertical-outline"
+          fill="#000"
+        />
+      )}
+      onPress={() => setMenuVisible(true)}
+    />
+  );
+  
+  return (
+    <OverflowMenu
+      anchor={renderMenuAction}
+      visible={menuVisible}
+      onBackdropPress={() => setMenuVisible(false)}
+      placement="bottom end"
+    >
+      <MenuItem
+        title="Logout"
+        accessoryLeft={(props) => <Icon {...props} name="log-out-outline" fill="#ff6b6b" />}
+        onPress={handleLogout}
+      />
+    </OverflowMenu>
+  );
 };
 
 export default HomeScreen;

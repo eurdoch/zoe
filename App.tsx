@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
-import HomeScreen, { handleLogout } from './screens/HomeScreen';
+import HomeScreen, { handleLogout, HomeScreenHeaderRight } from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
@@ -214,14 +214,7 @@ const App = () => {
                   title: "zotik",
                   headerTitleAlign: "center",
                   headerRight: () => (
-                    <Icon
-                      name="log-out-outline"
-                      width={24}
-                      height={24}
-                      fill="#ff6b6b"
-                      onPress={() => handleLogout(navigation)}
-                      style={{ marginRight: 16 }}
-                    />
+                    <HomeScreenHeaderRight navigation={navigation} />
                   ),
                 })}
               />
