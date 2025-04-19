@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
@@ -15,8 +15,6 @@ import {
   Icon, 
   Spinner, 
   List, 
-  ListItem, 
-  Card,
   Divider,
   TopNavigation
 } from '@ui-kitten/components';
@@ -99,13 +97,9 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   }
 
   const renderItem = ({ item, index }) => (
-    <Card
-      style={styles.card}
-      onPress={() => handleFoodOptionPress(item)}
-      status='basic'
-    >
+    <TouchableOpacity onPress={() => handleFoodOptionPress(item)}>
       <FoodOptionComponent option={item} />
-    </Card>
+    </TouchableOpacity>
   );
 
   const searchIcon = (props) => (
@@ -150,6 +144,8 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
           data={foodOptions}
           renderItem={renderItem}
           keyExtractor={(_, index) => index.toString()}
+          ItemSeparatorComponent={() => null}
+          contentContainerStyle={styles.listContent}
         />
       )}
       
@@ -202,11 +198,13 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     backgroundColor: 'transparent',
+    borderWidth: 0,
   },
-  card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 8,
+  listContent: {
+    paddingLeft: 12,
+    paddingRight: 16,
+    paddingVertical: 0,
+    borderWidth: 0,
   },
   loadingContainer: {
     flex: 1,

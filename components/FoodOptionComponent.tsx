@@ -19,11 +19,9 @@ const FoodOptionComponent: React.FC<FoodOptionComponentProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
+    paddingVertical: 12,
+    paddingLeft: 8,
+    marginBottom: 8,
   },
   name: {
     fontSize: 18,
