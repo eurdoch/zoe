@@ -16,6 +16,9 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: Mac
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calculatedMacros, setCalculatedMacros] = useState<any>(null);
+  
+  // Determine the unit to display based on the nutrition info format
+  const displayUnit = nutritionInfo.serving_unit || 'g';
 
   // Calculate and display macros when amount changes
   const calculateAndDisplayMacros = () => {
@@ -114,7 +117,7 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: Mac
           placeholderTextColor="#999"
           keyboardType="numeric"
         />
-        <Text style={styles.unitText}>g</Text>
+        <Text style={styles.unitText}>{displayUnit}</Text>
       </View>
       
       {calculatedMacros && (

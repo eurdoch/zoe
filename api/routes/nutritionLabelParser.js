@@ -9,7 +9,23 @@ export default function nutritionLabelParserRoutes() {
   router.post('/', async (req, res) => {
     try {
       const { base64ImageString } = req.body;
-      const prompt = "Return as JSON with keys \"nutritional_info\" and \"serving_size\" where nutritional_info is a list of JSON objects containing keys \"name\", \"amount_per_serving\" and \"unit\". Only return the JSON.";
+      const prompt = `
+        Look at this nutrition label image and extract the following information.
+        
+        Return a JSON object with exactly these keys and structure:
+        {
+          "serving_size": number,  // The numeric portion of the serving size (e.g., 1, 28, 100)
+          "serving_unit": string,  // The unit of the serving (e.g., "g", "oz", "cup", "tbsp")
+          "fat_grams_per_serving": number,  // Total fat in grams per serving
+          "carb_grams_per_serving": number,  // Total carbohydrates in grams per serving
+          "protein_grams_per_serving": number  // Protein in grams per serving
+        }
+        
+        Make sure all numeric values are just numbers (not strings). 
+        If a value is not found, use null.
+        Do not include additional fields.
+        Only return valid JSON with no explanation or other text.
+      `;
       logger.info('POST /nutritionimg'); // Log before extraction
       const result = await extractNutritionInfo(base64ImageString, prompt);
 	    console.log(result);
