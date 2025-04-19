@@ -16,6 +16,7 @@ interface MacroCalculatorProps {
   productResponse: ProductResponse | OldProductResponse;
   setModalVisible: (visible: boolean) => void;
   onFoodAdded?: () => void; // Callback for when food is successfully added
+  navigation?: any; // Optional navigation prop for navigating back to Diet screen
 }
 
 const UNITS = [
@@ -31,6 +32,7 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
   productResponse,
   setModalVisible,
   onFoodAdded,
+  navigation,
 }) => {
   const [servingAmount, setServingAmount] = useState<string>('100');
   const [servingUnit, setServingUnit] = useState<string>('g');
@@ -161,6 +163,11 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
         // Call the callback if provided
         if (onFoodAdded) {
           onFoodAdded();
+        }
+        
+        // Navigate to Diet screen if navigation prop is provided
+        if (navigation) {
+          navigation.navigate('Diet');
         }
       } else {
         showToastError('Food could not be added, try again.');

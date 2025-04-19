@@ -9,6 +9,7 @@ import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import MacroCalculator from '../components/MacroCalculator';
 import { Icon } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
+import { useFoodData } from '../contexts/FoodDataContext';
 
 interface DietScreenProps {
   navigation: any;
@@ -20,12 +21,25 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [totalCalories, setTotalCalories] = useState<number | null>(null);
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo | null>(null);
-  const [scannedProduct, setScannedProduct] = useState<any>(null);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
+  
+  // Use the food data context instead of local state
+  const { 
+    nutritionInfo, 
+    scannedProduct, 
+    setNutritionInfo, 
+    setScannedProduct 
+  } = useFoodData();
   
   // Animation values for the expanding FAB menu
   const animation = useState(new Animated.Value(0))[0];
+
+  const onFoodAdded = () => {
+    setModalVisible(false);
+    setNutritionInfo(null);
+    setScannedProduct(null);
+    loadData();
+  }
 
   const loadData = () => {
     const today = Math.floor(Date.now() / 1000);
@@ -42,23 +56,20 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
 
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
+        console.log('DietScreen focused');
         loadData();
-        if (route.params?.nutritionInfo) {
-          setNutritionInfo(route.params.nutritionInfo);
-          setScannedProduct(null);
+        if (nutritionInfo) {
           setDeleteEntry(null);
           setModalVisible(true);
         }
-        else if (route.params?.scannedProduct) {
-          setScannedProduct(route.params.scannedProduct);
-          setNutritionInfo(null);
+        else if (scannedProduct) {
           setDeleteEntry(null);
           setModalVisible(true);
         }
       });
 
       return unsubscribe;
-  }, [navigation]);
+  }, [navigation, nutritionInfo, scannedProduct]);
 
   const handleDeleteEntry = (id: string) => {
     deleteFood(id).then(result => {
@@ -260,7 +271,12 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
 
       <CustomModal
         visible={modalVisible}
-        setVisible={setModalVisible}
+        setVisible={() => {
+          setModalVisible(false);
+          // Clear context when modal is closed
+          setNutritionInfo(null);
+          setScannedProduct(null);
+        }}
       >
         { 
           deleteEntry && (
@@ -273,7 +289,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
         {
           nutritionInfo && (
-            <MacroByLabelCalculator loadDat={loadData} setModalVisible={setModalVisible} nutritionInfo={nutritionInfo} />
+            <MacroByLabelCalculator onFoodAdded={onFoodAdded} setModalVisible={setModalVisible} nutritionInfo={nutritionInfo} />
           ) 
         }
         {
@@ -281,7 +297,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             <MacroCalculator 
               productResponse={scannedProduct} 
               setModalVisible={setModalVisible} 
-              onFoodAdded={loadData} 
+              onFoodAdded={onFoodAdded}
             />
           )
         }

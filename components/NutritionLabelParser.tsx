@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getNutritionLabelImgInfo } from "../network/nutrition";
 import { showToastError } from "../utils";
 import CustomModal from "../CustomModal";
+import { useFoodData } from "../contexts/FoodDataContext";
 
 interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
@@ -19,11 +20,13 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [nutritionInfo, setNutritionInfo] = useState<any>(null);
+  
+  // Use the food data context
+  const { setNutritionInfo } = useFoodData();
 
   useEffect(() => {
     if (!cameraActive) {
-      navigation.goBack();
+      navigation.navigate('Diet');
     }
   }, [cameraActive]);
 
@@ -66,8 +69,11 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
       console.log("===== Nutrition Label Parsing Results =====");
       console.log(JSON.stringify(nutritionData, null, 2));
       
-      // Navigate to Diet screen with processed nutrition data
-      navigation.navigate('Diet', { nutritionInfo: nutritionData });
+      // Set the nutrition data in global context
+      setNutritionInfo(nutritionData);
+      
+      // Navigate back to Diet screen
+      navigation.pop();
       
       setCaptureDisabled(false);
       setIsProcessing(false);

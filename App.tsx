@@ -28,6 +28,7 @@ import 'react-native-get-random-values';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider, IconRegistry, Icon } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
+import { FoodDataProvider } from './contexts/FoodDataContext';
 
 type RootStackParamList = {
   Home: undefined;
@@ -175,32 +176,33 @@ const App = () => {
     <>
       <IconRegistry icons={EvaIconsPack} />
       <ApplicationProvider {...eva} theme={eva.light}>
-        <RealmProvider
-          deleteRealmIfMigrationNeeded={false}
-          schema={[
-            ExerciseEntrySchema,
-            WorkoutEntrySchema,
-            WeightEntrySchema,
-            SupplementEntrySchema,
-          ]}
-          schemaVersion={2} // Increment the version number
-          onMigration={(oldRealm: any, newRealm: any) => {
-            const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
-            for (const oldEntry of oldWorkoutEntries) {
-              const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
-              if (newEntry && !newEntry.createdAt) {
-                newEntry.createdAt = Math.floor(Date.now() / 1000);
+        <FoodDataProvider>
+          <RealmProvider
+            deleteRealmIfMigrationNeeded={false}
+            schema={[
+              ExerciseEntrySchema,
+              WorkoutEntrySchema,
+              WeightEntrySchema,
+              SupplementEntrySchema,
+            ]}
+            schemaVersion={2} // Increment the version number
+            onMigration={(oldRealm: any, newRealm: any) => {
+              const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
+              for (const oldEntry of oldWorkoutEntries) {
+                const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
+                if (newEntry && !newEntry.createdAt) {
+                  newEntry.createdAt = Math.floor(Date.now() / 1000);
+                }
               }
-            }
-          }}
-        >
-          <NavigationContainer>
-            <Stack.Navigator
-              screenOptions={{
-                animation: 'slide_from_right',
-              }}
-              initialRouteName={userLoggedIn ? "Home" : "Login"}
-            >
+            }}
+          >
+            <NavigationContainer>
+              <Stack.Navigator
+                screenOptions={{
+                  animation: 'slide_from_right',
+                }}
+                initialRouteName={userLoggedIn ? "Home" : "Login"}
+              >
               <Stack.Screen
                 name="Login"
                 component={LoginScreen}
@@ -315,6 +317,7 @@ const App = () => {
           </NavigationContainer>
           <Toast />
         </RealmProvider>
+        </FoodDataProvider>
       </ApplicationProvider>
     </>
       

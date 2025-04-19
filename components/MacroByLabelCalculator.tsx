@@ -7,11 +7,11 @@ import {showToastError, showToastInfo} from "../utils";
 
 interface MacroByLabelCalculatorProps {
   nutritionInfo: NutritionInfo;
-  setModalVisible: (visible: boolean) => void;
-  loadDat: () => void;
+  onFoodAdded: () => void;
+  navigation?: any; // Optional navigation prop for navigating back to Diet screen
 }
 
-const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: MacroByLabelCalculatorProps) => {
+const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: MacroByLabelCalculatorProps) => {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,8 +104,12 @@ const MacroByLabelCalculator = ({ nutritionInfo, setModalVisible, loadDat }: Mac
       showToastInfo(`Added ${name} to your food log`);
       
       // Refresh the food list and close the modal
-      loadDat();
-      setModalVisible(false);
+      onFoodAdded();
+      
+      // Navigate to Diet screen if navigation prop is provided
+      if (navigation) {
+        navigation.navigate('Diet');
+      }
     } catch (error) {
       console.error("Error adding food:", error);
       showToastError("Error adding food entry. Please try again.");

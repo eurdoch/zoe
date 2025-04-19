@@ -5,6 +5,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { transformToProductResponse } from "../transform";
 import NetworkError from "../errors/NetworkError";
 import { showToastError } from "../utils";
+import { useFoodData } from "../contexts/FoodDataContext";
 
 interface BarcodeScannerProps {
   navigation: any;
@@ -16,6 +17,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
   const [hasPermission, setHasPermission] = useState(false);
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
+  const { setScannedProduct, setNutritionInfo } = useFoodData();
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr', 'ean-13'],
@@ -30,14 +32,18 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
           // Log the product data to console
           console.log('Scanned product data:', productResponse);
           
-          // Navigate back to DietScreen with product data
-          navigation.navigate('Diet', { scannedProduct: productResponse });
+          // Set the data in the global context
+          setNutritionInfo(null);
+          setScannedProduct(productResponse);
+          
+          // Navigate back to the Diet screen
+          navigation.popTo('Diet');
         } catch(err: any) {
           if (err instanceof NetworkError) {
             showToastError("Product could not be found.");
             setCameraActive(false);
-            // Navigate back to DietScreen even on error
-            navigation.navigate('Diet');
+            // Navigate back to previous screen (DietScreen) on error
+            navigation.popTo('Diet');
           }
         }
       }
