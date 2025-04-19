@@ -1,156 +1,166 @@
-import { Realm } from '@realm/react';
 import Workout from "../types/Workout";
 import WorkoutEntry from "../types/WorkoutEntry";
-import { API_BASE_URL, SYNC_ENABLED } from '../config';
+import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
 
-export async function postWorkout(workout: Workout, realm: Realm): Promise<WorkoutEntry> {
+export async function postWorkout(workout: Workout): Promise<WorkoutEntry> {
   try {
-    let result: WorkoutEntry;
-    let workoutEntry: any;
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
     
-    realm.write(() => {
-      workoutEntry = {
-        _id: new Realm.BSON.ObjectId().toString(),
-        name: workout.name,
-        exercises: workout.exercises,
-        createdAt: Math.floor(Date.now() / 1000),
-      };
-      result = realm.create<WorkoutEntry>('WorkoutEntry', workoutEntry);
-    });
-    
-    // If sync is enabled, save to the remote server as well
-    if (SYNC_ENABLED) {
-      try {
-        // Get JWT token from AsyncStorage
-        const token = await AsyncStorage.getItem('token');
-        
-        if (!token) {
-          console.warn('No authentication token found, skipping server save for workout');
-          return result!;
-        }
-        
-        // Save the workout to the server with authentication
-        const response = await fetch(`${API_BASE_URL}/workout`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(workoutEntry),
-        });
-        
-        if (!response.ok) {
-          console.warn(`Failed to save workout to server: ${response.status} ${response.statusText}`);
-          
-          // If unauthorized, throw an AuthenticationError
-          if (response.status === 401 || response.status === 403) {
-            console.error('Authentication failed when saving workout to server');
-            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
-          }
-        } else {
-          console.log(`Successfully saved workout with ID ${workoutEntry._id} to server`);
-        }
-      } catch (syncError) {
-        console.warn('Failed to sync new workout to server:', syncError);
-        
-        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
-        if (syncError instanceof AuthenticationError) {
-          throw syncError;
-        }
-        // For other errors, we just log them but still return the local result
-      }
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
     }
     
-    return result!;
+    // Create a new workout entry with a unique ID
+    const workoutEntry: WorkoutEntry = {
+      _id: generateUniqueId(),
+      name: workout.name,
+      exercises: workout.exercises,
+      createdAt: Math.floor(Date.now() / 1000),
+    };
+    
+    // Save the workout to the server
+    const response = await fetch(`${API_BASE_URL}/workout`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(workoutEntry),
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to save workout to server: ${response.status} ${response.statusText}`);
+      
+      // If unauthorized, throw an AuthenticationError
+      if (response.status === 401 || response.status === 403) {
+        console.error('Authentication failed when saving workout to server');
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to save workout: ${response.status} ${response.statusText}`);
+    }
+    
+    // Return the server response which should include the saved workout
+    const savedWorkout = await response.json();
+    return savedWorkout;
   } catch (error) {
     console.error('Error creating workout:', error);
     throw error;
   }
 }
 
-export async function getWorkout(id: string, realm: Realm): Promise<WorkoutEntry | null> {
+export async function getWorkout(id: string): Promise<WorkoutEntry | null> {
   try {
-    const workoutEntry = realm.objectForPrimaryKey<WorkoutEntry>('WorkoutEntry', id);
-    if (!workoutEntry) return null;
-    return {
-      _id: workoutEntry._id,
-      name: workoutEntry.name,
-      exercises: [...workoutEntry.exercises],
-      createdAt: workoutEntry.createdAt,
-    };
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    // Get workout by ID from the server
+    const response = await fetch(`${API_BASE_URL}/workout/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      // If workout not found, return null instead of throwing an error
+      if (response.status === 404) {
+        return null;
+      }
+      
+      console.warn(`Failed to get workout by ID: ${response.status} ${response.statusText}`);
+      
+      // If unauthorized, throw an AuthenticationError
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to get workout by ID: ${response.status} ${response.statusText}`);
+    }
+    
+    const workout: WorkoutEntry = await response.json();
+    return workout;
   } catch (error) {
     console.error('Error getting workout:', error);
     throw error;
   }
 }
 
-export async function getWorkouts(realm: Realm): Promise<WorkoutEntry[]> {
+export async function getWorkouts(): Promise<WorkoutEntry[]> {
   try {
-    const workouts = realm.objects<WorkoutEntry>('WorkoutEntry');
-    return Array.from(workouts).map(workout => ({
-      _id: workout._id,
-      name: workout.name,
-      exercises: [...workout.exercises],
-      createdAt: workout.createdAt,
-    }));
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    // Get all workouts from the server
+    const response = await fetch(`${API_BASE_URL}/workout`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to get workouts: ${response.status} ${response.statusText}`);
+      
+      // If unauthorized, throw an AuthenticationError
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to get workouts: ${response.status} ${response.statusText}`);
+    }
+    
+    const workouts: WorkoutEntry[] = await response.json();
+    return workouts;
   } catch (error) {
     console.error('Error getting workouts:', error);
     throw error;
   }
 }
 
-export async function deleteWorkout(id: string, realm: Realm): Promise<void> {
+export async function deleteWorkout(id: string): Promise<void> {
   try {
-    // Delete from local Realm database
-    realm.write(() => {
-      const workoutEntry = realm.objectForPrimaryKey<WorkoutEntry>('WorkoutEntry', id);
-      if (workoutEntry) {
-        realm.delete(workoutEntry);
-      }
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    // Delete the workout from the server
+    const response = await fetch(`${API_BASE_URL}/workout/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
     });
     
-    // If sync is enabled, delete from the remote server as well
-    if (SYNC_ENABLED) {
-      try {
-        // Get JWT token from AsyncStorage
-        const token = await AsyncStorage.getItem('token');
-        
-        if (!token) {
-          console.warn('No authentication token found, skipping server deletion for workout');
-          return;
-        }
-        
-        // Delete the workout from the server with authentication
-        const response = await fetch(`${API_BASE_URL}/workout/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn(`Failed to delete workout with ID ${id} from server: ${response.status} ${response.statusText}`);
-          
-          // If unauthorized, throw an AuthenticationError
-          if (response.status === 401 || response.status === 403) {
-            console.error('Authentication failed when deleting workout from server');
-            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
-          }
-        } else {
-          console.log(`Successfully deleted workout with ID ${id} from server`);
-        }
-      } catch (syncError) {
-        console.warn(`Failed to sync deletion of workout with ID ${id}:`, syncError);
-        
-        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
-        if (syncError instanceof AuthenticationError) {
-          throw syncError;
-        }
-        // For other errors, we just log them but don't rethrow
+    if (!response.ok) {
+      console.warn(`Failed to delete workout with ID ${id} from server: ${response.status} ${response.statusText}`);
+      
+      // If unauthorized, throw an AuthenticationError
+      if (response.status === 401 || response.status === 403) {
+        console.error('Authentication failed when deleting workout from server');
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
       }
+      
+      throw new Error(`Failed to delete workout: ${response.status} ${response.statusText}`);
     }
   } catch (error) {
     console.error('Error deleting workout:', error);
@@ -158,71 +168,56 @@ export async function deleteWorkout(id: string, realm: Realm): Promise<void> {
   }
 }
 
-export async function updateWorkout(workoutEntry: WorkoutEntry, realm: Realm): Promise<WorkoutEntry> {
+export async function updateWorkout(workoutEntry: WorkoutEntry): Promise<WorkoutEntry> {
   try {
-    // Update in local Realm database
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    // Prepare the updated entry
     const updatedEntry = {
       _id: workoutEntry._id,
       name: workoutEntry.name,
       exercises: workoutEntry.exercises,
-      createdAt: Math.floor(Date.now() / 1000)
+      createdAt: workoutEntry.createdAt || Math.floor(Date.now() / 1000)
     };
     
-    realm.write(() => {
-      realm.create<WorkoutEntry>(
-        'WorkoutEntry',
-        updatedEntry,
-        Realm.UpdateMode.Modified,
-      );
+    // Update the workout on the server
+    const response = await fetch(`${API_BASE_URL}/workout`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updatedEntry)
     });
     
-    // If sync is enabled, update on the remote server as well
-    if (SYNC_ENABLED) {
-      try {
-        // Get JWT token from AsyncStorage
-        const token = await AsyncStorage.getItem('token');
-        
-        if (!token) {
-          console.warn('No authentication token found, skipping server update for workout');
-          return workoutEntry;
-        }
-        
-        // Update the workout on the server with authentication
-        const response = await fetch(`${API_BASE_URL}/workout`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(updatedEntry)
-        });
-        
-        if (!response.ok) {
-          console.warn(`Failed to update workout with ID ${workoutEntry._id} on server: ${response.status} ${response.statusText}`);
-          
-          // If unauthorized, throw an AuthenticationError
-          if (response.status === 401 || response.status === 403) {
-            console.error('Authentication failed when updating workout on server');
-            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
-          }
-        } else {
-          console.log(`Successfully updated workout with ID ${workoutEntry._id} on server`);
-        }
-      } catch (syncError) {
-        console.warn(`Failed to sync update of workout with ID ${workoutEntry._id}:`, syncError);
-        
-        // If it's an AuthenticationError, rethrow it so it can be handled by the caller
-        if (syncError instanceof AuthenticationError) {
-          throw syncError;
-        }
-        // For other errors, we just log them but don't rethrow
+    if (!response.ok) {
+      console.warn(`Failed to update workout with ID ${workoutEntry._id} on server: ${response.status} ${response.statusText}`);
+      
+      // If unauthorized, throw an AuthenticationError
+      if (response.status === 401 || response.status === 403) {
+        console.error('Authentication failed when updating workout on server');
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
       }
+      
+      throw new Error(`Failed to update workout: ${response.status} ${response.statusText}`);
     }
     
-    return workoutEntry;
+    // Return the updated workout from the server
+    const savedWorkout = await response.json();
+    return savedWorkout;
   } catch (error) {
     console.error('Error updating workout:', error);
     throw error;
   }
 }
 
+// Helper function to generate a unique ID
+function generateUniqueId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}

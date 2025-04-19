@@ -11,27 +11,36 @@ import {
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkouts } from '../network/workout';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRealm } from '@realm/react';
 
 interface WorkoutsScreenProps {
   navigation: any;
 }
 
 const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
-  const realm = useRealm();
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([]);
 
   // For navigation to and back to
   useFocusEffect(
     useCallback(() => {
-      const unsubscribe = getWorkouts(realm).then(ws => setWorkoutEntries(ws));
-      return () => unsubscribe;
+      const fetchWorkouts = async () => {
+        try {
+          const workouts = await getWorkouts();
+          setWorkoutEntries(workouts);
+        } catch (error) {
+          console.error('Error fetching workouts:', error);
+        }
+      };
+      
+      fetchWorkouts();
+      
+      // No cleanup function needed as we're not subscribing to anything
+      return () => {};
     }, [])
   );
 
   const handleStartWorkout = (entry: WorkoutEntry) => {
-    navigation.navigate('Workout', { workout: entry })
-  }
+    navigation.navigate('Workout', { workout: entry });
+  };
 
   const renderAddButton = () => (
     <Button

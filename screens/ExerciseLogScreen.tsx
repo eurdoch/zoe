@@ -19,16 +19,16 @@ import {
 } from '@ui-kitten/components';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
-import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
+import { convertFromDatabaseFormat, showToastError } from '../utils';
 import DropdownItem from '../types/DropdownItem';
 import DataPoint from '../types/DataPoint';
-import Toast from 'react-native-toast-message'
+import Toast from 'react-native-toast-message';
+import { API_BASE_URL } from '../config';
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
 import ExerciseEntry from '../types/ExerciseEntry';
 import ExerciseDropdown from '../components/ExerciseDropdown';
-import { useRealm } from '@realm/react';
 import { useNavigation } from '@react-navigation/native';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -68,6 +68,44 @@ const exerciseLogInputs = [
   },
 ];
 
+// Helper function to convert exercise entries to data points
+async function getExercisesByNameAndConvertToDataPoint(name: string): Promise<{
+  dataPoints: DataPoint[],
+  exerciseEntries: ExerciseEntry[]
+}> {
+  try {
+    // Fetch exercise data from the server using the name filter
+    const response = await fetch(`${API_BASE_URL}/exercise?name=${encodeURIComponent(name)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get exercises: ${response.status} ${response.statusText}`);
+    }
+    
+    const exercises: ExerciseEntry[] = await response.json();
+    
+    // Convert the exercise entries to data points for the chart
+    const dataPoints: DataPoint[] = exercises.map(entry => ({
+      x: entry.reps,
+      y: entry.weight,
+      label: entry._id,
+      date: new Date(entry.createdAt * 1000),
+    }));
+    
+    return {
+      dataPoints,
+      exerciseEntries: exercises
+    };
+  } catch (error) {
+    console.error('Error getting exercises by name:', error);
+    throw error;
+  }
+}
+
 function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element {
   // State hooks - always declare these first and unconditionally
   const [selectedItem, setSelectedItem] = useState<DropdownItem | undefined>(undefined);
@@ -81,7 +119,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [formModalAnim] = useState(new Animated.Value(0));
   
   // Context hooks
-  const realm = useRealm();
   const navigation = useNavigation();
 
   // Callback hooks - declare all of these before any useEffect
@@ -106,19 +143,37 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }, [navigation]);
 
   const handleSelect = React.useCallback(async (item: DropdownItem) => {
-    const result = await getExercisesByNameAndConvertToDataPoint(item.value, realm);
-    setData(result.dataPoints);
-    setExerciseEntries(result.exerciseEntries);
-  }, [realm]);
+    try {
+      const result = await getExercisesByNameAndConvertToDataPoint(item.value);
+      setData(result.dataPoints);
+      setExerciseEntries(result.exerciseEntries);
+    } catch (error) {
+      console.error('Error selecting exercise:', error);
+      if (error instanceof AuthenticationError) {
+        handleAuthError(error);
+      } else {
+        showToastError('Could not load exercise data.');
+      }
+    }
+  }, [handleAuthError]);
 
   const reloadData = React.useCallback(async (name: string) => {
-    const result = await getExercisesByNameAndConvertToDataPoint(name, realm);
-    setData(result.dataPoints);
-    setExerciseEntries(result.exerciseEntries);
-  }, [realm]);
+    try {
+      const result = await getExercisesByNameAndConvertToDataPoint(name);
+      setData(result.dataPoints);
+      setExerciseEntries(result.exerciseEntries);
+    } catch (error) {
+      console.error('Error reloading data:', error);
+      if (error instanceof AuthenticationError) {
+        handleAuthError(error);
+      } else {
+        showToastError('Could not refresh exercise data.');
+      }
+    }
+  }, [handleAuthError]);
 
   const handleDataPointClick = React.useCallback((point: DataPoint) => {
-    getExerciseById(point.label!, realm)
+    getExerciseById(point.label!)
       .then(m => {
         setCurrentExercisePoint(m);
         setModalKey('exerciseContent');
@@ -133,7 +188,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           showToastError('Could not fetch exercise details.');
         }
       });
-  }, [realm, handleAuthError]);
+  }, [handleAuthError]);
 
   const handleAddDataPoint = React.useCallback((formData: ExerciseFormData) => {
     try {
@@ -154,7 +209,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             createdAt: formData.createdAt,
             notes: formData.notes,
           }
-          postExercise(newExercise, realm)
+          postExercise(newExercise)
             .then(insertedEntry => {
               if (insertedEntry._id) {
                 reloadData(insertedEntry.name);
@@ -180,7 +235,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     } catch (err) {
       console.log(err);
     }
-  }, [selectedItem, realm, reloadData, handleAuthError]);
+  }, [selectedItem, reloadData, handleAuthError]);
 
   const onDropdownChange = React.useCallback((item: DropdownItem) => {
     console.log("Dropdown change:", item);
@@ -232,7 +287,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   // Effect hooks
   useEffect(() => {
-    getExerciseNames(realm)
+    getExerciseNames()
       .then(names => {
         if (route.params?.name && !names.includes(route.params.name)) {
           names.push(route.params.name);
@@ -262,7 +317,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       setSelectedItem(item);
       handleSelect(item);
     }
-  }, [handleSelect, realm, route.params]);
+  }, [handleSelect, route.params]);
 
   // Calculate slide up transform for form modal
   const formModalTransform = React.useMemo(() => ({
@@ -294,7 +349,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         </View>
       )}
       onPress={() => {
-        getExerciseById(item._id, realm)
+        getExerciseById(item._id)
           .then(m => {
             setCurrentExercisePoint(m);
             setModalKey('exerciseContent');
@@ -309,7 +364,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           });
       }}
     />
-  ), [realm, handleAuthError]);
+  ), [handleAuthError]);
 
   return (
     <Layout style={styles.container}>

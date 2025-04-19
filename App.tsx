@@ -19,11 +19,6 @@ import SupplementScreen from './screens/SupplementsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import NutritionLabelParser from './components/NutritionLabelParser.tsx';
-import { Realm, RealmProvider } from '@realm/react';
-import ExerciseEntry from './types/ExerciseEntry.ts';
-import WorkoutEntry from './types/WorkoutEntry.ts';
-import WeightEntry from './types/WeightEntry.ts';
-import SupplementEntry from './types/SupplementEntry.ts';
 import 'react-native-get-random-values';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider, IconRegistry, Icon } from '@ui-kitten/components';
@@ -48,86 +43,6 @@ type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-// Define the Realm schema for WorkoutEntry
-class WorkoutEntrySchema extends Realm.Object<WorkoutEntry> {
-  _id!: string;
-  name!: string;
-  exercises!: string[];
-  createdAt!: number;
-
-  static schema = {
-    name: 'WorkoutEntry',
-    primaryKey: '_id',
-    properties: {
-      _id: 'string',
-      name: 'string',
-      exercises: 'string[]',
-      createdAt: 'int',
-    },
-  };
-}
-
-// Define the Realm schema for ExerciseEntry
-class ExerciseEntrySchema extends Realm.Object<ExerciseEntry> {
-  _id!: string;
-  name!: string;
-  weight!: number;
-  reps!: number;
-  createdAt!: number;
-  notes!: string;
-
-  static schema = {
-    name: 'ExerciseEntry',
-    primaryKey: '_id',
-    properties: {
-      _id: 'string',
-      name: 'string',
-      weight: 'double',
-      reps: 'int',
-      createdAt: 'int',
-      notes: 'string',
-    },
-  };
-}
-
-// Define the Realm schema for WeightEntry
-class WeightEntrySchema extends Realm.Object<WeightEntry> {
-  _id!: string;
-  value!: number;
-  createdAt!: number;
-
-  static schema = {
-    name: 'WeightEntry',
-    primaryKey: '_id',
-    properties: {
-      _id: 'string',
-      value: 'double',
-      createdAt: 'int',
-    },
-  };
-}
-
-// Define the Realm schema for SupplementEntry
-class SupplementEntrySchema extends Realm.Object<SupplementEntry> {
-  _id!: string;
-  name!: string;
-  amount!: number;
-  amount_unit!: string;
-  createdAt!: number;
-
-  static schema = {
-    name: 'SupplementEntry',
-    primaryKey: '_id',
-    properties: {
-      _id: 'string',
-      name: 'string',
-      amount: 'double',
-      amount_unit: 'string',
-      createdAt: 'int',
-    },
-  };
-}
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -171,38 +86,18 @@ const App = () => {
     return null; // Or a loading screen
   }
 
-
   return (
     <>
       <IconRegistry icons={EvaIconsPack} />
       <ApplicationProvider {...eva} theme={eva.light}>
         <FoodDataProvider>
-          <RealmProvider
-            deleteRealmIfMigrationNeeded={false}
-            schema={[
-              ExerciseEntrySchema,
-              WorkoutEntrySchema,
-              WeightEntrySchema,
-              SupplementEntrySchema,
-            ]}
-            schemaVersion={2} // Increment the version number
-            onMigration={(oldRealm: any, newRealm: any) => {
-              const oldWorkoutEntries = oldRealm.objects('WorkoutEntry');
-              for (const oldEntry of oldWorkoutEntries) {
-                const newEntry = newRealm.objectForPrimaryKey('WorkoutEntry', oldEntry._id);
-                if (newEntry && !newEntry.createdAt) {
-                  newEntry.createdAt = Math.floor(Date.now() / 1000);
-                }
-              }
-            }}
-          >
-            <NavigationContainer>
-              <Stack.Navigator
-                screenOptions={{
-                  animation: 'slide_from_right',
-                }}
-                initialRouteName={userLoggedIn ? "Home" : "Login"}
-              >
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{
+                animation: 'slide_from_right',
+              }}
+              initialRouteName={userLoggedIn ? "Home" : "Login"}
+            >
               <Stack.Screen
                 name="Login"
                 component={LoginScreen}
@@ -316,7 +211,6 @@ const App = () => {
             </Stack.Navigator>
           </NavigationContainer>
           <Toast />
-        </RealmProvider>
         </FoodDataProvider>
       </ApplicationProvider>
     </>

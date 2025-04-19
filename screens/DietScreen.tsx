@@ -289,7 +289,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
         {
           nutritionInfo && (
-            <MacroByLabelCalculator onFoodAdded={onFoodAdded} setModalVisible={setModalVisible} nutritionInfo={nutritionInfo} />
+            <MacroByLabelCalculator onFoodAdded={onFoodAdded} nutritionInfo={nutritionInfo} />
           ) 
         }
         {

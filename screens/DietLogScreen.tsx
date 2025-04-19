@@ -161,8 +161,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
               )}
               {modalContent === 'image' && (
                 <MacroByLabelCalculator 
-                  loadDat={() => {}} 
-                  setModalVisible={setModalVisible} 
+                  onFoodAdded={() => {}}
                   nutritionInfo={nutritionInfo}
                   navigation={navigation} 
                 />
