@@ -335,7 +335,19 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
             <Text category="h6" style={styles.listTitle}>Exercise History</Text>
             <Divider />
             <List
-              data={[...exerciseEntries].sort((a, b) => b.createdAt - a.createdAt)}
+              data={[...exerciseEntries].sort((a, b) => {
+                // Convert timestamps to Date objects and get date strings
+                const dateA = new Date(a.createdAt * 1000).toDateString();
+                const dateB = new Date(b.createdAt * 1000).toDateString();
+                
+                // If dates are different, sort by date (newest first)
+                if (dateA !== dateB) {
+                  return b.createdAt - a.createdAt;
+                }
+                
+                // If same date (same day), sort by weight (heaviest first)
+                return b.weight - a.weight;
+              })}
               keyExtractor={(item) => item._id}
               renderItem={renderExerciseItem}
             />
