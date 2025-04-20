@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Dimensions, StyleSheet, GestureResponderEvent, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, GestureResponderEvent } from 'react-native';
 import { ReactNativeZoomableView, ZoomableViewEvent } from '@openspacelabs/react-native-zoomable-view';
 import Svg, { 
   Circle, 
@@ -11,6 +11,7 @@ import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import DataPoint from './types/DataPoint';
 import { convertFromDatabaseFormat, formatTime } from './utils';
+
 interface ScatterPlotProps {
   datasets: DataPoint[][];
   width?: number;
@@ -26,6 +27,7 @@ interface ScatterPlotProps {
   zoomAndPanEnabled?: boolean;
   datasetLabels?: string[];
 }
+
 const ScatterPlot: React.FC<ScatterPlotProps> = ({
   datasets,
   width = Dimensions.get('window').width - 40,
@@ -89,63 +91,38 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     })), 
   [chartDetails]
   );
-  // Debounce function to prevent excessive tap handling
-  const debounce = (func: Function, wait: number) => {
-    let timeout: NodeJS.Timeout | null = null;
-    return (...args: any[]) => {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-      timeout = setTimeout(() => {
-        func(...args);
-        timeout = null;
-      }, wait);
-    };
-  };
-  
-  // Create a debounced tap handler that won't fire too frequently
-  const handleSingleTap = React.useCallback(debounce((event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
-    try {
-      // Simple check to prevent handling during rapid interactions
-      if (!event || !event.nativeEvent || !zoomableViewEvent) {
-        return;
-      }
-      
-      const { locationX, locationY } = event.nativeEvent;
-      const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
-      const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
-      const radius = 20 / zoomableViewEvent.zoomLevel;
-      
-      // Find the closest point without excessive logging
-      const closestPoint = chartDetails.points.flatMap((points, i) =>
-        points.map(point => ({ ...point, datasetIndex: i }))
-      ).find(point => {
-        const dx = point.x - adjustedX;
-        const dy = point.y - adjustedY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance <= radius;
-      });
-      
+  const handleSingleTap = React.useCallback((event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
+    const { locationX, locationY } = event.nativeEvent;
+    const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
+    const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
+    const radius = 20 / zoomableViewEvent.zoomLevel;
+    
+    const closestPoint = chartDetails.points.flatMap((points, i) =>
+      points.map(point => ({ ...point, datasetIndex: i }))
+    ).find(point => {
+      const dx = point.x - adjustedX;
+      const dy = point.y - adjustedY;
+      return Math.sqrt(dx * dx + dy * dy) <= radius;
+    });
+    
+    // Use setTimeout to avoid state updates during render cycle
+    setTimeout(() => {
       if (closestPoint) {
-        // Update state and call callback inside requestAnimationFrame
-        // to ensure it happens after current render cycle
-        requestAnimationFrame(() => {
-          setSelectedPoint(closestPoint.originalData);
-          setSelectedDatasetIndex(closestPoint.datasetIndex);
-          
-          // Directly call the callback
-          onDataPointClick(closestPoint.originalData, closestPoint.datasetIndex);
-        });
+        setSelectedPoint(closestPoint.originalData);
+        setSelectedDatasetIndex(closestPoint.datasetIndex);
+        
+        // Another setTimeout to ensure callbacks happen after state is updated
+        setTimeout(() => {
+          if (onDataPointClick) {
+            onDataPointClick(closestPoint.originalData, closestPoint.datasetIndex);
+          }
+        }, 0);
       } else {
-        requestAnimationFrame(() => {
-          setSelectedPoint(null);
-          setSelectedDatasetIndex(null);
-        });
+        setSelectedPoint(null);
+        setSelectedDatasetIndex(null);
       }
-    } catch (error) {
-      console.error('Error in handleSingleTap:', error);
-    }
-  }, 300), [chartDetails, margins, onDataPointClick]);
+    }, 0);
+  }, [chartDetails, margins, onDataPointClick]);
   const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6610f2'];
   return (
     <View style={styles.container}>
@@ -161,15 +138,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           style={styles.zoomableView}
           zoomEnabled={zoomAndPanEnabled}
           panEnabled={zoomAndPanEnabled}
-          doubleTapZoomToCenter={false} // Disable double tap zoom to prevent measurement issues
-          movementSensibility={2} // Reduce sensitivity for panning
-          longPressDuration={1000} // Increase long press time
-          visualTouchFeedbackEnabled={false} // Disable visual feedback that causes measurement
-          doubleTapDelay={250} // Increase double tap delay to distinguish from single taps
-          pinchToZoomInSensitivity={3} // Make pinch to zoom less sensitive
-          pinchToZoomOutSensitivity={1} // Make pinch to zoom out less sensitive
-          contentWidth={width} // Explicitly provide content dimensions
-          contentHeight={height}
         >
           <Svg width={width} height={height}>
             <G x={margins.left} y={margins.top}>
@@ -180,33 +148,16 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                     key={`${i}-${index}`}
                     cx={point.x}
                     cy={point.y}
-                    r={8} /* Increased touch target size */
+                    r={5}
                     fill={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
-                    stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? 'white' : colors[i]}
+                    stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
                     strokeWidth={2}
-                    onPress={(e) => {
-                      try {
-                        // Prevent event bubbling
-                        if (e && e.stopPropagation) {
-                          e.stopPropagation();
-                        }
-                        
-                        // Use requestAnimationFrame to defer state updates
-                        requestAnimationFrame(() => {
-                          setSelectedPoint(point.originalData);
-                          setSelectedDatasetIndex(i);
-                          
-                          // Debounce the callback to prevent rapid successive calls
-                          setTimeout(() => {
-                            onDataPointClick(point.originalData, i);
-                          }, 50);
-                        });
-                      } catch (error) {
-                        console.error('Error in Circle onPress:', error);
-                      }
+                    onPress={() => {
+                      // Use setTimeout to avoid render cycle state updates
+                      setTimeout(() => {
+                        onDataPointClick(point.originalData, i);
+                      }, 0);
                     }}
-                    // SVG Circle doesn't support hitSlop like View components do
-                    // We're using a larger radius (r={8}) instead to create a bigger touch target
                   />
                 ))
               )}
@@ -229,7 +180,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 strokeWidth={2}
               />
               {/* X-axis ticks */}
-              {xTicks.map((tick: any, i: number) => (
+              {xTicks.map((tick: { value: number, x: number }, i: number) => (
                 <G key={`x-tick-${i}`}>
                   <Line
                     x1={tick.x}
@@ -251,7 +202,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 </G>
               ))}
               {/* Y-axis ticks */}
-              {yTicks.map((tick: any, i: number) => (
+              {yTicks.map((tick: { value: number, y: number }, i: number) => (
                 <G key={`y-tick-${i}`}>
                   <Line
                     x1={0}

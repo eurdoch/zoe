@@ -17,7 +17,6 @@ import {
   Modal,
   Icon,
 } from '@ui-kitten/components';
-import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
 import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
 import DropdownItem from '../types/DropdownItem';
@@ -104,14 +103,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }, [navigation]);
 
-  // This function is now used only for reference and could be removed if no other 
-  // parts of the component use it directly.
-  // We're keeping it for now but making it a no-op to avoid any potential circular references.
-  const handleSelect = React.useCallback(async (_item: DropdownItem) => {
-    // No-op - Logic moved to onDropdownChange and the useEffect for initialization
-    console.log('handleSelect is deprecated and should not be called directly');
-  }, []);
-
   const reloadData = React.useCallback(async (name: string) => {
     try {
       const result = await getExercisesByNameAndConvertToDataPoint(name);
@@ -125,47 +116,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         showToastError('Could not refresh exercise data.');
       }
     }
-  }, [handleAuthError]);
-
-  const handleDataPointClick = React.useCallback((point: DataPoint) => {
-    console.log('Exercise log - data point clicked:', point);
-    
-    // Check if point has a valid label (id)
-    if (!point.label) {
-      console.error('Data point has no label (ID)');
-      showToastError('Could not identify exercise entry.');
-      return;
-    }
-    
-    // Use requestAnimationFrame to avoid state update issues
-    requestAnimationFrame(() => {
-      getExerciseById(point.label!)
-        .then(m => {
-          console.log('Successfully fetched exercise details:', m);
-          
-          // Set the state values in the correct order
-          setCurrentExercisePoint(m);
-          
-          // Use another requestAnimationFrame to separate state updates
-          requestAnimationFrame(() => {
-            setModalKey('exerciseContent');
-            
-            // Final state update to show the modal
-            requestAnimationFrame(() => {
-              setModalVisible(true);
-            });
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching exercise:', error);
-          
-          if (error instanceof AuthenticationError) {
-            handleAuthError(error);
-          } else {
-            showToastError('Could not fetch exercise details.');
-          }
-        });
-    });
   }, [handleAuthError]);
 
   const handleAddDataPoint = React.useCallback((formData: ExerciseFormData) => {
@@ -215,33 +165,26 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }, [selectedItem, reloadData, handleAuthError]);
 
-  const onDropdownChange = React.useCallback((item: DropdownItem) => {
+  const onDropdownChange = (item: DropdownItem) => {
     console.log("Dropdown change:", item);
     
     if (item.value === "new_exercise") {
       console.log("Setting modalKey to newExercise");
-      
-      // Set modal key before making modal visible
       setModalKey("newExercise");
-      
-      // Use requestAnimationFrame to avoid state updates during render
-      requestAnimationFrame(() => {
-        setModalVisible(true);
-      });
-      
-      // Return early to prevent setting this as selected item
+      setModalVisible(true);
       return;
     }
     
-    // For regular exercise items
     setSelectedItem(item);
     
-    // Instead of calling handleSelect which might be causing recursive calls,
-    // we'll directly fetch the data
+    // Then fetch the data
     getExercisesByNameAndConvertToDataPoint(item.value)
       .then(result => {
-        setData(result.dataPoints);
-        setExerciseEntries(result.exerciseEntries);
+        // Use another setTimeout to batch these state updates
+        setTimeout(() => {
+          setData(result.dataPoints);
+          setExerciseEntries(result.exerciseEntries);
+        }, 0);
       })
       .catch(error => {
         console.error('Error selecting exercise:', error);
@@ -251,7 +194,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           showToastError('Could not load exercise data.');
         }
       });
-  }, [setModalKey, setModalVisible, setSelectedItem, handleAuthError]);
+  };
   
   const showFormModal = React.useCallback(() => {
     setFormModalVisible(true);
@@ -385,11 +328,9 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       {data && selectedItem && (
         <>
           <Card style={styles.card}>
-            <ScatterPlot
-              onDataPointClick={handleDataPointClick}
-              datasets={[data]}
-              zoomAndPanEnabled={false}
-            />
+            <View style={styles.graphPlaceholder}>
+              <Text category="h6" style={styles.placeholderText}>Graph temporarily unavailable</Text>
+            </View>
           </Card>
           
           <Card style={styles.listCard}>
@@ -506,6 +447,17 @@ const styles = StyleSheet.create({
   },
   card: {
     marginVertical: 8,
+  },
+  graphPlaceholder: {
+    height: 250,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 4,
+  },
+  placeholderText: {
+    color: '#666',
+    textAlign: 'center',
   },
   listCard: {
     marginVertical: 8,

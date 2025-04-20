@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { Select, SelectItem, IndexPath } from '@ui-kitten/components';
 import DropdownItem from '../types/DropdownItem';
@@ -10,46 +10,52 @@ interface ExerciseDropdownProps {
 }
 
 const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDropdownProps) => {
-  const displayValue = selectedItem ? selectedItem.label : 'Select exercise';
-  
-  const renderOption = (item: DropdownItem) => (
-    <SelectItem key={item.value} title={item.label} />
+  // Memoize the display value to avoid recalculating during renders
+  const displayValue = useMemo(() => 
+    selectedItem ? selectedItem.label : 'Select exercise',
+    [selectedItem]
   );
   
-  const onSelectChange = (index: IndexPath | IndexPath[]) => {
+  // Memoize the render function for items to prevent recreation on each render
+  const renderOption = useCallback((item: DropdownItem) => (
+    <SelectItem key={item.value} title={item.label} />
+  ), []);
+  
+  const onSelectChange = useCallback((index: IndexPath | IndexPath[]) => {
+    // We need to handle the selection asynchronously to avoid state updates
+    // during render cycles, which can cause the "Cannot update during existing
+    // state transition" error.
     if (Array.isArray(index)) {
       return; // We're not using multi-select
     }
     
-    console.log("Selected index:", index.row);
-    console.log("Dropdown items:", dropdownItems);
-    
-    // Make sure the index is valid before accessing the array
+    // Make sure the index is valid before trying to use it
     if (index.row >= 0 && index.row < dropdownItems.length) {
       const selected = dropdownItems[index.row];
-      console.log("Selected item:", selected);
       
-      // Use requestAnimationFrame to defer the state update to the next frame
-      // to avoid updating state during render
-      requestAnimationFrame(() => {
+      // Use setTimeout to move this state change to the next event loop
+      // This ensures it doesn't happen during a render cycle
+      setTimeout(() => {
         onChange(selected);
-      });
-    } else {
-      console.warn(`Invalid index: ${index.row}, dropdown items length: ${dropdownItems.length}`);
+      }, 0);
     }
-  };
+  }, [dropdownItems, onChange]);
   
-  // Find the index of the selected item
-  const selectedIndex = selectedItem 
-    ? dropdownItems.findIndex(item => item.value === selectedItem.value)
-    : -1;
-    
+  // Memoize the selected index calculation to avoid unnecessary recalculation
+  const selectedIndexObj = useMemo(() => {
+    const index = selectedItem 
+      ? dropdownItems.findIndex(item => item.value === selectedItem.value)
+      : -1;
+      
+    return index >= 0 ? new IndexPath(index) : undefined;
+  }, [selectedItem, dropdownItems]);
+  
   return (
     <Select
       style={styles.select}
       placeholder="Select exercise"
       value={displayValue}
-      selectedIndex={selectedIndex >= 0 ? new IndexPath(selectedIndex) : undefined}
+      selectedIndex={selectedIndexObj}
       onSelect={onSelectChange}
     >
       {dropdownItems.map(renderOption)}
