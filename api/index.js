@@ -55,7 +55,7 @@ async function connectToDatabase() {
 
     app.use(express.static(path.join(__dirname, '../web/dist')));
 
-    app.get('/ping', (req, res) => {
+    app.get('/ping', (_, res) => {
       res.send('Pong');
     });
 
