@@ -85,6 +85,7 @@ pprog.toml
 web/dist/
 upgrade_packages.sh
 *.bak
+.aws
 
 android/zotik-456123-a116e792e9e6.json
 
