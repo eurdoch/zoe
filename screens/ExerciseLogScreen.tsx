@@ -17,6 +17,7 @@ import {
   Modal,
   Icon,
 } from '@ui-kitten/components';
+import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
 import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
 import DropdownItem from '../types/DropdownItem';
@@ -328,9 +329,28 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       {data && selectedItem && (
         <>
           <Card style={styles.card}>
-            <View style={styles.graphPlaceholder}>
-              <Text category="h6" style={styles.placeholderText}>Graph temporarily unavailable</Text>
-            </View>
+            <ScatterPlot 
+              datasets={[data]}
+              title={selectedItem.label}
+              onDataPointClick={(point) => {
+                const entry = exerciseEntries.find(e => e._id === point.id);
+                if (entry) {
+                  getExerciseById(entry._id)
+                    .then(m => {
+                      setCurrentExercisePoint(m);
+                      setModalKey('exerciseContent');
+                      setModalVisible(true);
+                    })
+                    .catch(error => {
+                      if (error instanceof AuthenticationError) {
+                        handleAuthError(error);
+                      } else {
+                        showToastError('Could not fetch exercise details.');
+                      }
+                    });
+                }
+              }}
+            />
           </Card>
           
           <Card style={styles.listCard}>
