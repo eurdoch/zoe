@@ -90,22 +90,37 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   [chartDetails]
   );
   const handleSingleTap = (event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
+    // Check if we tapped directly on a Circle - if so, let the Circle's onPress handle it
+    // This is a workaround because React Native SVG has poor interaction with touch events
+    // Only use this tap handler as a fallback for when direct Circle press doesn't work
+    
     const { locationX, locationY } = event.nativeEvent;
     const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
     const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
     const radius = 20 / zoomableViewEvent.zoomLevel;
+    
+    // Debugging tap coordinates
+    console.log('Tap detected at:', { locationX, locationY, adjustedX, adjustedY });
+    
     const closestPoint = chartDetails.points.flatMap((points, i) =>
       points.map(point => ({ ...point, datasetIndex: i }))
     ).find(point => {
       const dx = point.x - adjustedX;
       const dy = point.y - adjustedY;
-      return Math.sqrt(dx * dx + dy * dy) <= radius;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      console.log('Point distance:', { x: point.x, y: point.y, distance });
+      return distance <= radius;
     });
+    
     if (closestPoint) {
+      console.log('Found closest point:', closestPoint.originalData);
       setSelectedPoint(closestPoint.originalData);
       setSelectedDatasetIndex(closestPoint.datasetIndex);
-      onDataPointClick?.(closestPoint.originalData, closestPoint.datasetIndex);
+      
+      // Directly call the callback
+      onDataPointClick(closestPoint.originalData, closestPoint.datasetIndex);
     } else {
+      console.log('No point found near tap location');
       setSelectedPoint(null);
       setSelectedDatasetIndex(null);
     }
@@ -135,11 +150,17 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                     key={`${i}-${index}`}
                     cx={point.x}
                     cy={point.y}
-                    r={5}
+                    r={8} /* Increased touch target size */
                     fill={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
-                    stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? colors[i] : colors[i]}
+                    stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? 'white' : colors[i]}
                     strokeWidth={2}
-                    onPress={() => onDataPointClick(point.originalData, i)}
+                    onPress={(e) => {
+                      console.log('Circle pressed for point:', point.originalData);
+                      // Prevent the event from bubbling up
+                      e.stopPropagation();
+                      // Call the callback with the original data point
+                      onDataPointClick(point.originalData, i);
+                    }}
                   />
                 ))
               )}

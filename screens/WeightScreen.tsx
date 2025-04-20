@@ -105,27 +105,53 @@ const WeightScreen = () => {
   }, []);
 
   const handleDataPointClick = async (point: DataPoint) => {
-    console.log('handleDataPointClick: ', point);
-    if (point.label) {
+    console.log('Weight screen - data point clicked:', point);
+    
+    if (!point.label) {
+      console.log('Data point has no label property');
+      showToastError('Could not identify weight entry');
+      return;
+    }
+    
+    // Use requestAnimationFrame to avoid state update issues during async operations
+    requestAnimationFrame(async () => {
       try {
+        console.log(`Fetching weight data for ID: ${point.label}`);
+        
+        // Get the token first
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          showToastError('Authentication required. Please log in again.');
+          return;
+        }
+        
         // Get weight entry from API using the ID
         const weightResponse = await fetch(`${API_BASE_URL}/weight/${point.label}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         });
         
         if (!weightResponse.ok) {
+          if (weightResponse.status === 401 || weightResponse.status === 403) {
+            handleAuthError(new AuthenticationError('Authentication failed'));
+            return;
+          }
           throw new Error(`Failed to get weight by ID: ${weightResponse.status}`);
         }
         
         const weightItem = await weightResponse.json();
-        console.log('weightItem found:', weightItem);
+        console.log('Weight item found:', weightItem);
         
         if (weightItem) {
+          // Update state in proper sequence with animation frames
           setSelectedWeight(weightItem);
-          setWeightModalVisible(true);
+          
+          // Use another requestAnimationFrame to separate state updates
+          requestAnimationFrame(() => {
+            setWeightModalVisible(true);
+          });
         } else {
           console.log('No weight entry found with ID:', point.label);
           showToastError('Weight entry not found');
@@ -139,9 +165,7 @@ const WeightScreen = () => {
           showToastError('Error loading weight details');
         }
       }
-    } else {
-      console.log('Data point has no label property');
-    }
+    });
   }
 
   const handleDeleteWeight = async () => {

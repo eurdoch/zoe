@@ -128,21 +128,44 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }, [handleAuthError]);
 
   const handleDataPointClick = React.useCallback((point: DataPoint) => {
-    getExerciseById(point.label!)
-      .then(m => {
-        setCurrentExercisePoint(m);
-        setModalKey('exerciseContent');
-        setModalVisible(true);
-      })
-      .catch(error => {
-        console.error('Error fetching exercise:', error);
-        
-        if (error instanceof AuthenticationError) {
-          handleAuthError(error);
-        } else {
-          showToastError('Could not fetch exercise details.');
-        }
-      });
+    console.log('Exercise log - data point clicked:', point);
+    
+    // Check if point has a valid label (id)
+    if (!point.label) {
+      console.error('Data point has no label (ID)');
+      showToastError('Could not identify exercise entry.');
+      return;
+    }
+    
+    // Use requestAnimationFrame to avoid state update issues
+    requestAnimationFrame(() => {
+      getExerciseById(point.label!)
+        .then(m => {
+          console.log('Successfully fetched exercise details:', m);
+          
+          // Set the state values in the correct order
+          setCurrentExercisePoint(m);
+          
+          // Use another requestAnimationFrame to separate state updates
+          requestAnimationFrame(() => {
+            setModalKey('exerciseContent');
+            
+            // Final state update to show the modal
+            requestAnimationFrame(() => {
+              setModalVisible(true);
+            });
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching exercise:', error);
+          
+          if (error instanceof AuthenticationError) {
+            handleAuthError(error);
+          } else {
+            showToastError('Could not fetch exercise details.');
+          }
+        });
+    });
   }, [handleAuthError]);
 
   const handleAddDataPoint = React.useCallback((formData: ExerciseFormData) => {

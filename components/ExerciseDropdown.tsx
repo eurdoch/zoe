@@ -23,10 +23,20 @@ const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDro
     
     console.log("Selected index:", index.row);
     console.log("Dropdown items:", dropdownItems);
-    const selected = dropdownItems[index.row];
-    console.log("Selected item:", selected);
     
-    onChange(selected);
+    // Make sure the index is valid before accessing the array
+    if (index.row >= 0 && index.row < dropdownItems.length) {
+      const selected = dropdownItems[index.row];
+      console.log("Selected item:", selected);
+      
+      // Use requestAnimationFrame to defer the state update to the next frame
+      // to avoid updating state during render
+      requestAnimationFrame(() => {
+        onChange(selected);
+      });
+    } else {
+      console.warn(`Invalid index: ${index.row}, dropdown items length: ${dropdownItems.length}`);
+    }
   };
   
   // Find the index of the selected item
