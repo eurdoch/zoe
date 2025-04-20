@@ -140,8 +140,8 @@ export async function getExerciseById(id: string): Promise<ExerciseEntry> {
       throw new AuthenticationError('Authentication token not found. Please log in again.');
     }
     
-    // Get exercise by ID from the server
-    const response = await fetch(`${API_BASE_URL}/exercise/${id}`, {
+    // Get exercise by ID from the server using query parameter
+    const response = await fetch(`${API_BASE_URL}/exercise?id=${encodeURIComponent(id)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -165,6 +165,7 @@ export async function getExerciseById(id: string): Promise<ExerciseEntry> {
       throw new Error(`Exercise with id ${id} not found`);
     }
     
+    // Return the first matching exercise
     return exercise;
   } catch (error) {
     console.error('Error getting exercise by id:', error);

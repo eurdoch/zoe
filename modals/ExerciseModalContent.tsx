@@ -58,8 +58,8 @@ const ExerciseModalContent: React.FC<Props> = ({ entry, reloadData, setModalVisi
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.text, styles.bold]}>{formatTime(entry.createdAt)}</Text>
-      <Text style={styles.text}>{entry.reps.toString() + ' @ ' + entry.weight.toString() + ' lbs'}</Text>
+      <Text style={[styles.text, styles.bold]}>{formatTime(entry.createdAt || 0)}</Text>
+      <Text style={styles.text}>{(entry.reps !== undefined ? entry.reps : 0).toString() + ' @ ' + (entry.weight !== undefined ? entry.weight : 0).toString() + ' lbs'}</Text>
       <TouchableOpacity 
         onPress={() => handleDeleteExercise(entry)} 
         style={styles.deleteButton}
