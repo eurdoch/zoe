@@ -22,22 +22,17 @@ const ExerciseDropdown = ({ onChange, selectedItem, dropdownItems }: ExerciseDro
   ), []);
   
   const onSelectChange = useCallback((index: IndexPath | IndexPath[]) => {
-    // We need to handle the selection asynchronously to avoid state updates
-    // during render cycles, which can cause the "Cannot update during existing
-    // state transition" error.
     if (Array.isArray(index)) {
-      return; // We're not using multi-select
+      return;
     }
     
-    // Make sure the index is valid before trying to use it
     if (index.row >= 0 && index.row < dropdownItems.length) {
       const selected = dropdownItems[index.row];
       
-      // Use setTimeout to move this state change to the next event loop
-      // This ensures it doesn't happen during a render cycle
-      setTimeout(() => {
+      // Use requestAnimationFrame instead of setTimeout for more consistent handling
+      requestAnimationFrame(() => {
         onChange(selected);
-      }, 0);
+      });
     }
   }, [dropdownItems, onChange]);
   

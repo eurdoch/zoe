@@ -16,6 +16,7 @@ import {
   ListItem,
   Modal,
   Icon,
+  Spinner,
 } from '@ui-kitten/components';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
@@ -79,6 +80,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const [formModalVisible, setFormModalVisible] = useState<boolean>(false);
   const [formModalAnim] = useState(new Animated.Value(0));
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Context hooks
   const navigation = useNavigation();
@@ -169,34 +171,39 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const onDropdownChange = (item: DropdownItem) => {
     console.log("Dropdown change:", item);
     
-    if (item.value === "new_exercise") {
-      console.log("Setting modalKey to newExercise");
-      setModalKey("newExercise");
-      setModalVisible(true);
-      return;
-    }
-    
-    setSelectedItem(item);
-    
-    // Then fetch the data
-    getExercisesByNameAndConvertToDataPoint(item.value)
-      .then(result => {
-        // Use another setTimeout to batch these state updates
-        setTimeout(() => {
-          setData(result.dataPoints);
-          setExerciseEntries(result.exerciseEntries);
-        }, 0);
-      })
-      .catch(error => {
-        console.error('Error selecting exercise:', error);
-        if (error instanceof AuthenticationError) {
-          handleAuthError(error);
-        } else {
-          showToastError('Could not load exercise data.');
-        }
-      });
+    // Use requestAnimationFrame to defer UI updates to next frame
+    requestAnimationFrame(() => {
+      if (item.value === "new_exercise") {
+        setModalKey("newExercise");
+        setModalVisible(true);
+        return;
+      }
+      
+      setIsLoading(true);
+      setSelectedItem(item);
+      
+      // Fetch data after UI has updated
+      getExercisesByNameAndConvertToDataPoint(item.value)
+        .then(result => {
+          // Use another requestAnimationFrame to batch these state updates
+          requestAnimationFrame(() => {
+            setData(result.dataPoints);
+            setExerciseEntries(result.exerciseEntries);
+            setIsLoading(false);
+          });
+        })
+        .catch(error => {
+          setIsLoading(false);
+          console.error('Error selecting exercise:', error);
+          if (error instanceof AuthenticationError) {
+            handleAuthError(error);
+          } else {
+            showToastError('Could not load exercise data.');
+          }
+        });
+    });
   };
-  
+    
   const showFormModal = React.useCallback(() => {
     setFormModalVisible(true);
     // Use requestAnimationFrame to avoid state updates during render
@@ -226,6 +233,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   useEffect(() => {
     const loadExerciseNames = async () => {
       try {
+        setIsLoading(true);
         const names = await getExerciseNames();
         
         if (route.params?.name && !names.includes(route.params.name)) {
@@ -260,7 +268,9 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           setData(result.dataPoints);
           setExerciseEntries(result.exerciseEntries);
         }
+        setIsLoading(false);
       } catch (err) {
+        setIsLoading(false);
         showToastError('Could not get exercises, please try again.');
         console.log(err);
       }
@@ -318,66 +328,75 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   return (
     <Layout style={styles.container}>
-      <View style={styles.dropdownContainer}>
-        <ExerciseDropdown 
-          dropdownItems={dropdownItems}
-          onChange={onDropdownChange} 
-          selectedItem={selectedItem}
-        />
-      </View>
-      
-      {data && selectedItem && (
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Spinner size="large" />
+          <Text category="s1" style={styles.loadingText}>Loading...</Text>
+        </View>
+      ) : (
         <>
-          <Card style={styles.card}>
-            <ScatterPlot 
-              datasets={[data]}
-              title={selectedItem.label}
-              onDataPointClick={(point) => {
-                const entry = exerciseEntries.find(e => e._id === point.id);
-                if (entry) {
-                  getExerciseById(entry._id)
-                    .then(m => {
-                      setCurrentExercisePoint(m);
-                      setModalKey('exerciseContent');
-                      setModalVisible(true);
-                    })
-                    .catch(error => {
-                      if (error instanceof AuthenticationError) {
-                        handleAuthError(error);
-                      } else {
-                        showToastError('Could not fetch exercise details.');
-                      }
-                    });
-                }
-              }}
+          <View style={styles.dropdownContainer}>
+            <ExerciseDropdown 
+              dropdownItems={dropdownItems}
+              onChange={onDropdownChange} 
+              selectedItem={selectedItem}
             />
-          </Card>
+          </View>
           
-          <Card style={styles.listCard}>
-            <Text category="h6" style={styles.listTitle}>Exercise History</Text>
-            <Divider />
-            <List
-              data={[...exerciseEntries].sort((a, b) => {
-                // Convert timestamps to Date objects and get date strings
-                const dateA = new Date(a.createdAt * 1000).toDateString();
-                const dateB = new Date(b.createdAt * 1000).toDateString();
-                
-                // If dates are different, sort by date (newest first)
-                if (dateA !== dateB) {
-                  return b.createdAt - a.createdAt;
-                }
-                
-                // If same date (same day), sort by weight (heaviest first)
-                return b.weight - a.weight;
-              })}
-              keyExtractor={(item) => item._id}
-              renderItem={renderExerciseItem}
-            />
-          </Card>
+          {data && selectedItem && (
+            <>
+              <Card style={styles.card}>
+                <ScatterPlot 
+                  datasets={[data]}
+                  title={selectedItem.label}
+                  onDataPointClick={(point) => {
+                    const entry = exerciseEntries.find(e => e._id === point.id);
+                    if (entry) {
+                      getExerciseById(entry._id)
+                        .then(m => {
+                          setCurrentExercisePoint(m);
+                          setModalKey('exerciseContent');
+                          setModalVisible(true);
+                        })
+                        .catch(error => {
+                          if (error instanceof AuthenticationError) {
+                            handleAuthError(error);
+                          } else {
+                            showToastError('Could not fetch exercise details.');
+                          }
+                        });
+                    }
+                  }}
+                />
+              </Card>
+              
+              <Card style={styles.listCard}>
+                <Text category="h6" style={styles.listTitle}>Exercise History</Text>
+                <Divider />
+                <List
+                  data={[...exerciseEntries].sort((a, b) => {
+                    // Convert timestamps to Date objects and get date strings
+                    const dateA = new Date(a.createdAt * 1000).toDateString();
+                    const dateB = new Date(b.createdAt * 1000).toDateString();
+                    
+                    // If dates are different, sort by date (newest first)
+                    if (dateA !== dateB) {
+                      return b.createdAt - a.createdAt;
+                    }
+                    
+                    // If same date (same day), sort by weight (heaviest first)
+                    return b.weight - a.weight;
+                  })}
+                  keyExtractor={(item) => item._id}
+                  renderItem={renderExerciseItem}
+                />
+              </Card>
+            </>
+          )}
+          
+          {selectedItem && renderAddButton()}
         </>
       )}
-      
-      {selectedItem && renderAddButton()}
       
       <Modal
         visible={modalVisible}
@@ -458,6 +477,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
   },
   dropdownContainer: {
     marginBottom: 16,
