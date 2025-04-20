@@ -1,6 +1,4 @@
 import express from 'express';
-import { createHmac, timingSafeEqual } from 'node:crypto';
-import { exec } from 'child_process';
 import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
@@ -37,56 +35,10 @@ async function connectToDatabase() {
     const supplementCollection = database.collection('supplement');
     const userCollection = database.collection('users');
 
-    const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
-    // hardcoded repo path
-    const repoPath = '/home/ubuntu/zoe';
-
-    const verifySignature = (payload, signature) => {
-      const hash = createHmac('sha256', WEBHOOK_SECRET)
-        .update(JSON.stringify(payload))
-        .digest('hex');
-      const calculatedSignature = `sha256=${hash}`;
-      
-      return timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(calculatedSignature)
-      );
-    };
-
     app.use(express.static(path.join(__dirname, '../web/dist')));
 
     app.get('/ping', (_, res) => {
       res.send('Pong');
-    });
-
-    app.post('/webhook', (req, res) => {
-      console.log('Webhook received');
-      const signature = req.headers['x-hub-signature-256'];
-
-      try {
-        if (!verifySignature(req.body, signature)) {
-          console.err("Invalid signature");
-          return res.status(401).send("invalid signature");
-        }
-      } catch (err) {
-        console.err("Signature verification failed");
-        return res.status(401).send("signature verification failed");
-      }
-
-      if (req.body.ref === 'refs/heads/master') {
-	      // TODO figure out where web:build is needed
-        exec(`cd ${repoPath} && git pull origin master pm2 reload zoe`, (error, stdout, stderr) => {
-        //exec(`cd ${repoPath} && git pull origin master && yarn web:build && pm2 reload zoe`, (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error: ${error}`);
-            return res.status(500).send(error);
-          }
-          console.log(`Pull successful: ${stdout}`);
-          res.status(200).send('Pull successful');
-        });
-      } else {
-        res.status(200).send('Not master branch, no action taken');
-      }
     });
 
     // Public routes (no authentication required)
