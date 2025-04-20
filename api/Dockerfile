@@ -1,16 +1,21 @@
 FROM node:18-alpine
 
+# Install PM2
+RUN npm install -g pm2
+
 WORKDIR /app
 
+# Copy package files first for better layer caching
 COPY package.json yarn.lock* ./
 
+# Install dependencies
 RUN yarn install --frozen-lockfile
 
+# Copy the rest of the application
 COPY . .
 
-ENV NODE_ENV=production
-ENV PORT=3000
-
+# Expose the port
 EXPOSE 3000
 
-CMD ["node", "index.js"]
+# Use PM2 to run the application
+CMD ["pm2", "start", "ecosystem.config.js"]

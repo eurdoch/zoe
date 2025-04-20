@@ -86,6 +86,7 @@ web/dist/
 upgrade_packages.sh
 *.bak
 .aws
+api/ecosystem.config.js
 
 android/zotik-456123-a116e792e9e6.json
 
