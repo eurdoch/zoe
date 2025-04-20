@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Dimensions, StyleSheet, GestureResponderEvent } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, GestureResponderEvent, TouchableWithoutFeedback } from 'react-native';
 import { ReactNativeZoomableView, ZoomableViewEvent } from '@openspacelabs/react-native-zoomable-view';
 import Svg, { 
   Circle, 
@@ -89,42 +89,63 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     })), 
   [chartDetails]
   );
-  const handleSingleTap = (event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
-    // Check if we tapped directly on a Circle - if so, let the Circle's onPress handle it
-    // This is a workaround because React Native SVG has poor interaction with touch events
-    // Only use this tap handler as a fallback for when direct Circle press doesn't work
-    
-    const { locationX, locationY } = event.nativeEvent;
-    const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
-    const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
-    const radius = 20 / zoomableViewEvent.zoomLevel;
-    
-    // Debugging tap coordinates
-    console.log('Tap detected at:', { locationX, locationY, adjustedX, adjustedY });
-    
-    const closestPoint = chartDetails.points.flatMap((points, i) =>
-      points.map(point => ({ ...point, datasetIndex: i }))
-    ).find(point => {
-      const dx = point.x - adjustedX;
-      const dy = point.y - adjustedY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      console.log('Point distance:', { x: point.x, y: point.y, distance });
-      return distance <= radius;
-    });
-    
-    if (closestPoint) {
-      console.log('Found closest point:', closestPoint.originalData);
-      setSelectedPoint(closestPoint.originalData);
-      setSelectedDatasetIndex(closestPoint.datasetIndex);
-      
-      // Directly call the callback
-      onDataPointClick(closestPoint.originalData, closestPoint.datasetIndex);
-    } else {
-      console.log('No point found near tap location');
-      setSelectedPoint(null);
-      setSelectedDatasetIndex(null);
-    }
+  // Debounce function to prevent excessive tap handling
+  const debounce = (func: Function, wait: number) => {
+    let timeout: NodeJS.Timeout | null = null;
+    return (...args: any[]) => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      timeout = setTimeout(() => {
+        func(...args);
+        timeout = null;
+      }, wait);
+    };
   };
+  
+  // Create a debounced tap handler that won't fire too frequently
+  const handleSingleTap = React.useCallback(debounce((event: GestureResponderEvent, zoomableViewEvent: ZoomableViewEvent) => {
+    try {
+      // Simple check to prevent handling during rapid interactions
+      if (!event || !event.nativeEvent || !zoomableViewEvent) {
+        return;
+      }
+      
+      const { locationX, locationY } = event.nativeEvent;
+      const adjustedX = (locationX - margins.left) / zoomableViewEvent.zoomLevel;
+      const adjustedY = (locationY - margins.top) / zoomableViewEvent.zoomLevel;
+      const radius = 20 / zoomableViewEvent.zoomLevel;
+      
+      // Find the closest point without excessive logging
+      const closestPoint = chartDetails.points.flatMap((points, i) =>
+        points.map(point => ({ ...point, datasetIndex: i }))
+      ).find(point => {
+        const dx = point.x - adjustedX;
+        const dy = point.y - adjustedY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance <= radius;
+      });
+      
+      if (closestPoint) {
+        // Update state and call callback inside requestAnimationFrame
+        // to ensure it happens after current render cycle
+        requestAnimationFrame(() => {
+          setSelectedPoint(closestPoint.originalData);
+          setSelectedDatasetIndex(closestPoint.datasetIndex);
+          
+          // Directly call the callback
+          onDataPointClick(closestPoint.originalData, closestPoint.datasetIndex);
+        });
+      } else {
+        requestAnimationFrame(() => {
+          setSelectedPoint(null);
+          setSelectedDatasetIndex(null);
+        });
+      }
+    } catch (error) {
+      console.error('Error in handleSingleTap:', error);
+    }
+  }, 300), [chartDetails, margins, onDataPointClick]);
   const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6610f2'];
   return (
     <View style={styles.container}>
@@ -140,6 +161,15 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           style={styles.zoomableView}
           zoomEnabled={zoomAndPanEnabled}
           panEnabled={zoomAndPanEnabled}
+          doubleTapZoomToCenter={false} // Disable double tap zoom to prevent measurement issues
+          movementSensibility={2} // Reduce sensitivity for panning
+          longPressDuration={1000} // Increase long press time
+          visualTouchFeedbackEnabled={false} // Disable visual feedback that causes measurement
+          doubleTapDelay={250} // Increase double tap delay to distinguish from single taps
+          pinchToZoomInSensitivity={3} // Make pinch to zoom less sensitive
+          pinchToZoomOutSensitivity={1} // Make pinch to zoom out less sensitive
+          contentWidth={width} // Explicitly provide content dimensions
+          contentHeight={height}
         >
           <Svg width={width} height={height}>
             <G x={margins.left} y={margins.top}>
@@ -155,12 +185,28 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                     stroke={selectedPoint === point.originalData && selectedDatasetIndex === i ? 'white' : colors[i]}
                     strokeWidth={2}
                     onPress={(e) => {
-                      console.log('Circle pressed for point:', point.originalData);
-                      // Prevent the event from bubbling up
-                      e.stopPropagation();
-                      // Call the callback with the original data point
-                      onDataPointClick(point.originalData, i);
+                      try {
+                        // Prevent event bubbling
+                        if (e && e.stopPropagation) {
+                          e.stopPropagation();
+                        }
+                        
+                        // Use requestAnimationFrame to defer state updates
+                        requestAnimationFrame(() => {
+                          setSelectedPoint(point.originalData);
+                          setSelectedDatasetIndex(i);
+                          
+                          // Debounce the callback to prevent rapid successive calls
+                          setTimeout(() => {
+                            onDataPointClick(point.originalData, i);
+                          }, 50);
+                        });
+                      } catch (error) {
+                        console.error('Error in Circle onPress:', error);
+                      }
                     }}
+                    // SVG Circle doesn't support hitSlop like View components do
+                    // We're using a larger radius (r={8}) instead to create a bigger touch target
                   />
                 ))
               )}
