@@ -104,21 +104,13 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     }
   }, [navigation]);
 
-  const handleSelect = React.useCallback(async (item: DropdownItem) => {
-    try {
-      const result = await getExercisesByNameAndConvertToDataPoint(item.value);
-      console.log('resultaaa: ', result);
-      setData(result.dataPoints);
-      setExerciseEntries(result.exerciseEntries);
-    } catch (error) {
-      console.error('Error selecting exercise:', error);
-      if (error instanceof AuthenticationError) {
-        handleAuthError(error);
-      } else {
-        showToastError('Could not load exercise data.');
-      }
-    }
-  }, [handleAuthError]);
+  // This function is now used only for reference and could be removed if no other 
+  // parts of the component use it directly.
+  // We're keeping it for now but making it a no-op to avoid any potential circular references.
+  const handleSelect = React.useCallback(async (_item: DropdownItem) => {
+    // No-op - Logic moved to onDropdownChange and the useEffect for initialization
+    console.log('handleSelect is deprecated and should not be called directly');
+  }, []);
 
   const reloadData = React.useCallback(async (name: string) => {
     try {
@@ -220,8 +212,23 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     
     // For regular exercise items
     setSelectedItem(item);
-    handleSelect(item);
-  }, [setModalKey, setModalVisible, setSelectedItem, handleSelect]);
+    
+    // Instead of calling handleSelect which might be causing recursive calls,
+    // we'll directly fetch the data
+    getExercisesByNameAndConvertToDataPoint(item.value)
+      .then(result => {
+        setData(result.dataPoints);
+        setExerciseEntries(result.exerciseEntries);
+      })
+      .catch(error => {
+        console.error('Error selecting exercise:', error);
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not load exercise data.');
+        }
+      });
+  }, [setModalKey, setModalVisible, setSelectedItem, handleAuthError]);
   
   const showFormModal = React.useCallback(() => {
     setFormModalVisible(true);
@@ -250,16 +257,20 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
 
   // Effect hooks
   useEffect(() => {
-    getExerciseNames()
-      .then(names => {
+    const loadExerciseNames = async () => {
+      try {
+        const names = await getExerciseNames();
+        
         if (route.params?.name && !names.includes(route.params.name)) {
           names.push(route.params.name);
         }
+        
         const sortedItems = names
           .sort((a, b) => a.localeCompare(b)).map(name => ({
             label: convertFromDatabaseFormat(name),
             value: name,
           }));
+          
         setDropdownItems([
           {
             value: 'new_exercise',
@@ -267,20 +278,29 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
           }, 
           ...sortedItems
         ]);
-      })
-      .catch(err => {
+        
+        // Only set the selected item and load data after dropdown items are set
+        if (route.params && route.params.name) {
+          const item = {
+            label: convertFromDatabaseFormat(route.params.name),
+            value: route.params.name,
+          };
+          setSelectedItem(item);
+          
+          // Directly call getExercisesByNameAndConvertToDataPoint instead of handleSelect
+          // to avoid potential circular dependencies
+          const result = await getExercisesByNameAndConvertToDataPoint(item.value);
+          setData(result.dataPoints);
+          setExerciseEntries(result.exerciseEntries);
+        }
+      } catch (err) {
         showToastError('Could not get exercises, please try again.');
         console.log(err);
-      });
-    if (route.params && route.params.name) {
-      const item = {
-        label: convertFromDatabaseFormat(route.params.name),
-        value: route.params.name,
-      };
-      setSelectedItem(item);
-      handleSelect(item);
-    }
-  }, [handleSelect, route.params]);
+      }
+    };
+    
+    loadExerciseNames();
+  }, [route.params]);
 
   // Calculate slide up transform for form modal
   const formModalTransform = React.useMemo(() => ({
