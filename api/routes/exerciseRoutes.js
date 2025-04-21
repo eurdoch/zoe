@@ -42,6 +42,7 @@ export default function exerciseRoutes(exerciseCollection) {
     }
   });
 
+  // TODO marked for deletion, the GET / endpoint with query values replaces this
   router.get('/:name', async (req, res) => {
     // Get user_id from the authenticated request
     const userId = req.user.user_id;

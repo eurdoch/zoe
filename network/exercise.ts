@@ -62,7 +62,7 @@ export async function getExerciseNames(): Promise<string[]> {
     }
     
     // Get all exercises from the server
-    const response = await fetch(`${API_BASE_URL}/exercise`, {
+    const response = await fetch(`${API_BASE_URL}/exercise/names`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -81,6 +81,7 @@ export async function getExerciseNames(): Promise<string[]> {
     }
     
     const exercises: ExerciseEntry[] = await response.json();
+    console.log('exercises: ', exercises);
     
     // Extract unique names
     const uniqueNames = new Set(exercises.map(exercise => exercise.name));
