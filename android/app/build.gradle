@@ -86,8 +86,8 @@ android {
         applicationId "com.zotik"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "0.0.10-beta"
+        versionCode 12
+        versionName "0.0.11-beta"
     }
     signingConfigs {
         debug {
