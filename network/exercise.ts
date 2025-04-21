@@ -80,12 +80,7 @@ export async function getExerciseNames(): Promise<string[]> {
       throw new Error(`Failed to get exercises: ${response.status} ${response.statusText}`);
     }
     
-    const exercises: ExerciseEntry[] = await response.json();
-    console.log('exercises: ', exercises);
-    
-    // Extract unique names
-    const uniqueNames = new Set(exercises.map(exercise => exercise.name));
-    return Array.from(uniqueNames);
+    return response.json();
   } catch (error) {
     console.error('Error getting exercise names:', error);
     throw error;
