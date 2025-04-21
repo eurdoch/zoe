@@ -1,6 +1,6 @@
 {
   "name": "zotik",
-  "version": "0.0.10-beta",
+  "version": "0.0.11-beta",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
