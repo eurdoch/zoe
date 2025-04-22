@@ -145,11 +145,16 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     // End of day is start of day + 24 hours (in seconds)
     const endOfDay = startOfDay + (24 * 60 * 60);
     
-    getSupplement(startOfDay, endOfDay)
-      .then(entries => setSupplementEntries(entries))
+    // Return the promise so we can chain it
+    return getSupplement(startOfDay, endOfDay)
+      .then(entries => {
+        setSupplementEntries(entries);
+        return entries; // Return entries to allow further chaining
+      })
       .catch(error => {
         console.error('Error loading supplements:', error);
         showToastError('Could not load supplements');
+        throw error; // Re-throw the error to allow proper error handling
       });
   }
 
@@ -164,8 +169,12 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   }, [modalVisible]);
 
   useEffect(() => {
-    loadData();
-    getSupplementNames()
+    // First load the data
+    loadData()
+      .then(() => {
+        // Then load the dropdown items
+        return getSupplementNames();
+      })
       .then(names => {
         const sortedNames = names.sort((a, b) => a.localeCompare(b));
         const items = sortedNames.map(name => ({
@@ -198,7 +207,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
             amount_unit: selectedUnit.value,
           });
           showToastInfo('Supplement added.');
-          loadData();
+          await loadData(); // Wait for data to be loaded
           hideAddSupplementModal();
           setAmount("");
         } catch (error) {
@@ -339,8 +348,10 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
             .then((newEntry) => {
               console.log(`👉 Created new entry with ID: ${newEntry._id}`);
               showToastInfo(`Added ${convertFromDatabaseFormat(entry.name)}`);
-              loadData();
-              hideRecentEntries();
+              // First make sure data is loaded fully before hiding the panel
+              loadData().then(() => {
+                hideRecentEntries();
+              });
             })
             .catch(error => {
               console.log('Error: ', error);
