@@ -156,12 +156,48 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             >
               <Text style={styles.buttonText}>Verify</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.textButton}
-              onPress={() => setVerificationId(null)}
-            >
-              <Text style={styles.textButtonText}>Change Phone Number</Text>
-            </TouchableOpacity>
+            <View style={styles.textButtonsContainer}>
+              <TouchableOpacity
+                style={styles.textButton}
+                onPress={() => setVerificationId(null)}
+              >
+                <Text style={styles.textButtonText}>Change Phone Number</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.textButton}
+                onPress={async () => {
+                  setIsLoading(true);
+                  try {
+                    const response = await fetch(`${API_BASE_URL}/verify/send`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ phoneNumber: formattedValue }),
+                    });
+                    
+                    const data = await response.json();
+                    console.log('Resend verification response:', data);
+                    
+                    // Update the verification ID
+                    setVerificationId(data.sid);
+                    
+                    // Clear the verification code field
+                    setVerificationCode("");
+                    
+                    Alert.alert('Success', 'A new verification code has been sent to your phone.');
+                  } catch (error) {
+                    console.error('Error resending verification code:', error);
+                    Alert.alert('Error', 'Failed to resend verification code. Please try again.');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+              >
+                <Text style={styles.textButtonText}>Send Code Again</Text>
+              </TouchableOpacity>
+            </View>
           </>
         ) : (
           // Phone number input view
@@ -263,14 +299,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  textButtonsContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 10,
+  },
   textButton: {
-    marginTop: 20,
+    marginTop: 10,
     padding: 10,
   },
   textButtonText: {
     color: '#666',
     fontSize: 14,
     fontWeight: '500',
+    textDecorationLine: 'underline',
   },
   redColor: {
     backgroundColor: '#F57777'
