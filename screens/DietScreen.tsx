@@ -176,7 +176,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 220,
+            bottom: 285,
             transform: [
               { scale: animation },
               { 
@@ -202,7 +202,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 155,
+            bottom: 220,
             transform: [
               { scale: animation },
               { 
@@ -228,7 +228,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 90,
+            bottom: 155,
             transform: [
               { scale: animation },
               { 
@@ -247,6 +247,36 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           onPress={() => navigateToScreen('BarcodeScanner')}
         >
           <Icon name='camera-outline' style={styles.fabMenuIcon} fill='white' />
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Magic Wand Button */}
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 90,
+            transform: [
+              { scale: animation },
+              { 
+                translateY: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: animation
+          }
+        ]}
+      >
+        <TouchableOpacity 
+          style={styles.fabMenuButton} 
+          onPress={() => {
+            console.log('Magic wand button pressed!');
+            toggleFabMenu();
+          }}
+        >
+          <Icon name='flash-outline' style={styles.fabMenuIcon} fill='white' />
         </TouchableOpacity>
       </Animated.View>
 
