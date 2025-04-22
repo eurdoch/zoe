@@ -8,6 +8,7 @@ import {
   Icon,
   TopNavigationAction,
   Input,
+  Text as KittenText,
 } from '@ui-kitten/components';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
@@ -252,6 +253,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
             status="primary"
             size="large"
             onPress={!isEditMode ? () => handleLogExercise(item) : undefined}
+            accessoryLeft={null}
             accessoryRight={
               isEditMode ? 
                 (props) => (
@@ -266,7 +268,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
                 ) : undefined
             }
           >
-            {convertFromDatabaseFormat(item)}
+            {evaProps => <KittenText {...evaProps} style={styles.buttonText}>{convertFromDatabaseFormat(item)}</KittenText>}
           </Button>
         ))}
       </Layout>
@@ -316,6 +318,13 @@ const styles = StyleSheet.create({
   },
   exerciseButton: {
     marginVertical: 8,
+    height: 60, // Make buttons taller
+    borderRadius: 15, // Increased border radius
+  },
+  buttonText: {
+    fontSize: 18, // Larger text size
+    fontWeight: 'bold',
+    color: 'white',
   },
   input: {
     marginBottom: 16,

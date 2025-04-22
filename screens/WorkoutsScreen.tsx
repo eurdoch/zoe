@@ -61,9 +61,10 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
             appearance="filled"
             status="primary"
             size="large"
+            accessoryLeft={null}
             onPress={() => handleStartWorkout(entry)}
           >
-            {entry.name}
+            {evaProps => <Text {...evaProps} style={styles.buttonText}>{entry.name}</Text>}
           </Button>
         ))}
       </Layout>
@@ -84,6 +85,13 @@ const styles = StyleSheet.create({
   },
   workoutButton: {
     marginVertical: 8,
+    height: 60, // Make buttons taller
+    borderRadius: 15, // Increased border radius
+  },
+  buttonText: {
+    fontSize: 18, // Larger text size
+    fontWeight: 'bold',
+    color: 'white',
   },
   floatingButton: {
     position: 'absolute',
