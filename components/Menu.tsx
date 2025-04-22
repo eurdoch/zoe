@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Button } from '@ui-kitten/components';
+import { View, StyleSheet, Text } from 'react-native';
+import { Button, Text as KittenText } from '@ui-kitten/components';
 
 interface MenuItem {
   screenName: string;
@@ -20,10 +20,11 @@ const Menu = ({ navigation, menuItems }: MenuProps) => {
           key={index}
           onPress={() => navigation.navigate(item.screenName)}
           appearance="filled"
-          size="medium"
+          size="large"
           style={styles.button}
+          accessoryLeft={null}
         >
-          {item.label}
+          {evaProps => <KittenText {...evaProps} style={styles.buttonText}>{item.label}</KittenText>}
         </Button>
       ))}
     </View>
@@ -39,6 +40,13 @@ const styles = StyleSheet.create({
   },
   button: {
     marginVertical: 8,
+    height: 60, // Make buttons taller
+    borderRadius: 15, // Increased border radius
+  },
+  buttonText: {
+    fontSize: 18, // Larger text size
+    fontWeight: 'bold',
+    color: 'white',
   }
 });
 
