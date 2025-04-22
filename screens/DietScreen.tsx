@@ -10,6 +10,7 @@ import MacroCalculator from '../components/MacroCalculator';
 import { Icon } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
+import MacroByImageAnalysis from '../components/MacroByImageAnalysis';
 
 interface DietScreenProps {
   navigation: any;
@@ -27,8 +28,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const { 
     nutritionInfo, 
     scannedProduct, 
+    foodImageAnalysis,
     setNutritionInfo, 
-    setScannedProduct 
+    setScannedProduct,
+    setFoodImageAnalysis
   } = useFoodData();
   
   // Animation values for the expanding FAB menu
@@ -38,6 +41,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setModalVisible(false);
     setNutritionInfo(null);
     setScannedProduct(null);
+    setFoodImageAnalysis(null);
     loadData();
   }
 
@@ -66,10 +70,14 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           setDeleteEntry(null);
           setModalVisible(true);
         }
+        else if (foodImageAnalysis) {
+          setDeleteEntry(null);
+          setModalVisible(true);
+        }
       });
 
       return unsubscribe;
-  }, [navigation, nutritionInfo, scannedProduct]);
+  }, [navigation, nutritionInfo, scannedProduct, foodImageAnalysis]);
 
   const handleDeleteEntry = (id: string) => {
     deleteFood(id).then(result => {
@@ -303,6 +311,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           // Clear context when modal is closed
           setNutritionInfo(null);
           setScannedProduct(null);
+          setFoodImageAnalysis(null);
         }}
       >
         { 
@@ -325,6 +334,14 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
               productResponse={scannedProduct} 
               setModalVisible={setModalVisible} 
               onFoodAdded={onFoodAdded}
+            />
+          )
+        }
+        {
+          foodImageAnalysis && (
+            <MacroByImageAnalysis 
+              analysisResult={foodImageAnalysis}
+              onConfirm={onFoodAdded}
             />
           )
         }

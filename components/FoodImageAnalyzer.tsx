@@ -4,19 +4,10 @@ import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getFoodImageAnalysis } from "../network/nutrition";
 import { showToastError, showToastInfo } from "../utils";
-import { useFoodData } from "../contexts/FoodDataContext";
+import { useFoodData, FoodImageAnalysisResult } from "../contexts/FoodDataContext";
 
 interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
-}
-
-interface FoodImageAnalysisResult {
-  food_name: string;
-  calories: number;
-  protein_grams: number;
-  carb_grams: number;
-  fat_grams: number;
-  confidence: string;
 }
 
 const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
@@ -30,7 +21,7 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   const [analysisResult, setAnalysisResult] = useState<FoodImageAnalysisResult | null>(null);
   
   // Use the food data context
-  const { setNutritionInfo } = useFoodData();
+  const { setFoodImageAnalysis } = useFoodData();
 
   useEffect(() => {
     if (!cameraActive && !isProcessing) {
@@ -74,19 +65,8 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
       
       setAnalysisResult(result);
       
-      // Create a nutrition info object compatible with the food entry system
-      const nutritionInfo = {
-        serving_size: 1,
-        serving_unit: "serving",
-        fat_grams_per_serving: result.fat_grams,
-        carb_grams_per_serving: result.carb_grams,
-        protein_grams_per_serving: result.protein_grams,
-        calories_per_serving: result.calories,
-        food_name: result.food_name
-      };
-      
-      // Set the nutrition data in global context
-      setNutritionInfo(nutritionInfo);
+      // Store the analysis result in the context
+      setFoodImageAnalysis(result);
       
       showToastInfo(`Analysis complete (${result.confidence} confidence)`);
       
