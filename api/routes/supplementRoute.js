@@ -67,11 +67,18 @@ export default function supplementRoutes(supplementCollection) {
       console.log(`GET /supplement for user: ${userId}`);
       
       const { startDate, endDate, last_logged } = req.query;
+      console.log(`Query params - startDate: ${startDate}, endDate: ${endDate}, last_logged: ${last_logged}`);
+      
       // Always include user_id in the query
       const query = { user_id: userId };
       
       if (startDate && endDate) {
-        query.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        // Use createdAt field which is the timestamp field used in the client
+        query.createdAt = { 
+          $gte: parseInt(startDate, 10), 
+          $lte: parseInt(endDate, 10) 
+        };
+        console.log(`Date filter added to query: ${JSON.stringify(query.createdAt)}`);
       }
       
       // Check if last_logged parameter exists
@@ -94,6 +101,10 @@ export default function supplementRoutes(supplementCollection) {
       
       // Original behavior when last_logged is not provided
       const result = await supplementCollection.find(query).toArray();
+      console.log(`Found ${result.length} supplements matching query: ${JSON.stringify(query)}`);
+      if (result.length > 0) {
+        console.log(`Sample supplement: ${JSON.stringify(result[0])}`);
+      }
       res.json(result);
     } catch (err) {
       console.error('GET /supplement error:', err);
