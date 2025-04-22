@@ -90,10 +90,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     console.log('Authentication error detected:', error);
     showToastError('Authentication failed. Please log in again.');
     
-    // Remove token from AsyncStorage
+    // Remove token and user from AsyncStorage
     try {
-      await AsyncStorage.removeItem('token');
-      console.log('Token removed from AsyncStorage');
+      await AsyncStorage.multiRemove(['token', 'user']);
+      console.log('Token and user removed from AsyncStorage');
       
       // Navigate to login screen
       navigation.reset({
@@ -101,7 +101,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         routes: [{ name: 'Login' as never }],
       });
     } catch (storageError) {
-      console.error('Error removing token from storage:', storageError);
+      console.error('Error removing data from storage:', storageError);
       showToastError('Error logging out. Please restart the app.');
     }
   }, [navigation]);
@@ -271,13 +271,17 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         setIsLoading(false);
       } catch (err) {
         setIsLoading(false);
-        showToastError('Could not get exercises, please try again.');
-        console.log(err);
+        if (err instanceof AuthenticationError) {
+          handleAuthError(err);
+        } else {
+          showToastError('Could not get exercises, please try again.');
+          console.log(err);
+        }
       }
     };
     
     loadExerciseNames();
-  }, [route.params]);
+  }, [route.params, handleAuthError]);
 
   // Calculate slide up transform for form modal
   const formModalTransform = React.useMemo(() => ({
