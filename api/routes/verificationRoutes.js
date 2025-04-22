@@ -16,6 +16,7 @@ const client = twilio(accountSid, authToken);
 const JWT_SECRET = process.env.JWT_SECRET || 'zoe-app-jwt-secret-key-development-only';
 const JWT_EXPIRES_IN = '90d'; // 3 months
 const DEMO_JWT_EXPIRES_IN = '2h'; // 2 hours for demo account
+const DEMO_PHONE_NUMBER = process.env.DEMO_PHONE_NUMBER;
 
 // Phone number hashing function - must match client-side implementation exactly
 const generateConsistentHash = (phone) => {
@@ -79,7 +80,7 @@ export default function verificationRoutes(userCollection) {
     }
 
     // For demo account, skip actual Twilio verification
-    if (phoneNumber === '+2250112345678') {
+    if (phoneNumber === DEMO_PHONE_NUMBER) {
       console.log('Demo account detected, skipping Twilio verification send');
       // Return a mock verification object that looks like Twilio's response
       return res.status(200).json({
@@ -124,7 +125,7 @@ export default function verificationRoutes(userCollection) {
       let verificationStatus = 'pending';
       
       // Check if this is the demo account
-      if (phoneNumber === '+2250112345678') {
+      if (phoneNumber === DEMO_PHONE_NUMBER) {
         // Skip Twilio verification for demo account
         console.log('Demo account detected, bypassing Twilio verification');
         verificationStatus = 'approved';
@@ -157,11 +158,11 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
-              is_demo: phoneNumber === '+2250112345678',
+              is_demo: phoneNumber === DEMO_PHONE_NUMBER,
               // Add any other claims needed
             }, 
             JWT_SECRET, 
-            { expiresIn: phoneNumber === '+2250112345678' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
+            { expiresIn: phoneNumber === DEMO_PHONE_NUMBER ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           if (user) {
@@ -219,10 +220,10 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
-              is_demo: phoneNumber === '+2250112345678',
+              is_demo: phoneNumber === DEMO_PHONE_NUMBER,
             }, 
             JWT_SECRET, 
-            { expiresIn: phoneNumber === '+2250112345678' ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
+            { expiresIn: phoneNumber === DEMO_PHONE_NUMBER ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           // Create a minimal user response
