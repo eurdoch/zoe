@@ -19,6 +19,7 @@ import SupplementScreen from './screens/SupplementsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import NutritionLabelParser from './components/NutritionLabelParser.tsx';
+import FoodImageAnalyzer from './components/FoodImageAnalyzer.tsx';
 import 'react-native-get-random-values';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider, IconRegistry, Icon } from '@ui-kitten/components';
@@ -40,6 +41,7 @@ type RootStackParamList = {
   Profile: undefined;
   BarcodeScanner: undefined;
   NutritionLabelParser: undefined;
+  FoodImageAnalyzer: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -196,6 +198,13 @@ const App = () => {
               <Stack.Screen
                 name="NutritionLabelParser"
                 component={NutritionLabelParser}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="FoodImageAnalyzer"
+                component={FoodImageAnalyzer}
                 options={{
                   headerShown: false,
                 }}
