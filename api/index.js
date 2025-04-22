@@ -6,6 +6,7 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
+import foodImageAnalyzerRoutes from './routes/foodImageAnalyzer.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import authenticateToken from './middleware/auth.js';
 import 'dotenv/config';
@@ -43,6 +44,7 @@ async function connectToDatabase() {
 
     // Public routes (no authentication required)
     app.use('/nutritionimg', nutritionParserRoutes());
+    app.use('/foodimageanalyzer', foodImageAnalyzerRoutes());
     app.use('/verify', verificationRoutes(userCollection));
     
     // Protected routes (require JWT authentication)

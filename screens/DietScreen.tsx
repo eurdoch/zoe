@@ -271,10 +271,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       >
         <TouchableOpacity 
           style={styles.fabMenuButton} 
-          onPress={() => {
-            console.log('Magic wand button pressed!');
-            toggleFabMenu();
-          }}
+          onPress={() => navigateToScreen('FoodImageAnalyzer')}
         >
           <Icon name='flash-outline' style={styles.fabMenuIcon} fill='white' />
         </TouchableOpacity>
