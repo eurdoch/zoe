@@ -167,12 +167,11 @@ export default function verificationRoutes(userCollection) {
           if (user) {
             console.log('User found:', user._id);
             
-            // Update user with new token and last login time
+            // Update only last login time, don't store the token
             await userCollection.updateOne(
               { user_id: userId },
               { 
                 $set: { 
-                  token: token,
                   last_login: new Date()
                 }
               }
@@ -181,10 +180,10 @@ export default function verificationRoutes(userCollection) {
             // Get the updated user data
             user = await userCollection.findOne({ user_id: userId });
             
-            // Create the user response
+            // Create the user response with token but don't store it in DB
             userResponse = {
               user_id: user.user_id,
-              token: token,
+              token: token, // Send token to client
               last_login: user.last_login,
               created_at: user.created_at,
               premium: user.premium || false,
@@ -194,11 +193,11 @@ export default function verificationRoutes(userCollection) {
             console.log('Creating new user with ID:', userId);
             
             // Create a new user entry with premium field set to false
+            // Don't store token in the database
             const newUser = {
               user_id: userId,
               created_at: new Date(),
               last_login: new Date(),
-              token: token,
               premium: false
             };
             
@@ -206,9 +205,10 @@ export default function verificationRoutes(userCollection) {
             const result = await userCollection.insertOne(newUser);
             console.log('New user created with DB ID:', result.insertedId);
             
-            // Create the user response
+            // Create the user response with token included for client
             userResponse = {
               ...newUser,
+              token: token, // Send token to client but it's not in newUser object
               _id: result.insertedId.toString()
             };
           }
