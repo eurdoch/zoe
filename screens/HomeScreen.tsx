@@ -31,19 +31,6 @@ const menuItems = [
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  
-  // Handle menu visibility
-  const toggleMenu = () => {
-    setMenuVisible(!menuVisible);
-  };
-  
-  // Handle logout button press
-  const handleLogoutPress = () => {
-    console.log('Logout button pressed');
-    setMenuVisible(false);
-    setLogoutModalVisible(true);
-  };
   
   // Handle modal cancel
   const handleCancelLogout = () => {
