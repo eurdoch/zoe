@@ -313,7 +313,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     fontWeight: '500',
-    textDecorationLine: 'underline',
   },
   redColor: {
     backgroundColor: '#F57777'
