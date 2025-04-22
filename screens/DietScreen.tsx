@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
@@ -11,6 +11,8 @@ import { Icon } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
 import MacroByImageAnalysis from '../components/MacroByImageAnalysis';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DietScreenProps {
   navigation: any;
@@ -37,6 +39,27 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   // Animation values for the expanding FAB menu
   const animation = useState(new Animated.Value(0))[0];
 
+  // Authentication error handler
+  const handleAuthError = useCallback(async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token and user from AsyncStorage
+    try {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      console.log('Token and user removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing data from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  }, [navigation]);
+
   const onFoodAdded = () => {
     setModalVisible(false);
     setNutritionInfo(null);
@@ -47,15 +70,24 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
 
   const loadData = () => {
     const today = Math.floor(Date.now() / 1000);
-    getFoodByUnixTime(today).then(entries => {
-      console.log('entries', entries);
-      let count = 0;
-      entries.forEach(entry => {
-        count += entry.macros.calories;
+    getFoodByUnixTime(today)
+      .then(entries => {
+        console.log('entries', entries);
+        let count = 0;
+        entries.forEach(entry => {
+          count += entry.macros.calories;
+        });
+        setTotalCalories(count);
+        setFoodEntries(entries);
+      })
+      .catch(error => {
+        console.error('Error loading food entries:', error);
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not load food entries. Please try again.');
+        }
       });
-      setTotalCalories(count);
-      setFoodEntries(entries);
-    });
   }
 
   useEffect(() => {
@@ -80,14 +112,23 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   }, [navigation, nutritionInfo, scannedProduct, foodImageAnalysis]);
 
   const handleDeleteEntry = (id: string) => {
-    deleteFood(id).then(result => {
-      if (result.acknowledged) {
-        showToastInfo('Food entry deleted.');
-        loadData();
-      } else {
-        showToastError('Food entry could not be deleted, try again.');
-      }
-    });
+    deleteFood(id)
+      .then(result => {
+        if (result.acknowledged) {
+          showToastInfo('Food entry deleted.');
+          loadData();
+        } else {
+          showToastError('Food entry could not be deleted, try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting food entry:', error);
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Food entry could not be deleted. Please try again.');
+        }
+      });
     setModalVisible(false);
     setDeleteEntry(null);
   }

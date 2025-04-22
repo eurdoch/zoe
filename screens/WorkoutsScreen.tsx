@@ -11,6 +11,9 @@ import {
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkouts } from '../network/workout';
 import { useFocusEffect } from '@react-navigation/native';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { showToastError } from '../utils';
 
 interface WorkoutsScreenProps {
   navigation: any;
@@ -18,6 +21,27 @@ interface WorkoutsScreenProps {
 
 const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
   const [workoutEntries, setWorkoutEntries] = useState<WorkoutEntry[]>([]);
+
+  // Authentication error handler
+  const handleAuthError = useCallback(async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token and user from AsyncStorage
+    try {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      console.log('Token and user removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing data from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  }, [navigation]);
 
   // For navigation to and back to
   useFocusEffect(
@@ -28,6 +52,11 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
           setWorkoutEntries(workouts);
         } catch (error) {
           console.error('Error fetching workouts:', error);
+          if (error instanceof AuthenticationError) {
+            handleAuthError(error);
+          } else {
+            showToastError('Could not load workouts. Please try again.');
+          }
         }
       };
       
@@ -35,7 +64,7 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
       
       // No cleanup function needed as we're not subscribing to anything
       return () => {};
-    }, [])
+    }, [handleAuthError])
   );
 
   const handleStartWorkout = (entry: WorkoutEntry) => {

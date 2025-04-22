@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
@@ -7,6 +7,8 @@ import MacroCalculator from '../components/MacroCalculator';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   Layout, 
   Text, 
@@ -31,6 +33,27 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [modalContent, setModalContent] = useState<string>('product');
   const [option, setOption] = useState<any>({});
   const [isModalLoading, setIsModalLoading] = useState(false);
+
+  // Authentication error handler
+  const handleAuthError = useCallback(async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token and user from AsyncStorage
+    try {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      console.log('Token and user removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing data from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  }, [navigation]);
 
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
@@ -60,9 +83,13 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             })
             .catch(error => {
               console.log(error);
-              showToastError("Could not get nutrition info.");
-              setIsModalLoading(false);
-              setModalVisible(false);
+              if (error instanceof AuthenticationError) {
+                handleAuthError(error);
+              } else {
+                showToastError("Could not get nutrition info.");
+                setIsModalLoading(false);
+                setModalVisible(false);
+              }
             });
         } else if (route.params?.productResponse) {
           setOption(route.params?.productResponse);
@@ -81,7 +108,12 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         const result = await searchFoodItemByText(searchText);
         setFoodOptions(result.products);
       } catch (error: any) {
-        showToastError(error.toString());
+        console.error('Error searching for food:', error);
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError(error.toString());
+        }
       } finally {
         setIsLoading(false);
       }

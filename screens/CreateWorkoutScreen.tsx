@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { 
   Layout, 
@@ -13,9 +13,11 @@ import {
   Icon
 } from '@ui-kitten/components';
 import { getExerciseNames } from '../network/exercise';
-import { convertFromDatabaseFormat } from '../utils';
+import { convertFromDatabaseFormat, showToastError } from '../utils';
 import { postWorkout } from '../network/workout';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { AuthenticationError } from '../errors/NetworkError';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import { useRealm } from '@realm/react';
 
 interface CreateWorkoutScreenProps {
@@ -29,11 +31,41 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   const [showNewExerciseInput, setShowNewExerciseInput] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
 
+  // Authentication error handler
+  const handleAuthError = useCallback(async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token and user from AsyncStorage
+    try {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      console.log('Token and user removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing data from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  }, [navigation]);
+
   useEffect(() => {
-    getExerciseNames().then((names: string[]) => {
-      setAvailableExercises(names);
-    });
-  }, []); // Empty dependency array to run only once
+    getExerciseNames()
+      .then((names: string[]) => {
+        setAvailableExercises(names);
+      })
+      .catch(error => {
+        console.error('Error fetching exercise names:', error);
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          showToastError('Could not load exercises. Please try again.');
+        }
+      });
+  }, [handleAuthError]); // Add handleAuthError to dependency array
 
   const handleWorkoutPress = (workout: string) => {
     if (selectedExercises.includes(workout)) {
@@ -93,21 +125,34 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
       return;
     }
 
-    const result = await postWorkout({
-      name: workoutName,
-      exercises: selectedExercises,
-      createdAt: Date.now(),
-    });
-    if (result.name === workoutName && 
-        JSON.stringify(result.exercises) === JSON.stringify(selectedExercises)) {
-      navigation.pop(1);
-      navigation.navigate('Workout', { workout: result })
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Whoops!',
-        text2: 'Workout could not be saved, please try again.'
-      })
+    try {
+      const result = await postWorkout({
+        name: workoutName,
+        exercises: selectedExercises,
+        createdAt: Date.now(),
+      });
+      if (result.name === workoutName && 
+          JSON.stringify(result.exercises) === JSON.stringify(selectedExercises)) {
+        navigation.pop(1);
+        navigation.navigate('Workout', { workout: result })
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Whoops!',
+          text2: 'Workout could not be saved, please try again.'
+        })
+      }
+    } catch (error) {
+      console.error('Error adding workout:', error);
+      if (error instanceof AuthenticationError) {
+        handleAuthError(error);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Whoops!',
+          text2: 'Workout could not be saved, please try again.'
+        })
+      }
     }
   };
 

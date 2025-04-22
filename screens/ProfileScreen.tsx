@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Card, Layout } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
+import { AuthenticationError } from '../errors/NetworkError';
+import { showToastError } from '../utils';
 
 interface User {
   user_id?: string;
@@ -13,9 +15,30 @@ interface User {
   last_login?: string;
 }
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Authentication error handler
+  const handleAuthError = useCallback(async (error: AuthenticationError) => {
+    console.log('Authentication error detected:', error);
+    showToastError('Authentication failed. Please log in again.');
+    
+    // Remove token and user from AsyncStorage
+    try {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      console.log('Token and user removed from AsyncStorage');
+      
+      // Navigate to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (storageError) {
+      console.error('Error removing data from storage:', storageError);
+      showToastError('Error logging out. Please restart the app.');
+    }
+  }, [navigation]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -38,8 +61,11 @@ const ProfileScreen = () => {
             setUser(userData);
             // Update local storage with the latest user data
             await AsyncStorage.setItem('user', JSON.stringify(userData));
+          } else if (response.status === 401 || response.status === 403) {
+            // Handle authentication errors explicitly
+            throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
           } else {
-            // If API call fails, fall back to local storage
+            // If API call fails for other reasons, fall back to local storage
             const userData = await AsyncStorage.getItem('user');
             if (userData) {
               setUser(JSON.parse(userData));
@@ -54,15 +80,20 @@ const ProfileScreen = () => {
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-        // If network error, try local storage as fallback
-        try {
-          const userData = await AsyncStorage.getItem('user');
-          if (userData) {
-            console.log('userData: ', userData);
-            setUser(JSON.parse(userData));
+        
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        } else {
+          // If network error, try local storage as fallback
+          try {
+            const userData = await AsyncStorage.getItem('user');
+            if (userData) {
+              console.log('userData: ', userData);
+              setUser(JSON.parse(userData));
+            }
+          } catch (localError) {
+            console.error('Error loading local user data:', localError);
           }
-        } catch (localError) {
-          console.error('Error loading local user data:', localError);
         }
       } finally {
         setLoading(false);
@@ -70,7 +101,7 @@ const ProfileScreen = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [handleAuthError]);
 
   if (loading) {
     return (
