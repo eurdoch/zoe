@@ -8,11 +8,11 @@ interface ExerciseScreenProps {
 
 const menuItems = [
   {
-    label: "log",
+    label: "Log",
     screenName: "ExerciseLog",
   },
   {
-    label: "workouts",
+    label: "Workouts",
     screenName: "Workouts",
   },
 ];

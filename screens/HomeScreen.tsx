@@ -12,7 +12,7 @@ type HomeScreenProps = {
 
 const menuItems = [
   {
-    label: "exercise",
+    label: "Exercise",
     screenName: "Exercise",
   },
   {
@@ -20,11 +20,11 @@ const menuItems = [
     screenName: "Diet",
   },
   {
-    label: "weight",
+    label: "Weight",
     screenName: "Weight",
   },
   {
-    label: "supplements",
+    label: "Supplements",
     screenName: "Supplement",
   },
 ]
