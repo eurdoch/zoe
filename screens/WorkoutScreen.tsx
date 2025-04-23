@@ -253,7 +253,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
             status="primary"
             size="large"
             onPress={!isEditMode ? () => handleLogExercise(item) : undefined}
-            accessoryLeft={null}
+            accessoryLeft={undefined}
             accessoryRight={
               isEditMode ? 
                 (props) => (
@@ -268,7 +268,7 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
                 ) : undefined
             }
           >
-            {evaProps => <KittenText {...evaProps} style={styles.buttonText}>{convertFromDatabaseFormat(item)}</KittenText>}
+            {(evaProps: any) => <KittenText {...evaProps} style={styles.buttonText}>{convertFromDatabaseFormat(item)}</KittenText>}
           </Button>
         ))}
       </Layout>

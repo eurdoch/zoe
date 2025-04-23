@@ -22,9 +22,9 @@ const Menu = ({ navigation, menuItems }: MenuProps) => {
           appearance="filled"
           size="large"
           style={styles.button}
-          accessoryLeft={null}
+          accessoryLeft={undefined}
         >
-          {evaProps => <KittenText {...evaProps} style={styles.buttonText}>{item.label}</KittenText>}
+          {(evaProps: any) => <KittenText {...evaProps} style={styles.buttonText}>{item.label}</KittenText>}
         </Button>
       ))}
     </View>

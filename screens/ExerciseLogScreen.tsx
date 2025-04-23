@@ -354,7 +354,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
                   datasets={[data]}
                   title={selectedItem.label}
                   onDataPointClick={(point) => {
-                    const entry = exerciseEntries.find(e => e._id === point.id);
+                    const entry = exerciseEntries.find(e => e._id === point.label);
                     if (entry) {
                       getExerciseById(entry._id)
                         .then(m => {

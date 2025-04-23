@@ -90,10 +90,10 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
             appearance="filled"
             status="primary"
             size="large"
-            accessoryLeft={null}
+            accessoryLeft={undefined}
             onPress={() => handleStartWorkout(entry)}
           >
-            {evaProps => <Text {...evaProps} style={styles.buttonText}>{entry.name}</Text>}
+            {(evaProps: any) => <Text {...evaProps} style={styles.buttonText}>{entry.name}</Text>}
           </Button>
         ))}
       </Layout>

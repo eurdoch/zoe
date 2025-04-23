@@ -74,7 +74,12 @@ const MacroByImageAnalysis = ({ analysisResult, onConfirm }: MacroByImageAnalysi
       </View>
       
       <Text style={styles.confidenceText}>
-        Confidence: <Text style={styles[`confidence_${analysisResult.confidence}`]}>{analysisResult.confidence}</Text>
+        Confidence: <Text style={
+          analysisResult.confidence === 'low' ? styles.confidence_low :
+          analysisResult.confidence === 'medium' ? styles.confidence_medium :
+          analysisResult.confidence === 'high' ? styles.confidence_high :
+          {}
+        }>{analysisResult.confidence}</Text>
       </Text>
       
       <Text style={styles.disclaimer}>
