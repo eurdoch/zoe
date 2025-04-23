@@ -86,7 +86,7 @@ android {
         applicationId "com.zotik"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
+        versionCode 16
         versionName "0.0.14-beta"
     }
     signingConfigs {
