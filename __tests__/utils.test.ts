@@ -17,30 +17,78 @@ jest.mock('react-native-toast-message', () => ({
 
 describe('Utils', () => {
   describe('formatTime', () => {
+    // Instead of testing specific dates which are timezone-dependent,
+    // we'll verify the formatting logic by checking patterns
     it('formats unix time to MM/DD format', () => {
-      // January 15, 2023 Unix timestamp
-      const timestamp = 1673740800; // 2023-01-15 00:00:00 UTC
-      expect(formatTime(timestamp)).toBe('01/15');
+      const timestamp = Math.floor(new Date(2023, 0, 15).getTime() / 1000); 
+      const result = formatTime(timestamp);
+      
+      // Check that it follows MM/DD pattern
+      expect(result).toMatch(/^\d{2}\/\d{2}$/);
+      
+      // Extract and validate month and day to verify without timezone issues
+      const parts = result.split('/');
+      // Convert to numbers to remove leading zeros
+      const month = parseInt(parts[0], 10); 
+      const day = parseInt(parts[1], 10);
+      
+      // Local date should give us month #1 (January)
+      expect(month).toBe(1);
+      expect(day).toBe(15);
     });
 
     it('pads single digit month and day with leading zeros', () => {
-      // March 5, 2023 Unix timestamp
-      const timestamp = 1677974400; // 2023-03-05 00:00:00 UTC
-      expect(formatTime(timestamp)).toBe('03/05');
+      const timestamp = Math.floor(new Date(2023, 2, 5).getTime() / 1000);
+      const result = formatTime(timestamp);
+      
+      // Check for leading zeros
+      expect(result).toMatch(/^0\d\/0\d$/);
+      
+      // Verify the actual month and day
+      const parts = result.split('/');
+      const month = parseInt(parts[0], 10);
+      const day = parseInt(parts[1], 10);
+      
+      expect(month).toBe(3); // March (0-indexed in JS Date)
+      expect(day).toBe(5);
     });
   });
 
   describe('formatTimeWithYear', () => {
     it('formats unix time to MM/DD/YYYY format', () => {
-      // January 15, 2023 Unix timestamp
-      const timestamp = 1673740800; // 2023-01-15 00:00:00 UTC
-      expect(formatTimeWithYear(timestamp)).toBe('01/15/2023');
+      const timestamp = Math.floor(new Date(2023, 0, 15).getTime() / 1000);
+      const result = formatTimeWithYear(timestamp);
+      
+      // Check that it follows MM/DD/YYYY pattern
+      expect(result).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+      
+      // Extract and validate parts
+      const parts = result.split('/');
+      const month = parseInt(parts[0], 10);
+      const day = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      
+      expect(month).toBe(1);
+      expect(day).toBe(15);
+      expect(year).toBe(2023);
     });
 
     it('pads single digit month and day with leading zeros', () => {
-      // March 5, 2023 Unix timestamp
-      const timestamp = 1677974400; // 2023-03-05 00:00:00 UTC
-      expect(formatTimeWithYear(timestamp)).toBe('03/05/2023');
+      const timestamp = Math.floor(new Date(2023, 2, 5).getTime() / 1000);
+      const result = formatTimeWithYear(timestamp);
+      
+      // Check for leading zeros in month and day
+      expect(result).toMatch(/^0\d\/0\d\/\d{4}$/);
+      
+      // Verify the actual month, day, and year
+      const parts = result.split('/');
+      const month = parseInt(parts[0], 10);
+      const day = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      
+      expect(month).toBe(3);
+      expect(day).toBe(5);
+      expect(year).toBe(2023);
     });
   });
 
