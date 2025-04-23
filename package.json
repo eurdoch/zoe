@@ -7,7 +7,7 @@
     "ios": "tsc --noEmit && react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "tsc --noEmit && jest"
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
