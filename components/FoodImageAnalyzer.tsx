@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator, Platform, Linking, Alert} from "react-native";
-import {Camera, useCameraDevices, CameraPermissionStatus} from "react-native-vision-camera";
+import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator} from "react-native";
+import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getFoodImageAnalysis } from "../network/nutrition";
 import { showToastError, showToastInfo } from "../utils";
@@ -13,7 +13,6 @@ interface NavigationProps {
 const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   const [cameraActive, setCameraActive] = useState<boolean>(true);
   const camera = useRef<Camera | null>(null);
-  const [hasPermission, setHasPermission] = useState(false);
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
@@ -22,31 +21,6 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   
   // Use the food data context
   const { setFoodImageAnalysis } = useFoodData();
-
-  // Check and request camera permission if needed
-  useEffect(() => {
-    (async () => {
-      try {
-        // First check current permission status
-        const currentStatus = await Camera.getCameraPermissionStatus();
-        
-        if (currentStatus === 'granted') {
-          // Already have permission, no need to request
-          setHasPermission(true);
-        } else if (currentStatus === 'not-determined') {
-          // Permission hasn't been requested yet, so request it
-          const requestStatus = await Camera.requestCameraPermission();
-          setHasPermission(requestStatus === 'granted');
-        } else {
-          // Permission denied or restricted
-          setHasPermission(false);
-        }
-      } catch (error) {
-        console.error('Error handling camera permission:', error);
-        setHasPermission(false);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     if (!cameraActive && !isProcessing) {
@@ -107,21 +81,6 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
     }
   };
 
-  useEffect(() => {
-    // If permission is denied, go back immediately
-    if (hasPermission === false) {
-      navigation.pop();
-    }
-  }, [hasPermission, navigation]);
-  
-  if (!hasPermission) {
-    // Show a blank screen while checking permission
-    return (
-      <View style={[styles.container, styles.textContainer]}>
-        <ActivityIndicator size="large" color="#ffffff" />
-      </View>
-    );
-  }
 
   if (!device) {
     return (
