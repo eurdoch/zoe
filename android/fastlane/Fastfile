@@ -43,13 +43,9 @@ platform :android do
     # Build the Android App Bundle
     # The keystore configuration is already in build.gradle from keystore.properties
     gradle(task: "bundleRelease")
-    supply(
+    upload_to_play_store(
       track: 'internal',
-      release_status: 'completed',
-      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true
+      release_status: 'draft'
     )
   end
 end
