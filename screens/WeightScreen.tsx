@@ -26,7 +26,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const WeightScreen = () => {
   const [data, setData] = useState<DataPoint[]>([]);
-  const [weightEntries, setWeightEntries] = useState<Weight[]>([]);
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
   const [weight, setWeight] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
@@ -58,10 +58,8 @@ const WeightScreen = () => {
     getWeight()
       .then(result => {
         setData(mapWeightEntriesToDataPoint(result));
-        setWeightEntries(result.map(entry => ({
-          value: entry.value,
-          createdAt: entry.createdAt
-        })));
+        // Use the WeightEntry objects directly
+        setWeightEntries(result);
       })
       .catch(error => {
         console.error('Error loading weights:', error);
@@ -196,8 +194,16 @@ const WeightScreen = () => {
     }
   }
 
-  const renderItem = ({ item }: { item: Weight }) => (
+  const handleItemPress = (item: WeightEntry) => {
+    // Set the selected weight entry to display in modal
+    setSelectedWeight(item);
+    // Show the modal
+    setWeightModalVisible(true);
+  };
+
+  const renderItem = ({ item }: { item: WeightEntry }) => (
     <ListItem
+      onPress={() => handleItemPress(item)}
       title={() => (
         <View style={styles.weightItem}>
           <Text category="p1">{formatTimeWithYear(item.createdAt)}</Text>
