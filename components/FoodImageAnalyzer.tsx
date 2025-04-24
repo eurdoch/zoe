@@ -107,24 +107,18 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
     }
   };
 
+  useEffect(() => {
+    // If permission is denied, go back immediately
+    if (hasPermission === false) {
+      navigation.pop();
+    }
+  }, [hasPermission, navigation]);
+  
   if (!hasPermission) {
+    // Show a blank screen while checking permission
     return (
       <View style={[styles.container, styles.textContainer]}>
-        <Text style={styles.text}>Camera permission is required</Text>
-        <TouchableOpacity 
-          style={styles.permissionButton}
-          onPress={() => {
-            Linking.openSettings();
-          }}
-        >
-          <Text style={styles.permissionButtonText}>Open Settings</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.permissionButton, {marginTop: 10, backgroundColor: '#FF3B30'}]}
-          onPress={() => navigation.pop()}
-        >
-          <Text style={styles.permissionButtonText}>Go Back</Text>
-        </TouchableOpacity>
+        <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );
   }
@@ -268,18 +262,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 20,
     textAlign: 'center',
-  },
-  permissionButton: {
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 20, 
-    width: 200,
-    alignItems: 'center',
-  },
-  permissionButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
   }
 });
