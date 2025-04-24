@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
@@ -85,6 +85,16 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
               console.log(error);
               if (error instanceof AuthenticationError) {
                 handleAuthError(error);
+              } else if (error.status === 504 || error.message?.includes('timeout') || error.message?.includes('504')) {
+                // Handle timeout errors specifically
+                showToastError('Request timed out. Please try again.');
+                Alert.alert(
+                  'Connection Timeout',
+                  'The server took too long to respond while processing the image. Please try again later.',
+                  [{ text: 'OK' }]
+                );
+                setIsModalLoading(false);
+                setModalVisible(false);
               } else {
                 showToastError("Could not get nutrition info.");
                 setIsModalLoading(false);
@@ -111,6 +121,15 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         console.error('Error searching for food:', error);
         if (error instanceof AuthenticationError) {
           handleAuthError(error);
+        } else if (error.status === 504 || error.message?.includes('timeout') || error.message?.includes('504')) {
+          // Handle timeout errors specifically
+          showToastError('Request timed out. Please try again.');
+          // Show an alert for better visibility
+          Alert.alert(
+            'Connection Timeout',
+            'The server took too long to respond. Please try again later.',
+            [{ text: 'OK' }]
+          );
         } else {
           showToastError(error.toString());
         }
