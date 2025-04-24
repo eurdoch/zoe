@@ -125,7 +125,7 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
         </TouchableOpacity>
       </View>
       
-      <TouchableOpacity style={styles.cancelButton} onPress={() => setCameraActive(false)}>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.pop()}>
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </TouchableOpacity>
       
