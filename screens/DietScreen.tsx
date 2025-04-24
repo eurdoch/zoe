@@ -190,7 +190,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const navigateToScreen = async (screen: string) => {
     toggleFabMenu();
     
-    if (screen === 'NutritionLabelParser' || screen === 'BarcodeScanner') {
+    if (screen === 'FoodImageAnalyzer' || screen === 'NutritionLabelParser' || screen === 'BarcodeScanner') {
       const hasPermission = await requestCameraPermission();
       
       if (hasPermission) {
