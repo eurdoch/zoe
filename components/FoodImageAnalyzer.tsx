@@ -23,14 +23,26 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   // Use the food data context
   const { setFoodImageAnalysis } = useFoodData();
 
-  // Request camera permission
+  // Check and request camera permission if needed
   useEffect(() => {
     (async () => {
       try {
-        const status = await Camera.requestCameraPermission();
-        setHasPermission(status === 'granted');
+        // First check current permission status
+        const currentStatus = await Camera.getCameraPermissionStatus();
+        
+        if (currentStatus === 'granted') {
+          // Already have permission, no need to request
+          setHasPermission(true);
+        } else if (currentStatus === 'not-determined') {
+          // Permission hasn't been requested yet, so request it
+          const requestStatus = await Camera.requestCameraPermission();
+          setHasPermission(requestStatus === 'granted');
+        } else {
+          // Permission denied or restricted
+          setHasPermission(false);
+        }
       } catch (error) {
-        console.error('Error requesting camera permission:', error);
+        console.error('Error handling camera permission:', error);
         setHasPermission(false);
       }
     })();
