@@ -156,14 +156,28 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         
       // First check the current permission status
       const result = await check(permission);
+      console.log('permission result check: ', result == RESULTS.DENIED);
       
       switch (result) {
         case RESULTS.GRANTED:
           return true;
           
         case RESULTS.DENIED:
+          console.log('CASE DENIED');
           // Permission hasn't been requested yet, so request it
           const requestResult = await request(permission);
+          console.log('requestResult case: ', requestResult == RESULTS.BLOCKED);
+          if (requestResult === RESULTS.BLOCKED) {
+            Alert.alert(
+              "Camera Permission Required",
+              "Camera access is required to use this feature. Please enable camera permissions in your device settings.",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Open Settings", onPress: () => Linking.openSettings() }
+              ]
+            );
+            return false;
+          }
           return requestResult === RESULTS.GRANTED;
           
         case RESULTS.BLOCKED:
