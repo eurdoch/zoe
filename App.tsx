@@ -112,7 +112,7 @@ const App = () => {
                 name="Home"
                 component={HomeScreen}
                 options={({ navigation }) => ({
-                  title: "zotik",
+                  title: "Kallos",
                   headerTitleAlign: "center",
                   headerRight: () => (
                     <HomeScreenHeaderRight navigation={navigation} />
