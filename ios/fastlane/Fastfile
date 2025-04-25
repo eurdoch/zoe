@@ -27,8 +27,8 @@ platform :ios do
       key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
     )
     
-    increment_build_number(xcodeproj: "zotik.xcodeproj")
-    build_app(workspace: "zotik.xcworkspace", scheme: "zotik")
+    increment_build_number(xcodeproj: "Kallos.xcodeproj")
+    build_app(workspace: "Kallos.xcworkspace", scheme: "Kallos")
     upload_to_testflight
   end
 end
