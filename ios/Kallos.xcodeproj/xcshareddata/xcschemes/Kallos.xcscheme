@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "zotik.app"
-               BlueprintName = "zotik"
-               ReferencedContainer = "container:zotik.xcodeproj">
+               BuildableName = "Kallos.app"
+               BlueprintName = "Kallos"
+               ReferencedContainer = "container:Kallos.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "zotikTests.xctest"
-               BlueprintName = "zotikTests"
-               ReferencedContainer = "container:zotik.xcodeproj">
+               BuildableName = "KallosTests.xctest"
+               BlueprintName = "KallosTests"
+               ReferencedContainer = "container:Kallos.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "zotik.app"
-            BlueprintName = "zotik"
-            ReferencedContainer = "container:zotik.xcodeproj">
+            BuildableName = "Kallos.app"
+            BlueprintName = "Kallos"
+            ReferencedContainer = "container:Kallos.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "zotik.app"
-            BlueprintName = "zotik"
-            ReferencedContainer = "container:zotik.xcodeproj">
+            BuildableName = "Kallos.app"
+            BlueprintName = "Kallos"
+            ReferencedContainer = "container:Kallos.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "ios": "tsc --noEmit && react-native run-ios --simulator=\"iPhone 15\"",
+    "ios": "tsc --noEmit && react-native run-ios --scheme=Kallos --simulator=\"iPhone 15\"",
     "lint": "eslint .",
-    "start": "react-native start",
+    "start": "react-native start --reset-cache",
     "test": "tsc --noEmit && jest --coverage"
   },
   "dependencies": {
