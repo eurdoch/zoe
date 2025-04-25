@@ -10,6 +10,10 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
 } from "react-native";
 import PhoneInput from "react-native-phone-number-input";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -132,102 +136,124 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.wrapper}>
-        {isLoading ? (
-          <ActivityIndicator size="large" color="#7CDB8A" />
-        ) : verificationId ? (
-          // Verification code input view
-          <>
-            <Text style={styles.title}>Enter Verification Code</Text>
-            <Text style={styles.subtitle}>
-              We've sent a verification code to {formattedValue}
-            </Text>
-            <TextInput
-              style={styles.codeInput}
-              value={verificationCode}
-              onChangeText={setVerificationCode}
-              placeholder="Enter code"
-              keyboardType="number-pad"
-              maxLength={6}
-            />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleCodeVerification}
-            >
-              <Text style={styles.buttonText}>Verify</Text>
-            </TouchableOpacity>
-            <View style={styles.textButtonsContainer}>
-              <TouchableOpacity
-                style={styles.textButton}
-                onPress={() => setVerificationId(null)}
-              >
-                <Text style={styles.textButtonText}>Change Phone Number</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.textButton}
-                onPress={async () => {
-                  setIsLoading(true);
-                  try {
-                    const response = await fetch(`${API_BASE_URL}/verify/send`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ phoneNumber: formattedValue }),
-                    });
-                    
-                    const data = await response.json();
-                    console.log('Resend verification response:', data);
-                    
-                    // Update the verification ID
-                    setVerificationId(data.sid);
-                    
-                    // Clear the verification code field
-                    setVerificationCode("");
-                    
-                    Alert.alert('Success', 'A new verification code has been sent to your phone.');
-                  } catch (error) {
-                    console.error('Error resending verification code:', error);
-                    Alert.alert('Error', 'Failed to resend verification code. Please try again.');
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-              >
-                <Text style={styles.textButtonText}>Send Code Again</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          // Phone number input view
-          <>
-            <Text style={styles.title}>Enter Your Phone Number</Text>
-            <PhoneInput
-              ref={phoneInput}
-              defaultValue={value}
-              defaultCode="US"
-              layout="first"
-              onChangeText={(text) => {
-                setValue(text);
-              }}
-              onChangeFormattedText={(text) => {
-                setFormattedValue(text);
-              }}
-              withDarkTheme
-              withShadow
-              autoFocus
-              containerStyle={styles.inputContainer}
-            />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleVerify}
-            >
-              <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.wrapper}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#7CDB8A" />
+            ) : verificationId ? (
+              // Verification code input view
+              <>
+                <Text style={styles.title}>Enter Verification Code</Text>
+                <Text style={styles.subtitle}>
+                  We've sent a verification code to {formattedValue}
+                </Text>
+                <TextInput
+                  style={styles.codeInput}
+                  value={verificationCode}
+                  onChangeText={setVerificationCode}
+                  placeholder="Enter code"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    Keyboard.dismiss();
+                    handleCodeVerification();
+                  }}
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleCodeVerification}
+                >
+                  <Text style={styles.buttonText}>Verify</Text>
+                </TouchableOpacity>
+                <View style={styles.textButtonsContainer}>
+                  <TouchableOpacity
+                    style={styles.textButton}
+                    onPress={() => setVerificationId(null)}
+                  >
+                    <Text style={styles.textButtonText}>Change Phone Number</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.textButton}
+                    onPress={async () => {
+                      setIsLoading(true);
+                      try {
+                        const response = await fetch(`${API_BASE_URL}/verify/send`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ phoneNumber: formattedValue }),
+                        });
+                        
+                        const data = await response.json();
+                        console.log('Resend verification response:', data);
+                        
+                        // Update the verification ID
+                        setVerificationId(data.sid);
+                        
+                        // Clear the verification code field
+                        setVerificationCode("");
+                        
+                        Alert.alert('Success', 'A new verification code has been sent to your phone.');
+                      } catch (error) {
+                        console.error('Error resending verification code:', error);
+                        Alert.alert('Error', 'Failed to resend verification code. Please try again.');
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    <Text style={styles.textButtonText}>Send Code Again</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              // Phone number input view
+              <>
+                <Text style={styles.title}>Enter Your Phone Number</Text>
+                <PhoneInput
+                  ref={phoneInput}
+                  defaultValue={value}
+                  defaultCode="US"
+                  layout="first"
+                  onChangeText={(text) => {
+                    setValue(text);
+                  }}
+                  onChangeFormattedText={(text) => {
+                    setFormattedValue(text);
+                  }}
+                  withDarkTheme
+                  withShadow
+                  autoFocus
+                  containerStyle={styles.inputContainer}
+                  textInputProps={{
+                    returnKeyType: "done",
+                    onSubmitEditing: (e) => {
+                      Keyboard.dismiss();
+                      handleVerify(e);
+                    }
+                  }}
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleVerify}
+                >
+                  <Text style={styles.buttonText}>Login</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -237,11 +263,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFAFA',
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
   wrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 24,
