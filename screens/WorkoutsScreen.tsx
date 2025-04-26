@@ -8,6 +8,7 @@ import {
   List, 
   Icon 
 } from '@ui-kitten/components';
+import Menu from '../components/Menu';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkouts } from '../network/workout';
 import { useFocusEffect } from '@react-navigation/native';
@@ -80,22 +81,30 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
     />
   );
 
+  const menuItems = workoutEntries.map(entry => ({
+    screenName: 'Workout',
+    label: entry.name,
+    data: entry
+  }));
+
+  const handleMenuItemPress = (item: any) => {
+    handleStartWorkout(item.data);
+  };
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.buttonContainer}>
-        {workoutEntries.map(entry => (
-          <Button
-            key={entry._id}
-            style={styles.workoutButton}
-            appearance="filled"
-            status="primary"
-            size="large"
-            accessoryLeft={undefined}
-            onPress={() => handleStartWorkout(entry)}
-          >
-            {(evaProps: any) => <Text {...evaProps} style={styles.buttonText}>{entry.name}</Text>}
-          </Button>
-        ))}
+        <Menu 
+          navigation={{
+            navigate: (screenName: string, params: any) => {
+              if (params && params.data) {
+                handleStartWorkout(params.data);
+              }
+            }
+          }}
+          menuItems={menuItems}
+          onItemPress={handleMenuItemPress}
+        />
       </Layout>
       {renderAddButton()}
     </Layout>

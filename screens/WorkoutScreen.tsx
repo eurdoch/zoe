@@ -10,6 +10,7 @@ import {
   Input,
   Text as KittenText,
 } from '@ui-kitten/components';
+import Menu from '../components/Menu';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, showToastError, showToastInfo } from '../utils';
@@ -242,35 +243,36 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
     />
   );
 
+  const menuItems = (workoutEntry?.exercises || []).map((item, index) => ({
+    screenName: 'ExerciseLog',
+    label: convertFromDatabaseFormat(item),
+    data: { name: item, index }
+  }));
+
+  const handleMenuItemPress = (item: any) => {
+    if (!isEditMode && item.data) {
+      handleLogExercise(item.data.name);
+    }
+  };
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.buttonContainer}>
-        {(workoutEntry?.exercises || []).map((item, index) => (
-          <Button
-            key={index}
-            style={styles.exerciseButton}
-            appearance="filled"
-            status="primary"
-            size="large"
-            onPress={!isEditMode ? () => handleLogExercise(item) : undefined}
-            accessoryLeft={undefined}
-            accessoryRight={
-              isEditMode ? 
-                (props) => (
-                  <Icon 
-                    {...props} 
-                    name="trash-2-outline" 
-                    onPress={(e: GestureResponderEvent) => {
-                      e.stopPropagation();
-                      handleDeleteExercise(index);
-                    }}
-                  />
-                ) : undefined
+        <Menu 
+          navigation={{
+            navigate: (screenName: string, params: any) => {
+              if (params && params.data && params.data.name) {
+                handleLogExercise(params.data.name);
+              }
             }
-          >
-            {(evaProps: any) => <KittenText {...evaProps} style={styles.buttonText}>{convertFromDatabaseFormat(item)}</KittenText>}
-          </Button>
-        ))}
+          }}
+          menuItems={menuItems}
+          onItemPress={handleMenuItemPress}
+          rightIcon={isEditMode ? {
+            name: 'trash-2-outline',
+            onPress: (item: any) => handleDeleteExercise(item.data.index)
+          } : undefined}
+        />
       </Layout>
       
       {isEditMode && renderAddButton()}
