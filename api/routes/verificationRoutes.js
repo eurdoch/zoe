@@ -15,7 +15,7 @@ const client = twilio(accountSid, authToken);
 // JWT secret - in production, store in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'zoe-app-jwt-secret-key-development-only';
 const JWT_EXPIRES_IN = '90d'; // 3 months
-const DEMO_JWT_EXPIRES_IN = '5m'; // 10 minutes for demo account
+const DEMO_JWT_EXPIRES_IN = '2h'; // 10 minutes for demo account
 const DEMO_PHONE_NUMBER = process.env.DEMO_PHONE_NUMBER;
 
 // Phone number hashing function - must match client-side implementation exactly
