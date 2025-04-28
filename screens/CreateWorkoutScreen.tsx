@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { StyleSheet, View, Animated, TouchableOpacity } from 'react-native';
 import { 
   Layout, 
   Text, 
@@ -29,8 +29,11 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [availableExercises, setAvailableExercises] = useState<string[]>([]);
   const [workoutName, setWorkoutName] = useState<string>('');
-  const [showNewExerciseInput, setShowNewExerciseInput] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
+  
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const inputHeight = 150; // Approximate height of the input container
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -76,6 +79,25 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     }
   };
   
+  // Animation control functions
+  const showNewExerciseInput = () => {
+    // Start the slide-in animation
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const hideNewExerciseInput = () => {
+    // Start the slide-out animation
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
   const handleAddNewExercise = () => {
     if (!newExerciseName.trim()) {
       Toast.show({
@@ -107,7 +129,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     
     // Reset input and hide it
     setNewExerciseName('');
-    setShowNewExerciseInput(false);
+    hideNewExerciseInput();
     
     Toast.show({
       type: 'success',
@@ -206,16 +228,42 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
       
       <View style={styles.exerciseHeader}>
         <Text category="h6" style={styles.headerTitle}>Select Exercises</Text>
-        <Button
-          appearance="ghost"
-          status="primary"
-          accessoryLeft={AddIcon}
-          size="small"
-          onPress={() => setShowNewExerciseInput(true)}
-        />
+        <TouchableOpacity
+          style={styles.addIconButton}
+          onPress={showNewExerciseInput}
+        >
+          <LinearGradient
+            colors={['#444444', '#222222']}
+            style={styles.iconGradient}
+          >
+            <Icon
+              name='plus-outline'
+              width={20}
+              height={20}
+              fill="white"
+            />
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
       
-      {showNewExerciseInput && (
+      <Animated.View 
+        style={[
+          styles.animatedContainer, 
+          {
+            maxHeight: slideAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, inputHeight]
+            }),
+            opacity: slideAnim,
+            transform: [{
+              translateY: slideAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [-20, 0]
+              })
+            }]
+          }
+        ]}
+      >
         <Card style={styles.newExerciseInputContainer}>
           <Input
             placeholder="Enter new exercise name"
@@ -230,7 +278,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
               style={styles.cancelButton}
               onPress={() => {
                 setNewExerciseName('');
-                setShowNewExerciseInput(false);
+                hideNewExerciseInput();
               }}
             >
               CANCEL
@@ -250,7 +298,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
             </LinearGradient>
           </View>
         </Card>
-      )}
+      </Animated.View>
       
       <Divider style={styles.divider} />
       <List
@@ -306,16 +354,34 @@ const styles = StyleSheet.create({
   },
   exerciseHeader: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
     position: 'relative',
+    paddingHorizontal: 8,
   },
   headerTitle: {
     textAlign: 'center',
+    flex: 1,
+  },
+  addIconButton: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconGradient: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  animatedContainer: {
+    overflow: 'hidden',
+    marginBottom: 16,
   },
   newExerciseInputContainer: {
-    marginBottom: 16,
     padding: 8,
     backgroundColor: '#f0f8ff',
     borderRadius: 8,
