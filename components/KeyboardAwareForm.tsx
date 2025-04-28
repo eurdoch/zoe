@@ -17,6 +17,7 @@ import {
   Layout,
   Datepicker
 } from '@ui-kitten/components';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface InputConfig extends Omit<TextInputProps, 'ref'> {
   name: string;
@@ -146,13 +147,19 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
             );
           }
         })}
-        <Button 
-          style={[styles.button, buttonStyle]}
-          onPress={handleSubmit}
-          status="primary"
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={styles.gradientContainer}
         >
-          {submitButtonText}
-        </Button>
+          <Button 
+            style={[styles.button, buttonStyle, { backgroundColor: 'transparent' }]}
+            onPress={handleSubmit}
+            appearance="filled"
+            size="large"
+          >
+            {(evaProps: any) => <Text {...evaProps} style={styles.buttonText}>{submitButtonText}</Text>}
+          </Button>
+        </LinearGradient>
       </Layout>
     </KeyboardAvoidingView>
   );
@@ -170,8 +177,21 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 15,
   },
+  gradientContainer: {
+    marginVertical: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
   button: {
-    marginTop: 5,
+    marginTop: 0,
+    height: 50,
+    borderRadius: 15,
+    borderWidth: 0,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
   dateContainer: {
     alignSelf: 'center',
