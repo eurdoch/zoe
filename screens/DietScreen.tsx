@@ -240,7 +240,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 285,
+            bottom: 290, // 65px gap from button at 225
             transform: [
               { scale: animation },
               { 
@@ -265,7 +265,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 220,
+            bottom: 225, // 65px gap from button at 160
             transform: [
               { scale: animation },
               { 
@@ -290,7 +290,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 155,
+            bottom: 160, // 65px gap from button at 95
             transform: [
               { scale: animation },
               { 
@@ -316,7 +316,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 90,
+            bottom: 95, // 65px gap from main button at 30
             transform: [
               { scale: animation },
               { 
@@ -449,8 +449,8 @@ const styles = StyleSheet.create({
   // FAB and FAB menu styles
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: 30,
+    bottom: 30,
     backgroundColor: '#007AFF',
     width: 56,
     height: 56,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   },
   fabMenuItem: {
     position: 'absolute',
-    right: 20,
+    right: 30,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 998,
@@ -485,8 +485,8 @@ const styles = StyleSheet.create({
   },
   mainFabPositionReset: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: 30,
+    bottom: 30,
     zIndex: 999,
   },
   // Keeping these for backward compatibility
