@@ -78,6 +78,8 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   const [currentExercisePoint, setCurrentExercisePoint] = useState<ExerciseEntry | null>(null);
   const [formModalVisible, setFormModalVisible] = useState<boolean>(false);
   const [formModalAnim] = useState(new Animated.Value(0));
+  const [newExerciseModalVisible, setNewExerciseModalVisible] = useState<boolean>(false);
+  const [newExerciseModalAnim] = useState(new Animated.Value(0));
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Context hooks
@@ -172,8 +174,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
     // Use requestAnimationFrame to defer UI updates to next frame
     requestAnimationFrame(() => {
       if (item.value === "new_exercise") {
-        setModalKey("newExercise");
-        setModalVisible(true);
+        showNewExerciseModal();
         return;
       }
       
@@ -226,6 +227,29 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       });
     });
   }, [formModalAnim]);
+  
+  const showNewExerciseModal = React.useCallback(() => {
+    setNewExerciseModalVisible(true);
+    requestAnimationFrame(() => {
+      Animated.timing(newExerciseModalAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [newExerciseModalAnim]);
+  
+  const hideNewExerciseModal = React.useCallback(() => {
+    requestAnimationFrame(() => {
+      Animated.timing(newExerciseModalAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setNewExerciseModalVisible(false);
+      });
+    });
+  }, [newExerciseModalAnim]);
 
   // Effect hooks
   useEffect(() => {
@@ -292,6 +316,18 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
       },
     ],
   }), [formModalAnim]);
+  
+  // Calculate slide up transform for new exercise modal
+  const newExerciseModalTransform = React.useMemo(() => ({
+    transform: [
+      {
+        translateY: newExerciseModalAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [500, 0],
+        }),
+      },
+    ],
+  }), [newExerciseModalAnim]);
 
   const renderAddButton = React.useCallback(() => (
     <FloatingActionButton
@@ -408,18 +444,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
         }}
       >
         <Card disabled>
-          {modalKey === "newExercise" ? (
-            <>
-              {console.log("Rendering NewExerciseModalContent")}
-              <NewExerciseModalContent
-                setData={setData}
-                setDropdownItems={setDropdownItems}
-                dropdownItems={dropdownItems}
-                setSelectedItem={setSelectedItem}
-                setModalVisible={setModalVisible}
-              />
-            </>
-          ) : currentExercisePoint ? (
+          {currentExercisePoint && (
             <>
               {console.log("Rendering ExerciseModalContent")}
               <ExerciseModalContent
@@ -428,8 +453,6 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
                 entry={currentExercisePoint}
               />
             </>
-          ) : (
-            <Text>No content to display</Text>
           )}
         </Card>
       </Modal>
@@ -465,6 +488,43 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
                   hideFormModal();
                 }}
                 submitButtonText="Add"
+              />
+            </View>
+          </Animated.View>
+        </View>
+      )}
+
+      {/* Add New Exercise Slide-up Panel */}
+      {newExerciseModalVisible && (
+        <View style={styles.slideUpOverlay}>
+          <Pressable 
+            style={[styles.closeOverlayArea]} 
+            onPress={hideNewExerciseModal} 
+          />
+          <Animated.View 
+            style={[
+              styles.slideUpPanel,
+              newExerciseModalTransform,
+              { 
+                backgroundColor: 'white', 
+                borderTopLeftRadius: 15, 
+                borderTopRightRadius: 15,
+                zIndex: 1001, // Higher than the overlay
+                padding: 16
+              }
+            ]}
+          >
+            <View>
+              <View style={styles.slideUpHeader}>
+                <Text category="h6">Add New Exercise</Text>
+              </View>
+              <Divider />
+              <NewExerciseModalContent
+                setData={setData}
+                setDropdownItems={setDropdownItems}
+                dropdownItems={dropdownItems}
+                setSelectedItem={setSelectedItem}
+                setModalVisible={hideNewExerciseModal}
               />
             </View>
           </Animated.View>
