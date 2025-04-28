@@ -127,7 +127,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     // Select the new exercise
     setSelectedExercises([...selectedExercises, formattedName]);
     
-    // Reset input and hide it
+    // Reset input and start the animation to hide
     setNewExerciseName('');
     hideNewExerciseInput();
     
@@ -272,20 +272,9 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
             style={styles.newExerciseInput}
           />
           <View style={styles.newExerciseButtons}>
-            <Button
-              appearance="outline"
-              status="basic"
-              style={styles.cancelButton}
-              onPress={() => {
-                setNewExerciseName('');
-                hideNewExerciseInput();
-              }}
-            >
-              CANCEL
-            </Button>
             <LinearGradient
               colors={['#444444', '#222222']}
-              style={[styles.gradientContainer, { flex: 1, marginLeft: 8 }]}
+              style={[styles.gradientContainer, { flex: 1 }]}
             >
               <Button
                 style={[styles.addExerciseButton, { backgroundColor: 'transparent' }]}
@@ -382,26 +371,29 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   newExerciseInputContainer: {
-    padding: 8,
+    padding: 12,
     backgroundColor: '#f0f8ff',
-    borderRadius: 8,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   newExerciseInput: {
     marginBottom: 8,
   },
   newExerciseButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  cancelButton: {
-    flex: 1,
-    marginRight: 8,
+    justifyContent: 'center',
+    marginTop: 8,
   },
   addExerciseButton: {
-    flex: 1,
+    height: 45,
     borderRadius: 15,
     borderWidth: 0,
     backgroundColor: 'transparent',
+    width: '100%',
   },
 });
 
