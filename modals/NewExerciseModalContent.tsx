@@ -48,6 +48,8 @@ const NewExerciseModalContent = ({
         value={value}
         onChangeText={(text) => setValue(text)}
         style={styles.input}
+        size="large"
+        textStyle={styles.inputText}
       />
       <LinearGradient
         colors={['#444444', '#222222']}
@@ -75,7 +77,13 @@ const styles = StyleSheet.create({
     height: 'auto',
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 8,
+    width: '100%',
+    borderRadius: 15,
+  },
+  inputText: {
+    fontSize: 18,
+    height: 20,
   },
   gradientContainer: {
     marginTop: 8,
