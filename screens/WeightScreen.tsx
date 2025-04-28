@@ -310,6 +310,8 @@ const WeightScreen = () => {
                   placeholder="Enter weight"
                   keyboardType="numeric"
                   style={styles.input}
+                  size="large"
+                  textStyle={styles.inputText}
                 />
                 <LinearGradient
                   colors={['#444444', '#222222']}
@@ -321,7 +323,7 @@ const WeightScreen = () => {
                     appearance="filled"
                     size="large"
                   >
-                    {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+                    <Text style={styles.buttonText}>Add</Text>
                   </Button>
                 </LinearGradient>
               </View>
@@ -401,6 +403,11 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 8,
     width: '100%',
+    borderRadius: 15,
+  },
+  inputText: {
+    fontSize: 18,
+    height: 20,
   },
   weightItem: {
     flexDirection: 'row',

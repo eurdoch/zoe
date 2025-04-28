@@ -221,7 +221,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
             appearance="filled"
             size="large"
           >
-            {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD WORKOUT</Text>}
+            <Text style={styles.buttonText}>Add Workout</Text>
           </Button>
         </LinearGradient>
       </Card>
@@ -282,7 +282,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
                 appearance="filled"
                 size="medium"
               >
-                {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+                <Text style={styles.buttonText}>Add</Text>
               </Button>
             </LinearGradient>
           </View>
