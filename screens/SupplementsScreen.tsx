@@ -455,27 +455,29 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       </Animated.View>
 
       {/* Main FAB button */}
-      <TouchableOpacity 
-        onPress={toggleFabMenu}
-      >
-        <LinearGradient
-          colors={['#444444', '#222222']}
-          style={[styles.fab, isFabMenuOpen ? styles.fabActive : null]}
+      <View style={styles.mainFabContainer}>
+        <TouchableOpacity 
+          onPress={toggleFabMenu}
         >
-          <Animated.View style={{
-            transform: [
-              { 
-                rotate: fabMenuAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0deg', '45deg']
-                })
-              }
-            ]
-          }}>
-            <Icon name='menu-outline' style={styles.fabIcon} fill='white' />
-          </Animated.View>
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={['#444444', '#222222']}
+            style={[styles.fab, isFabMenuOpen ? styles.fabActive : null]}
+          >
+            <Animated.View style={{
+              transform: [
+                { 
+                  rotate: fabMenuAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '45deg']
+                  })
+                }
+              ]
+            }}>
+              <Icon name='menu-outline' style={styles.fabIcon} fill='white' />
+            </Animated.View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
       
       {/* Recent Entries Slide-up Panel */}
       {recentEntriesVisible && (
@@ -651,10 +653,13 @@ const styles = StyleSheet.create({
   addButton: {
     marginTop: 8,
   },
-  fab: {
+  mainFabContainer: {
     position: 'absolute',
     right: 24,
     bottom: 24,
+    zIndex: 999,
+  },
+  fab: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -665,7 +670,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    zIndex: 999,
     borderWidth: 0,
   },
   fabActive: {
