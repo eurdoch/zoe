@@ -5,7 +5,8 @@ import {
   Dimensions, 
   Animated, 
   Pressable,
-  ScrollView
+  ScrollView,
+  TouchableOpacity
 } from 'react-native';
 import { 
   Layout, 
@@ -21,6 +22,7 @@ import {
   ListItem,
   Divider
 } from '@ui-kitten/components';
+import LinearGradient from 'react-native-linear-gradient';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo, getCurrentDayUnixTime } from '../utils';
@@ -73,6 +75,10 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   // Animation state for Add Supplement panel
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const addSupplementAnim = useState(new Animated.Value(0))[0];
+  
+  // Animation state for the fab menu
+  const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
+  const fabMenuAnimation = useState(new Animated.Value(0))[0];
   const navigation = useNavigation();
   
   // Function to handle authentication errors
@@ -139,6 +145,16 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     });
   };
 
+  const toggleFabMenu = () => {
+    const toValue = isFabMenuOpen ? 0 : 1;
+    Animated.spring(fabMenuAnimation, {
+      toValue,
+      friction: 5,
+      useNativeDriver: true,
+    }).start();
+    setIsFabMenuOpen(!isFabMenuOpen);
+  };
+  
   const loadData = () => {
     // Get start of current day in Unix time
     const startOfDay = getCurrentDayUnixTime();
@@ -251,67 +267,54 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     ],
   };
 
-  const renderAddButton = () => (
-    <Button
-      style={styles.floatingButton}
-      status="primary"
-      accessoryLeft={(props) => <Icon {...props} name="plus-outline" style={styles.buttonIcon} />}
-      onPress={showAddSupplementModal}
-    />
-  );
-  
-  const renderHistoryButton = () => (
-    <Button
-      style={styles.historyButton}
-      status="success"
-      accessoryLeft={(props) => <Icon {...props} name="clock-outline" style={styles.buttonIcon} />}
-      onPress={() => {
-        console.log("👉 Fetching supplement history...");
-        // Fetch most recent supplement entries
-        getSupplement(undefined, undefined, 100)
-          .then(entries => {
-            console.log(`👉 Got ${entries.length} supplement entries from database`);
-            console.log("👉 First few entries:", entries.slice(0, 3));
-            
-            // Process entries to remove duplicates (keeping only the most recent entry for each supplement name)
-            const supplementNameMap: { [name: string]: SupplementEntry } = {};
-            
-            // Group by name and keep only the most recent entry for each supplement
-            entries.forEach(entry => {
-              console.log(`👉 Processing entry: ${entry._id}, name: ${entry.name}, amount: ${entry.amount}${entry.amount_unit}, time: ${new Date(entry.createdAt * 1000).toLocaleString()}`);
-              const name = entry.name;
-              if (!supplementNameMap[name] || entry.createdAt > supplementNameMap[name].createdAt) {
-                supplementNameMap[name] = entry;
-              }
-            });
-            
-            console.log(`👉 Unique supplement names: ${Object.keys(supplementNameMap).length}`);
-            
-            // Convert to array and sort by most recent first
-            const uniqueEntries = Object.values(supplementNameMap).sort((a, b) => b.createdAt - a.createdAt);
-            console.log(`👉 Sorted unique entries: ${uniqueEntries.length}`);
-            
-            // Take the top 10
-            const recentUniqueEntries = uniqueEntries.slice(0, 10);
-            console.log(`👉 Recent unique entries (top 10): ${recentUniqueEntries.length}`);
-            console.log(`👉 Recent entry sample:`, recentUniqueEntries[0] || 'No entries');
-            
-            setRecentEntries(recentUniqueEntries);
-            console.log(`👉 Set recent entries state. Length: ${recentUniqueEntries.length}`);
-            
-            // Always show the panel, even if empty
-            showRecentEntries();
-            console.log("👉 Showing history panel");
-          })
-          .catch(error => {
-            console.error('Error fetching recent supplements:', error);
-            if (error instanceof AuthenticationError) {
-              handleAuthError(error);
-            }
-          });
-      }}
-    />
-  );
+  const fetchSupplementHistory = () => {
+    console.log("👉 Fetching supplement history...");
+    // Fetch most recent supplement entries
+    getSupplement(undefined, undefined, 100)
+      .then(entries => {
+        console.log(`👉 Got ${entries.length} supplement entries from database`);
+        console.log("👉 First few entries:", entries.slice(0, 3));
+        
+        // Process entries to remove duplicates (keeping only the most recent entry for each supplement name)
+        const supplementNameMap: { [name: string]: SupplementEntry } = {};
+        
+        // Group by name and keep only the most recent entry for each supplement
+        entries.forEach(entry => {
+          console.log(`👉 Processing entry: ${entry._id}, name: ${entry.name}, amount: ${entry.amount}${entry.amount_unit}, time: ${new Date(entry.createdAt * 1000).toLocaleString()}`);
+          const name = entry.name;
+          if (!supplementNameMap[name] || entry.createdAt > supplementNameMap[name].createdAt) {
+            supplementNameMap[name] = entry;
+          }
+        });
+        
+        console.log(`👉 Unique supplement names: ${Object.keys(supplementNameMap).length}`);
+        
+        // Convert to array and sort by most recent first
+        const uniqueEntries = Object.values(supplementNameMap).sort((a, b) => b.createdAt - a.createdAt);
+        console.log(`👉 Sorted unique entries: ${uniqueEntries.length}`);
+        
+        // Take the top 10
+        const recentUniqueEntries = uniqueEntries.slice(0, 10);
+        console.log(`👉 Recent unique entries (top 10): ${recentUniqueEntries.length}`);
+        console.log(`👉 Recent entry sample:`, recentUniqueEntries[0] || 'No entries');
+        
+        setRecentEntries(recentUniqueEntries);
+        console.log(`👉 Set recent entries state. Length: ${recentUniqueEntries.length}`);
+        
+        // Always show the panel, even if empty
+        showRecentEntries();
+        console.log("👉 Showing history panel");
+      })
+      .catch(error => {
+        console.error('Error fetching recent supplements:', error);
+        if (error instanceof AuthenticationError) {
+          handleAuthError(error);
+        }
+      });
+    
+    // Close the fab menu after executing the action
+    toggleFabMenu();
+  };
   
   const renderItem = ({ item }: { item: SupplementEntry }) => (
     <ListItem
@@ -386,8 +389,93 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         </Card>
       )}
       
-      {renderAddButton()}
-      {renderHistoryButton()}
+      {/* History Button (animated) */}
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 90,
+            transform: [
+              { scale: fabMenuAnimation },
+              { 
+                translateY: fabMenuAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: fabMenuAnimation
+          }
+        ]}
+      >
+        <TouchableOpacity 
+          onPress={fetchSupplementHistory}
+        >
+          <LinearGradient
+            colors={['#444444', '#222222']}
+            style={styles.fabMenuButton}
+          >
+            <Icon name='clock-outline' style={styles.fabIcon} fill='white' />
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Add Button (animated) */}
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 160,
+            transform: [
+              { scale: fabMenuAnimation },
+              { 
+                translateY: fabMenuAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: fabMenuAnimation
+          }
+        ]}
+      >
+        <TouchableOpacity 
+          onPress={() => {
+            showAddSupplementModal();
+            toggleFabMenu();
+          }}
+        >
+          <LinearGradient
+            colors={['#444444', '#222222']}
+            style={styles.fabMenuButton}
+          >
+            <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
+
+      {/* Main FAB button */}
+      <TouchableOpacity 
+        onPress={toggleFabMenu}
+      >
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={[styles.fab, isFabMenuOpen ? styles.fabActive : null]}
+        >
+          <Animated.View style={{
+            transform: [
+              { 
+                rotate: fabMenuAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0deg', '45deg']
+                })
+              }
+            ]
+          }}>
+            <Icon name='menu-outline' style={styles.fabIcon} fill='white' />
+          </Animated.View>
+        </LinearGradient>
+      </TouchableOpacity>
       
       {/* Recent Entries Slide-up Panel */}
       {recentEntriesVisible && (
@@ -563,31 +651,50 @@ const styles = StyleSheet.create({
   addButton: {
     marginTop: 8,
   },
-  floatingButton: {
+  fab: {
     position: 'absolute',
     right: 24,
     bottom: 24,
-    borderRadius: 35,
-    width: 70,
-    height: 70,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 999,
+    borderWidth: 0,
   },
-  historyButton: {
+  fabActive: {
+    // No special style needed since we're using gradient
+  },
+  fabMenuItem: {
     position: 'absolute',
-    left: 24,
-    bottom: 24,
-    borderRadius: 35,
-    width: 70,
-    height: 70,
+    right: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 998,
+  },
+  fabMenuButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    borderWidth: 0,
+  },
+  fabIcon: {
+    width: 24,
+    height: 24,
+    tintColor: 'white',
   },
   // Slide-up panel styles
   slideUpOverlay: {
