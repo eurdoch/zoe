@@ -596,7 +596,19 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
                 </Select>
               </View>
               
-              <Button style={styles.addButton} onPress={handleAddSupplement}>ADD</Button>
+              <LinearGradient
+                colors={['#444444', '#222222']}
+                style={styles.gradientContainer}
+              >
+                <Button 
+                  style={[styles.addButton, { backgroundColor: 'transparent' }]} 
+                  onPress={handleAddSupplement}
+                  appearance="filled"
+                  size="large"
+                >
+                  {(evaProps: any) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+                </Button>
+              </LinearGradient>
             </View>
           </Animated.View>
         </View>
@@ -650,8 +662,21 @@ const styles = StyleSheet.create({
   listTitle: {
     marginBottom: 8,
   },
+  gradientContainer: {
+    marginVertical: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
   addButton: {
     marginTop: 8,
+    height: 50,
+    borderRadius: 15,
+    borderWidth: 0,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
   mainFabContainer: {
     position: 'absolute',
