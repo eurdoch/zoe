@@ -12,6 +12,7 @@ import {
   ListItem,
   Icon
 } from '@ui-kitten/components';
+import LinearGradient from 'react-native-linear-gradient';
 import { getExerciseNames } from '../network/exercise';
 import { convertFromDatabaseFormat, showToastError } from '../utils';
 import { postWorkout } from '../network/workout';
@@ -188,13 +189,19 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
           label="Workout Name"
           size="large"
         />
-        <Button 
-          style={styles.addButton}
-          onPress={handleAddWorkout}
-          status="primary"
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={styles.gradientContainer}
         >
-          ADD WORKOUT
-        </Button>
+          <Button 
+            style={[styles.addButton, { backgroundColor: 'transparent' }]}
+            onPress={handleAddWorkout}
+            appearance="filled"
+            size="large"
+          >
+            {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD WORKOUT</Text>}
+          </Button>
+        </LinearGradient>
       </Card>
       
       <View style={styles.exerciseHeader}>
@@ -228,13 +235,19 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
             >
               CANCEL
             </Button>
-            <Button
-              status="success"
-              style={styles.addExerciseButton}
-              onPress={handleAddNewExercise}
+            <LinearGradient
+              colors={['#444444', '#222222']}
+              style={[styles.gradientContainer, { flex: 1, marginLeft: 8 }]}
             >
-              ADD
-            </Button>
+              <Button
+                style={[styles.addExerciseButton, { backgroundColor: 'transparent' }]}
+                onPress={handleAddNewExercise}
+                appearance="filled"
+                size="medium"
+              >
+                {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+              </Button>
+            </LinearGradient>
           </View>
         </Card>
       )}
@@ -265,8 +278,21 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 16,
   },
-  addButton: {
+  gradientContainer: {
     marginTop: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  addButton: {
+    marginTop: 0,
+    height: 50,
+    borderRadius: 15,
+    borderWidth: 0,
   },
   divider: {
     marginVertical: 16,
@@ -307,6 +333,9 @@ const styles = StyleSheet.create({
   },
   addExerciseButton: {
     flex: 1,
+    borderRadius: 15,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
 });
 
