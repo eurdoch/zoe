@@ -208,7 +208,6 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
           placeholder="Enter workout name"
           value={workoutName}
           onChangeText={setWorkoutName}
-          label="Workout Name"
           size="large"
         />
         <LinearGradient
@@ -314,6 +313,7 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
+    borderRadius: 15,
   },
   gradientContainer: {
     marginTop: 8,
@@ -382,6 +382,7 @@ const styles = StyleSheet.create({
   },
   newExerciseInput: {
     marginBottom: 8,
+    borderRadius: 15,
   },
   newExerciseButtons: {
     flexDirection: 'row',
