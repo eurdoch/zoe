@@ -18,6 +18,7 @@ import {
   Icon,
   Spinner,
 } from '@ui-kitten/components';
+import FloatingActionButton from '../components/FloatingActionButton';
 import ScatterPlot from '../ScatterPlot';
 import { getExerciseById, getExerciseNames, postExercise } from '../network/exercise';
 import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, showToastError } from '../utils';
@@ -296,11 +297,10 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
   }), [formModalAnim]);
 
   const renderAddButton = React.useCallback(() => (
-    <Button
-      style={styles.floatingButton}
-      status="primary"
-      accessoryLeft={(props) => <Icon {...props} name="plus-outline" />}
+    <FloatingActionButton
       onPress={showFormModal}
+      icon="plus-outline"
+      style={styles.floatingButton}
     />
   ), [showFormModal]);
 

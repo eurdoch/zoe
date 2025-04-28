@@ -11,6 +11,7 @@ import {
   Text as KittenText,
 } from '@ui-kitten/components';
 import Menu from '../components/Menu';
+import FloatingActionButton from '../components/FloatingActionButton';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkout, updateWorkout, deleteWorkout } from '../network/workout';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, showToastError, showToastInfo } from '../utils';
@@ -235,10 +236,9 @@ const WorkoutScreen = ({ navigation, route }: WorkoutScreenProps) => {
   };
 
   const renderAddButton = () => (
-    <Button
+    <FloatingActionButton
       style={styles.floatingButton}
-      status="primary"
-      accessoryLeft={(props: any) => <Icon {...props} name="plus-outline" />}
+      icon="plus-outline"
       onPress={() => setModalVisible(true)}
     />
   );
@@ -333,6 +333,7 @@ const styles = StyleSheet.create({
   },
   rightHeader: {
     flexDirection: 'row',
+    paddingRight: 16,
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

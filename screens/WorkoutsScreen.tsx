@@ -9,6 +9,7 @@ import {
   Icon 
 } from '@ui-kitten/components';
 import Menu from '../components/Menu';
+import FloatingActionButton from '../components/FloatingActionButton';
 import WorkoutEntry from '../types/WorkoutEntry';
 import { getWorkouts } from '../network/workout';
 import { useFocusEffect } from '@react-navigation/native';
@@ -73,10 +74,9 @@ const WorkoutsScreen = ({ navigation }: WorkoutsScreenProps) => {
   };
 
   const renderAddButton = () => (
-    <Button
+    <FloatingActionButton
       style={styles.floatingButton}
-      status="primary"
-      accessoryLeft={(props: any) => <Icon {...props} name="plus-outline" />}
+      icon="plus-outline"
       onPress={() => navigation.navigate('CreateWorkout')}
     />
   );
