@@ -620,7 +620,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
   },
   slideUpPanel: {
-    minHeight: 350, // Minimum height
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 24,

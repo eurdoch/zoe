@@ -41,8 +41,6 @@ const NewExerciseModalContent = ({
     }
   }
 
-  // Cancel functionality is now handled by tapping outside the modal
-
   return (
     <View style={styles.container}>
       <Input
@@ -61,7 +59,7 @@ const NewExerciseModalContent = ({
           appearance="filled"
           size="large"
         >
-          {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+          <Text style={styles.buttonText}>ADD</Text>
         </Button>
       </LinearGradient>
     </View>
