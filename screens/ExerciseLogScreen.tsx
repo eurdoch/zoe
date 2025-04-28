@@ -10,12 +10,10 @@ import {
   Layout, 
   Card, 
   Text, 
-  Button,
   Divider,
   List,
   ListItem,
   Modal,
-  Icon,
   Spinner,
 } from '@ui-kitten/components';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -25,7 +23,6 @@ import { convertFromDatabaseFormat, getExercisesByNameAndConvertToDataPoint, sho
 import DropdownItem from '../types/DropdownItem';
 import DataPoint from '../types/DataPoint';
 import Toast from 'react-native-toast-message';
-import { API_BASE_URL } from '../config';
 import NewExerciseModalContent from '../modals/NewExerciseModalContent';
 import ExerciseModalContent from '../modals/ExerciseModalContent';
 import KeyboardAwareForm from '../components/KeyboardAwareForm';
