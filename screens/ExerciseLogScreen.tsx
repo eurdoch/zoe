@@ -510,7 +510,7 @@ function ExerciseLogScreen({ route }: ExerciseLogScreenProps): React.JSX.Element
                 borderTopLeftRadius: 15, 
                 borderTopRightRadius: 15,
                 zIndex: 1001, // Higher than the overlay
-                padding: 16
+                padding: 0
               }
             ]}
           >

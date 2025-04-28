@@ -5,6 +5,7 @@ import { convertToDatabaseFormat } from "../utils";
 import Toast from "react-native-toast-message";
 import DropdownItem from "../types/DropdownItem";
 import DataPoint from "../types/DataPoint";
+import LinearGradient from 'react-native-linear-gradient';
 
 interface NewExerciseModalContentProps {
   dropdownItems: DropdownItem[];
@@ -40,38 +41,29 @@ const NewExerciseModalContent = ({
     }
   }
 
-  const handleCancel = () => {
-    setValue('');
-    setModalVisible(false);
-  };
+  // Cancel functionality is now handled by tapping outside the modal
 
   return (
     <View style={styles.container}>
-      <Text category="h6" style={styles.title}>Add New Exercise</Text>
       <Input
         placeholder="Enter new exercise name"
         value={value}
         onChangeText={(text) => setValue(text)}
         style={styles.input}
-        autoFocus
       />
-      <View style={styles.buttonContainer}>
-        <Button
-          onPress={handleCancel}
-          appearance="outline"
-          status="basic"
-          style={styles.cancelButton}
-        >
-          CANCEL
-        </Button>
-        <Button
-          onPress={handleAddNewExerciseOption}
-          status="primary"
+      <LinearGradient
+        colors={['#444444', '#222222']}
+        style={styles.gradientContainer}
+      >
+        <Button 
           style={styles.addButton}
+          onPress={handleAddNewExerciseOption}
+          appearance="filled"
+          size="large"
         >
-          ADD
+          {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
         </Button>
-      </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -80,27 +72,30 @@ export default NewExerciseModalContent;
 
 const styles = StyleSheet.create({
   container: {
-    width: 280,
-    padding: 8,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 16,
+    width: '100%',
+    padding: 16,
+    height: 'auto',
   },
   input: {
     marginBottom: 16,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  cancelButton: {
-    flex: 1,
-    marginRight: 8,
+  gradientContainer: {
+    marginTop: 8,
+    marginBottom: 0,
+    borderRadius: 15,
+    overflow: 'hidden',
   },
   addButton: {
-    flex: 1,
-    marginLeft: 8,
+    marginTop: 0,
+    height: 50,
+    borderRadius: 15,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  }
 });
 
