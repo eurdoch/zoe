@@ -483,7 +483,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       {recentEntriesVisible && (
         <View style={styles.slideUpOverlay}>
           <Pressable 
-            style={[styles.closeOverlayArea, { bottom: 0 }]} // Cover full screen
+            style={styles.closeOverlayArea}
             onPress={hideRecentEntries} 
           />
           <Animated.View 
@@ -523,7 +523,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       {modalVisible && (
         <View style={styles.slideUpOverlay}>
           <Pressable 
-            style={[styles.closeOverlayArea, { bottom: 0 }]} // Cover full screen
+            style={styles.closeOverlayArea}
             onPress={hideAddSupplementModal} 
           />
           <Animated.View 
@@ -663,7 +663,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   gradientContainer: {
-    marginVertical: 8,
+    marginTop: 8,
+    marginBottom: 12, // Add some bottom margin for spacing
     borderRadius: 15,
     overflow: 'hidden',
   },
@@ -741,18 +742,18 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    bottom: 400, // Default height for the panel
+    bottom: 0, // Cover the full screen
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
   },
   slideUpPanel: {
-    height: 400, // Default height
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 24,
   },
   addSupplementPanel: {
-    // Remove fixed height to let content determine the size
-    minHeight: 300, // Minimum height for the panel
+    // Set the panel to fit its content
+    height: 'auto',
+    paddingBottom: 30,  // Increased padding at bottom
   },
   slideUpHeader: {
     flexDirection: 'row',
