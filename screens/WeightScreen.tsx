@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Animated, Pressable } from 'react-native';
 import { 
   Layout, 
   Text, 
@@ -12,14 +12,14 @@ import {
   Icon,
   Divider 
 } from '@ui-kitten/components';
+import LinearGradient from 'react-native-linear-gradient';
+import FloatingActionButton from '../components/FloatingActionButton';
 import { getWeight, postWeight, deleteWeight } from '../network/weight';
 import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime, formatTimeWithYear } from '../utils';
 import { API_BASE_URL } from '../config';
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
-//import { useRealm } from '@realm/react';
 import WeightEntry from '../types/WeightEntry';
-import Weight from '../types/Weight';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -29,6 +29,7 @@ const WeightScreen = () => {
   const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
   const [weight, setWeight] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalAnim] = useState(new Animated.Value(0));
   const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
   const [weightModalVisible, setWeightModalVisible] = useState<boolean>(false);
   const navigation = useNavigation();
@@ -97,6 +98,25 @@ const WeightScreen = () => {
       showToastError('Weight must be a number.')
     }
   }
+
+  const showModal = () => {
+    setModalVisible(true);
+    Animated.timing(modalAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+  
+  const hideModal = () => {
+    Animated.timing(modalAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false);
+    });
+  };
 
   useEffect(() => {
     loadData();
@@ -220,6 +240,18 @@ const WeightScreen = () => {
   const AddIcon = (props: any) => (
     <Icon {...props} name="plus-outline" />
   );
+  
+  // Calculate slide up transform for add weight modal
+  const modalTransform = {
+    transform: [
+      {
+        translateY: modalAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [500, 0], // Start from off-screen
+        }),
+      },
+    ],
+  };
 
   return (
     <Layout style={styles.container}>
@@ -241,31 +273,62 @@ const WeightScreen = () => {
         />
       </Card>
       
-      <Button
+      <FloatingActionButton
         style={styles.floatingButton}
-        status="primary"
-        accessoryLeft={AddIcon}
-        onPress={() => setModalVisible(true)}
+        icon="plus-outline"
+        onPress={showModal}
       />
       
-      <Modal
-        visible={modalVisible}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setModalVisible(false)}
-      >
-        <Card style={styles.weightForm} disabled>
-          <Input
-            value={weight}
-            onChangeText={setWeight}
-            placeholder="Enter weight"
-            keyboardType="numeric"
-            style={styles.input}
+      {/* Add Weight Slide-up Panel */}
+      {modalVisible && (
+        <View style={styles.slideUpOverlay}>
+          <Pressable 
+            style={styles.closeOverlayArea} 
+            onPress={hideModal} 
           />
-          <Button status="primary" onPress={handleAddWeight}>
-            ADD
-          </Button>
-        </Card>
-      </Modal>
+          <Animated.View 
+            style={[
+              styles.slideUpPanel,
+              modalTransform,
+              { 
+                backgroundColor: 'white', 
+                borderTopLeftRadius: 15, 
+                borderTopRightRadius: 15,
+                zIndex: 1001 // Higher than the overlay
+              }
+            ]}
+          >
+            <View>
+              <View style={styles.slideUpHeader}>
+                <Text category="h6">Add Weight</Text>
+              </View>
+              <Divider />
+              <View style={styles.formContainer}>
+                <Input
+                  value={weight}
+                  onChangeText={setWeight}
+                  placeholder="Enter weight"
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+                <LinearGradient
+                  colors={['#444444', '#222222']}
+                  style={styles.gradientContainer}
+                >
+                  <Button 
+                    style={styles.addButton}
+                    onPress={handleAddWeight}
+                    appearance="filled"
+                    size="large"
+                  >
+                    {(evaProps) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+                  </Button>
+                </LinearGradient>
+              </View>
+            </View>
+          </Animated.View>
+        </View>
+      )}
 
       <Modal
         visible={weightModalVisible}
@@ -336,7 +399,7 @@ const styles = StyleSheet.create({
     width: 'auto',
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 8,
     width: '100%',
   },
   weightItem: {
@@ -374,6 +437,61 @@ const styles = StyleSheet.create({
   },
   weightForm: {
     width: Dimensions.get("window").width * 0.70,
+  },
+  // Slide-up panel styles
+  slideUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  closeOverlayArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0, // Cover full screen
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+  slideUpPanel: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
+  },
+  slideUpHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  formContainer: {
+    padding: 16,
+  },
+  gradientContainer: {
+    marginVertical: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  addButton: {
+    marginTop: 0,
+    height: 50,
+    borderRadius: 15,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   }
 });
 
