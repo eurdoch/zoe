@@ -15,6 +15,7 @@ import {
   ScrollView,
   Keyboard,
 } from "react-native";
+import LinearGradient from 'react-native-linear-gradient';
 import PhoneInput from "react-native-phone-number-input";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
@@ -167,12 +168,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     handleCodeVerification();
                   }}
                 />
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleCodeVerification}
+                <LinearGradient
+                  colors={['#444444', '#222222']}
+                  style={styles.gradientContainer}
                 >
-                  <Text style={styles.buttonText}>Verify</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleCodeVerification}
+                  >
+                    <Text style={styles.buttonText}>Verify</Text>
+                  </TouchableOpacity>
+                </LinearGradient>
                 <View style={styles.textButtonsContainer}>
                   <TouchableOpacity
                     style={styles.textButton}
@@ -243,12 +249,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     }
                   }}
                 />
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleVerify}
+                <LinearGradient
+                  colors={['#444444', '#222222']}
+                  style={styles.gradientContainer}
                 >
-                  <Text style={styles.buttonText}>Login</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleVerify}
+                  >
+                    <Text style={styles.buttonText}>Login</Text>
+                  </TouchableOpacity>
+                </LinearGradient>
               </>
             )}
           </View>
@@ -269,11 +280,17 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
   },
+  gradientContainer: {
+    marginVertical: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+    width: '100%',
+  },
   wrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 40,
   },
   title: {
@@ -310,27 +327,18 @@ const styles = StyleSheet.create({
     letterSpacing: 8,
   },
   button: {
-    marginTop: 20,
-    height: 50,
-    width: '100%',
-    maxWidth: 400,
+    height: 60,
+    borderRadius: 15, 
+    borderWidth: 0,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#7CDB8A',
-    borderRadius: 8,
-    shadowColor: 'rgba(0,0,0,0.1)',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    width: '100%',
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   textButtonsContainer: {
     flexDirection: 'column',
