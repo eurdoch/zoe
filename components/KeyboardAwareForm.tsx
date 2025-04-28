@@ -141,7 +141,8 @@ const KeyboardAwareForm: React.FC<KeyboardAwareFormProps> = ({
                 returnKeyType={index === inputs.length - 2 ? 'done' : 'next'}
                 onSubmitEditing={() => index === inputs.length - 2 ? handleSubmit() : focusNextInput(index)}
                 blurOnSubmit={index === inputs.length - 1}
-                size="medium"
+                size="large"
+                textStyle={styles.inputText}
                 {...inputProps}
               />
             );
@@ -175,7 +176,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   input: {
-    marginBottom: 15,
+    marginBottom: 8,
+    width: '100%',
+    borderRadius: 15,
+  },
+  inputText: {
+    fontSize: 18,
+    height: 20,
   },
   gradientContainer: {
     marginVertical: 8,
@@ -203,6 +210,7 @@ const styles = StyleSheet.create({
   datePicker: {
     marginBottom: 8,
     width: '100%',
+    borderRadius: 15,
   }
 });
 
