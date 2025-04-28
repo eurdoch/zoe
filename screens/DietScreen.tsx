@@ -14,6 +14,7 @@ import MacroByImageAnalysis from '../components/MacroByImageAnalysis';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingActionButton from '../components/FloatingActionButton';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface DietScreenProps {
   navigation: any;
@@ -357,11 +358,28 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           </Animated.View>
         </TouchableOpacity>
       ) : (
-        <FloatingActionButton 
-          icon="plus-outline"
+        <TouchableOpacity 
+          style={styles.mainFabPositionReset} 
           onPress={toggleFabMenu}
-          style={styles.mainFabPositionReset}
-        />
+        >
+          <LinearGradient
+            colors={['#444444', '#222222']}
+            style={styles.gradientFab}
+          >
+            <Animated.View style={{
+              transform: [
+                { 
+                  rotate: animation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '45deg']
+                  })
+                }
+              ]
+            }}>
+              <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
+            </Animated.View>
+          </LinearGradient>
+        </TouchableOpacity>
       )}
 
       <CustomModal
@@ -488,6 +506,19 @@ const styles = StyleSheet.create({
     right: 30,
     bottom: 30,
     zIndex: 999,
+  },
+  gradientFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   // Keeping these for backward compatibility
   fabMenuButton: {
