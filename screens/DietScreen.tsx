@@ -13,6 +13,7 @@ import { useFoodData } from '../contexts/FoodDataContext';
 import MacroByImageAnalysis from '../components/MacroByImageAnalysis';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FloatingActionButton from '../components/FloatingActionButton';
 
 interface DietScreenProps {
   navigation: any;
@@ -253,12 +254,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <TouchableOpacity 
-          style={styles.fabMenuButton} 
+        <FloatingActionButton
+          icon="search-outline"
           onPress={() => navigateToScreen('DietLog')}
-        >
-          <Icon name='search-outline' style={styles.fabMenuIcon} fill='white' />
-        </TouchableOpacity>
+          style={styles.fabPositionReset}
+        />
       </Animated.View>
 
       <Animated.View 
@@ -279,12 +279,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <TouchableOpacity 
-          style={styles.fabMenuButton} 
+        <FloatingActionButton
+          icon="file-text-outline"
           onPress={() => navigateToScreen('NutritionLabelParser')}
-        >
-          <Icon name='file-text-outline' style={styles.fabMenuIcon} fill='white' />
-        </TouchableOpacity>
+          style={styles.fabPositionReset}
+        />
       </Animated.View>
 
       <Animated.View 
@@ -305,12 +304,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <TouchableOpacity 
-          style={styles.fabMenuButton} 
+        <FloatingActionButton
+          icon="camera-outline"
           onPress={() => navigateToScreen('BarcodeScanner')}
-        >
-          <Icon name='camera-outline' style={styles.fabMenuIcon} fill='white' />
-        </TouchableOpacity>
+          style={styles.fabPositionReset}
+        />
       </Animated.View>
 
       {/* Magic Wand Button */}
@@ -332,32 +330,39 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <TouchableOpacity 
-          style={styles.fabMenuButton} 
+        <FloatingActionButton
+          icon="flash-outline"
           onPress={() => navigateToScreen('FoodImageAnalyzer')}
-        >
-          <Icon name='flash-outline' style={styles.fabMenuIcon} fill='white' />
-        </TouchableOpacity>
+          style={styles.fabPositionReset}
+        />
       </Animated.View>
 
       {/* Main FAB button */}
-      <TouchableOpacity 
-        style={[styles.fab, isFabMenuOpen ? styles.fabActive : null]} 
-        onPress={toggleFabMenu}
-      >
-        <Animated.View style={{
-          transform: [
-            { 
-              rotate: animation.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0deg', '45deg']
-              })
-            }
-          ]
-        }}>
-          <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
-        </Animated.View>
-      </TouchableOpacity>
+      {isFabMenuOpen ? (
+        <TouchableOpacity 
+          style={[styles.fab, styles.fabActive]} 
+          onPress={toggleFabMenu}
+        >
+          <Animated.View style={{
+            transform: [
+              { 
+                rotate: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0deg', '45deg']
+                })
+              }
+            ]
+          }}>
+            <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
+          </Animated.View>
+        </TouchableOpacity>
+      ) : (
+        <FloatingActionButton 
+          icon="plus-outline"
+          onPress={toggleFabMenu}
+          style={styles.mainFabPositionReset}
+        />
+      )}
 
       <CustomModal
         visible={modalVisible}
@@ -473,6 +478,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 998,
   },
+  fabPositionReset: {
+    position: 'relative',
+    right: 0,
+    bottom: 0,
+  },
+  mainFabPositionReset: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    zIndex: 999,
+  },
+  // Keeping these for backward compatibility
   fabMenuButton: {
     backgroundColor: '#007AFF',
     width: 56,
