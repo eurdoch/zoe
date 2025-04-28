@@ -63,5 +63,6 @@ export default ExerciseDropdown;
 const styles = StyleSheet.create({
   select: {
     marginBottom: 16,
+    borderRadius: 15,
   },
 });
