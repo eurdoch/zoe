@@ -9,6 +9,8 @@ import LoginScreen from './screens/LoginScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
 import Toast from 'react-native-toast-message';
+import { getUser } from './network/user';
+import { AuthenticationError } from './errors/NetworkError';
 import DietLogScreen from './screens/DietLogScreen';
 import CreateWorkoutScreen from './screens/CreateWorkoutScreen';
 import WorkoutsScreen from './screens/WorkoutsScreen.tsx';
@@ -53,17 +55,33 @@ const App = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        // Check for user data in AsyncStorage
-        const userData = await AsyncStorage.getItem('user');
+        // Check for token in AsyncStorage
         const token = await AsyncStorage.getItem('token');
         
-        if (userData && token) {
-          // User is logged in
-          console.log('User is logged in');
-          setUserLoggedIn(true);
+        if (token) {
+          try {
+            // Validate token by fetching user data
+            const user = await getUser(token);
+            
+            // Save user data to AsyncStorage
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            
+            console.log('Token validated, user is logged in');
+            setUserLoggedIn(true);
+          } catch (error) {
+            console.error('Token validation failed:', error);
+            
+            // If it's an authentication error, clear storage
+            if (error instanceof AuthenticationError) {
+              console.log('Invalid token, clearing storage');
+              await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
+            }
+            
+            setUserLoggedIn(false);
+          }
         } else {
-          // No valid user data, clear storage for good measure
-          console.log('No user found, clearing storage');
+          // No token found, clear storage for good measure
+          console.log('No token found, clearing storage');
           await AsyncStorage.multiRemove(['user', 'token', 'currentUser']);
           setUserLoggedIn(false);
         }
