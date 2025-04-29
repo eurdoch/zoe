@@ -19,7 +19,6 @@ import { postWorkout } from '../network/workout';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-//import { useRealm } from '@realm/react';
 
 interface CreateWorkoutScreenProps {
   navigation: any;
@@ -81,6 +80,9 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
   
   // Animation control functions
   const showNewExerciseInput = () => {
+    // Clear any existing text
+    setNewExerciseName('');
+    
     // Start the slide-in animation
     Animated.timing(slideAnim, {
       toValue: 1,
@@ -118,6 +120,8 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
         text1: 'Whoops!',
         text2: 'This exercise already exists.'
       });
+      // Clear the input even if there's an error
+      setNewExerciseName('');
       return;
     }
     
@@ -127,8 +131,10 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
     // Select the new exercise
     setSelectedExercises([...selectedExercises, formattedName]);
     
-    // Reset input and start the animation to hide
+    // Clear the input immediately
     setNewExerciseName('');
+    
+    // Start the animation to hide
     hideNewExerciseInput();
     
     Toast.show({
@@ -209,6 +215,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
           value={workoutName}
           onChangeText={setWorkoutName}
           size="large"
+          textStyle={styles.inputText}
         />
         <LinearGradient
           colors={['#444444', '#222222']}
@@ -263,12 +270,14 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
           }
         ]}
       >
-        <Card style={styles.newExerciseInputContainer}>
+        <View style={styles.newExerciseInputContainer}>
           <Input
             placeholder="Enter new exercise name"
             value={newExerciseName}
             onChangeText={setNewExerciseName}
             style={styles.newExerciseInput}
+            size="large"
+            textStyle={styles.inputText}
           />
           <View style={styles.newExerciseButtons}>
             <LinearGradient
@@ -285,7 +294,7 @@ const CreateWorkoutScreen = ({ navigation }: CreateWorkoutScreenProps) => {
               </Button>
             </LinearGradient>
           </View>
-        </Card>
+        </View>
       </Animated.View>
       
       <Divider style={styles.divider} />
@@ -312,8 +321,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    marginBottom: 16,
     borderRadius: 15,
+    minHeight: 50,
+    paddingVertical: 3,
+  },
+  inputText: {
+    fontSize: 16,
+    minHeight: 24,
+    paddingVertical: 4,
   },
   gradientContainer: {
     marginTop: 8,
@@ -372,17 +387,18 @@ const styles = StyleSheet.create({
   },
   newExerciseInputContainer: {
     padding: 12,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#f5f5f5',
     borderRadius: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    marginHorizontal: 2,
   },
   newExerciseInput: {
-    marginBottom: 8,
     borderRadius: 15,
+    minHeight: 50,
   },
   newExerciseButtons: {
     flexDirection: 'row',
