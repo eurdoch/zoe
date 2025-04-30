@@ -86,8 +86,8 @@ android {
         applicationId "com.zotik"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 19
-        versionName "0.0.17-beta"
+        versionCode 20
+        versionName "0.0.18-beta"
     }
     signingConfigs {
         debug {
@@ -114,6 +114,16 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+    flavorDimensions "store"
+    productFlavors {
+        play {
+            dimension "store"
+        }
+        // You can keep the Amazon flavor if you plan to publish to Amazon Appstore too
+        // amazon {
+        //     dimension "store"
+        // }
     }
 }
 

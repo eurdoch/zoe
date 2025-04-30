@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Card, Layout } from '@ui-kitten/components';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
+import { Card, Layout, Button } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 import { showToastError } from '../utils';
+import * as RNIap from 'react-native-iap';
 
 interface User {
   user_id?: string;
@@ -15,9 +16,12 @@ interface User {
   last_login?: string;
 }
 
+const SUBSCRIPTION_ID = 'kallos_premium';
+
 const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -39,6 +43,87 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       showToastError('Error logging out. Please restart the app.');
     }
   }, [navigation]);
+
+  // Initialize IAP connection
+  useEffect(() => {
+    // Connect to IAP service
+    const initializeIAP = async () => {
+      try {
+        await RNIap.initConnection();
+        console.log('IAP connection established');
+      } catch (error) {
+        console.error('Failed to establish IAP connection:', error);
+      }
+    };
+    
+    initializeIAP();
+    
+    // Clean up IAP connection on unmount
+    return () => {
+      RNIap.endConnection();
+    };
+  }, []);
+  
+  // Function to handle subscription purchase
+  const handleSubscribe = async () => {
+    if (!user) return;
+    
+    setPurchaseLoading(true);
+    try {
+      // Request subscriptions
+      const products = await RNIap.getSubscriptions({ skus: [SUBSCRIPTION_ID] });
+      if (products.length === 0) {
+        throw new Error('No subscription products available');
+      }
+      
+      // Purchase subscription
+      const purchase = await RNIap.requestSubscription({ 
+        sku: SUBSCRIPTION_ID,
+        andDangerouslyFinishTransactionAutomaticallyIOS: false
+      });
+      
+      // Update user status on the server
+      const token = await AsyncStorage.getItem('token');
+      if (token && purchase) {
+        // Get receipt based on platform
+        const receipt = typeof purchase === 'object' && 'transactionReceipt' in purchase
+          ? purchase.transactionReceipt 
+          : Array.isArray(purchase) && purchase.length > 0 && 'transactionReceipt' in purchase[0]
+            ? purchase[0].transactionReceipt
+            : '';
+            
+        const response = await fetch(`${API_BASE_URL}/verify/upgrade`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            receipt: receipt,
+            productId: SUBSCRIPTION_ID
+          })
+        });
+        
+        if (response.ok) {
+          const updatedUser = await response.json();
+          setUser(updatedUser);
+          await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+          
+          // Finish the transaction
+          if (Platform.OS === 'ios' && typeof purchase === 'object' && 'transactionId' in purchase) {
+            await RNIap.finishTransaction({ purchase, isConsumable: false });
+          }
+          
+          Alert.alert('Success', 'Your subscription is now active!');
+        }
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+      Alert.alert('Subscription Failed', 'There was an error processing your subscription. Please try again later.');
+    } finally {
+      setPurchaseLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -152,6 +237,19 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
               </Text>
             </View>
           )}
+          
+          {!user.premium && (
+            <View style={styles.subscriptionContainer}>
+              <Button
+                status="primary"
+                onPress={handleSubscribe}
+                disabled={purchaseLoading}
+                accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
+              >
+                {purchaseLoading ? 'Processing...' : 'Upgrade to Premium'}
+              </Button>
+            </View>
+          )}
         </Card>
       </Layout>
     </ScrollView>
@@ -203,6 +301,12 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     marginTop: 20,
+  },
+  subscriptionContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#EDF1F7',
   },
 });
 
