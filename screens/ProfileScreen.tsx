@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, TouchableOpacity, FlatList } from 'react-native';
 import { Card, Layout, Button } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 import { showToastError } from '../utils';
+import CustomModal from '../CustomModal';
 import {
   initConnection,
   getSubscriptions,
@@ -14,6 +15,7 @@ import {
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
+  SubscriptionPurchase,
 } from 'react-native-iap';
 
 interface User {
@@ -31,11 +33,16 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionPurchase[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     initConnection().then(() => {
       getSubscriptions({ skus: [SUBSCRIPTION_ID] })
-        .then((products) => { console.log(products) })
+        .then((products) => { 
+          console.log(products);
+          setSubscriptions(products);
+        })
         .catch(err => {
           console.error("Could not get subscriptions: ", err);
         });
@@ -44,6 +51,11 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       console.error("Could not connect to store: ", err);
     });
   }, []);
+
+  const handleSubscriptionSelect = (subscription: SubscriptionPurchase) => {
+    console.log('Selected subscription:', subscription);
+    setModalVisible(false);
+  };
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -183,7 +195,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
             <View style={styles.subscriptionContainer}>
               <Button
                 status="primary"
-                onPress={() => {}}
+                onPress={() => setModalVisible(true)}
                 disabled={purchaseLoading}
                 accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
               >
@@ -193,6 +205,54 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
           )}
         </Card>
       </Layout>
+
+      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
+        <View>
+          <Text style={styles.modalTitle}>Choose a Subscription</Text>
+          {subscriptions.length === 0 ? (
+            <Text>No subscription options available</Text>
+          ) : (
+            <FlatList
+              data={subscriptions}
+              keyExtractor={(item) => item.productId}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.subscriptionOption}
+                  onPress={() => handleSubscriptionSelect(item)}
+                >
+                  <Text style={styles.subscriptionTitle}>
+                    {Platform.OS === 'ios' ? item.title : item.name}
+                  </Text>
+                  
+                  {Platform.OS === 'ios' ? (
+                    <>
+                      <Text style={styles.subscriptionPrice}>
+                        {item.localizedPrice}
+                      </Text>
+                      {item.introductoryPrice === "$0.00" && (
+                        <Text style={styles.trialText}>
+                          {`${item.introductoryPriceNumberOfPeriodsIOS}-day free trial`}
+                        </Text>
+                      )}
+                      <Text style={styles.subscriptionDescription}>
+                        {item.description}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.androidSubscriptionText}>
+                        {item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
+                          ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice}/month`
+                          : `${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice}/month`}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
+      </CustomModal>
     </ScrollView>
   );
 };
@@ -248,6 +308,44 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#EDF1F7',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subscriptionOption: {
+    borderWidth: 1,
+    borderColor: '#EDF1F7',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+  },
+  subscriptionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  subscriptionPrice: {
+    fontSize: 14,
+    color: '#3366FF',
+    marginBottom: 4,
+  },
+  subscriptionDescription: {
+    fontSize: 12,
+    color: '#8F9BB3',
+  },
+  trialText: {
+    fontSize: 13,
+    color: '#00C853',
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  androidSubscriptionText: {
+    fontSize: 14,
+    color: '#3366FF',
+    marginTop: 6,
   },
 });
 
