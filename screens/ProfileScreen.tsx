@@ -52,9 +52,110 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
     });
   }, []);
 
-  const handleSubscriptionSelect = (subscription: SubscriptionPurchase) => {
+  // Set up purchase listeners
+  useEffect(() => {
+    // Purchase listener
+    const purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase) => {
+      console.log('Purchase updated:', purchase);
+      
+      // Process the purchase (validate receipt with backend, etc)
+      // For this example, we're just finishing the transaction
+      if (purchase.productId === SUBSCRIPTION_ID) {
+        try {
+          const receipt = purchase.transactionReceipt ? purchase.transactionReceipt : '';
+          
+          if (receipt) {
+            // Here you would typically send the receipt to your backend
+            // for validation with Apple/Google servers
+            console.log('Transaction receipt:', receipt);
+            
+            // For demonstration purposes, we'll just mark the user as premium locally
+            // In a real app, you would receive confirmation from your backend
+            const updatedUser = user ? { ...user, premium: true } : null;
+            if (updatedUser) {
+              setUser(updatedUser);
+              await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+            }
+            
+            // Acknowledge the purchase
+            await finishTransaction({ purchase, isConsumable: false });
+            console.log('Transaction finished');
+            
+            // Show success message
+            Alert.alert(
+              'Subscription Activated',
+              'Thank you for subscribing to Kallos Premium!',
+              [{ text: 'OK' }]
+            );
+          }
+        } catch (error) {
+          console.error('Error processing purchase:', error);
+          showToastError('Failed to process subscription. Please contact support.');
+        }
+      }
+    });
+
+    // Error listener
+    const purchaseErrorSubscription = purchaseErrorListener((error) => {
+      console.error('Purchase error:', error);
+      
+      // Handle specific error cases
+      if (error.code === 'E_USER_CANCELLED') {
+        console.log('User cancelled the purchase');
+      } else {
+        showToastError('Subscription error. Please try again later.');
+      }
+      
+      setPurchaseLoading(false);
+    });
+
+    // Clean up listeners when component unmounts
+    return () => {
+      purchaseUpdateSubscription.remove();
+      purchaseErrorSubscription.remove();
+    };
+  }, [user]);
+
+  const handleSubscriptionSelect = async (subscription: SubscriptionPurchase) => {
     console.log('Selected subscription:', subscription);
     setModalVisible(false);
+    setPurchaseLoading(true);
+    
+    try {
+      const productId = subscription.productId;
+      const offerToken = Platform.OS === 'android' 
+        ? subscription.subscriptionOfferDetails?.[0]?.offerToken 
+        : '';
+      
+      console.log(`Requesting subscription for product ID: ${productId}`);
+      
+      // For Android, we need to pass the offerToken
+      if (Platform.OS === 'android' && offerToken) {
+        await requestSubscription({
+          sku: productId,
+          andDangerouslyFinishTransactionAutomaticallyIOS: false,
+          subscriptionOffers: [{ sku: productId, offerToken }]
+        });
+      } else {
+        // For iOS
+        await requestSubscription({
+          sku: productId,
+          andDangerouslyFinishTransactionAutomaticallyIOS: false
+        });
+      }
+      
+      // Subscription purchased successfully
+      console.log('Subscription requested successfully');
+      
+      // Here you would typically handle the purchase completion
+      // such as verifying with your backend, updating user status, etc.
+      
+    } catch (error) {
+      console.error('Error purchasing subscription:', error);
+      showToastError('Failed to purchase subscription. Please try again.');
+    } finally {
+      setPurchaseLoading(false);
+    }
   };
 
   // Authentication error handler
