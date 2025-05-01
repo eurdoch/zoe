@@ -5,7 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 import { showToastError } from '../utils';
-import * as RNIap from 'react-native-iap';
+import {
+  initConnection,
+  getSubscriptions,
+  getProducts,
+  requestSubscription,
+  getAvailablePurchases,
+  finishTransaction,
+  purchaseUpdatedListener,
+  purchaseErrorListener,
+} from 'react-native-iap';
 
 interface User {
   user_id?: string;
@@ -22,6 +31,12 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
+
+  useEffect(() => {
+    initConnection().then(() => {
+      getSubscriptions({ skus: [SUBSCRIPTION_ID] }).then((products) => { console.log(products) });
+    })
+  }, []);
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
