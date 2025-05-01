@@ -34,8 +34,15 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
 
   useEffect(() => {
     initConnection().then(() => {
-      getSubscriptions({ skus: [SUBSCRIPTION_ID] }).then((products) => { console.log(products) });
+      getSubscriptions({ skus: [SUBSCRIPTION_ID] })
+        .then((products) => { console.log(products) })
+        .catch(err => {
+          console.error("Could not get subscriptions: ", err);
+        });
     })
+    .catch(err => {
+      console.error("Could not connect to store: ", err);
+    });
   }, []);
 
   // Authentication error handler
