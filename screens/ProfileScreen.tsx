@@ -129,6 +129,32 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       
       console.log(`Requesting subscription for product ID: ${productId}`);
       
+      // For development/debugging mode, simulate successful purchase on Android
+      // since real Play Store purchases can't be tested in debug builds
+      if (__DEV__ && Platform.OS === 'android') {
+        console.log('Debug mode: Simulating successful Android purchase');
+        
+        // Simulate a brief delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Update user to premium
+        const updatedUser = user ? { ...user, premium: true } : null;
+        if (updatedUser) {
+          setUser(updatedUser);
+          await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        
+        // Show success message
+        Alert.alert(
+          'DEBUG: Subscription Activated',
+          'Simulated purchase successful in debug mode',
+          [{ text: 'OK' }]
+        );
+        
+        return;
+      }
+      
+      // Normal production flow
       // For Android, we need to pass the offerToken
       if (Platform.OS === 'android' && offerToken) {
         await requestSubscription({
@@ -144,11 +170,9 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
         });
       }
       
-      // Subscription purchased successfully
+      // Subscription request initiated successfully
       console.log('Subscription requested successfully');
-      
-      // Here you would typically handle the purchase completion
-      // such as verifying with your backend, updating user status, etc.
+      // The actual purchase completion is handled in the purchaseUpdatedListener
       
     } catch (error) {
       console.error('Error purchasing subscription:', error);
