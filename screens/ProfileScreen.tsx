@@ -129,10 +129,11 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       
       console.log(`Requesting subscription for product ID: ${productId}`);
       
-      // For development/debugging mode, simulate successful purchase on Android
-      // since real Play Store purchases can't be tested in debug builds
-      if (__DEV__ && Platform.OS === 'android') {
-        console.log('Debug mode: Simulating successful Android purchase');
+      // For development/debugging mode, simulate successful purchase on iOS and Android
+      // Android: Real Play Store purchases can't be tested in debug builds
+      // iOS: Can avoid needing to set up sandbox testers during initial development
+      if (__DEV__ && (Platform.OS === 'android' || Platform.OS === 'ios')) {
+        console.log(`Debug mode: Simulating successful ${Platform.OS} purchase`);
         
         // Simulate a brief delay
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -163,11 +164,29 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
           subscriptionOffers: [{ sku: productId, offerToken }]
         });
       } else {
-        // For iOS
-        await requestSubscription({
-          sku: productId,
-          andDangerouslyFinishTransactionAutomaticallyIOS: false
-        });
+        // For iOS - handle Apple ID login requirement
+        try {
+          await requestSubscription({
+            sku: productId,
+            andDangerouslyFinishTransactionAutomaticallyIOS: false
+          });
+        } catch (iosError: any) {
+          // Check if error is related to authentication
+          if (iosError.message && 
+             (iosError.message.includes('login') || 
+              iosError.message.includes('authentication') || 
+              iosError.message.includes('sign in'))) {
+            console.log('User needs to log in to Apple ID');
+            Alert.alert(
+              'Apple ID Required',
+              'Please sign in with your Apple ID to complete this purchase.',
+              [{ text: 'OK' }]
+            );
+          } else {
+            // Re-throw other errors to be caught by the outer catch block
+            throw iosError;
+          }
+        }
       }
       
       // Subscription request initiated successfully
