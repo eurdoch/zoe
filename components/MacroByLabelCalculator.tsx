@@ -31,7 +31,16 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
       setSelectedUnit(defaultServing.serving_unit);
       setSelectedServingSize(defaultServing.serving_size);
       setSelectedIndex(new IndexPath(0)); // Select first item by default
-      // Don't set the amount field automatically
+      
+      // Set a default amount based on serving size to show nutrition info immediately
+      setAmount(defaultServing.serving_size.toString());
+      
+      // Calculate macros after state updates
+      setTimeout(() => {
+        if (defaultServing.serving_size > 0) {
+          calculateAndDisplayMacros();
+        }
+      }, 100);
     } else if (nutritionInfo.serving_unit) {
       // Fallback to legacy format if serving_type is not available
       setSelectedUnit(nutritionInfo.serving_unit);
@@ -62,12 +71,41 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
         if (selectedServingSize) {
           // Use the selected serving size from the dropdown
           modifiedNutritionInfo.serving_size = selectedServingSize;
+          modifiedNutritionInfo.serving_unit = selectedUnit;
         }
         
-        const macros = calculateMacros(modifiedNutritionInfo, parsedAmount);
-        console.log("Calculated macros:", macros);
+        // For the nutrition label parsing case, we want to calculate based on number of servings
+        // The serving size is already in the unit selected by the user
+        // So we can directly calculate how many servings the user's amount represents
         
-        setCalculatedMacros(macros);
+        // Get the per-serving nutrition values
+        const fatPerServing = nutritionInfo.fat_grams_per_serving || 0;
+        const carbsPerServing = nutritionInfo.carb_grams_per_serving || 0;
+        const proteinPerServing = nutritionInfo.protein_grams_per_serving || 0;
+        
+        // Calculate number of servings
+        const numberOfServings = parsedAmount / (selectedServingSize || 1);
+        
+        // Calculate the macros
+        const calculatedMacros = {
+          calories: Math.round(((proteinPerServing * 4) + (carbsPerServing * 4) + (fatPerServing * 9)) * numberOfServings * 10) / 10,
+          protein: Math.round(proteinPerServing * numberOfServings * 10) / 10,
+          carbs: Math.round(carbsPerServing * numberOfServings * 10) / 10,
+          fat: Math.round(fatPerServing * numberOfServings * 10) / 10,
+          fiber: 0  // Usually not available from nutrition label
+        };
+        
+        console.log("Calculated macros based on servings:", {
+          numberOfServings,
+          perServing: {
+            protein: proteinPerServing,
+            carbs: carbsPerServing,
+            fat: fatPerServing
+          },
+          calculated: calculatedMacros
+        });
+        
+        setCalculatedMacros(calculatedMacros);
       } else {
         setCalculatedMacros(null);
       }
@@ -81,8 +119,9 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
   const handleAmountChange = (value: string) => {
     setAmount(value);
     // Only calculate if we have a valid number
-    if (/^\d*\.?\d*$/.test(value)) {
-      calculateAndDisplayMacros();
+    if (/^\d*\.?\d*$/.test(value) && parseFloat(value) > 0) {
+      // Calculate immediately when amount changes
+      setTimeout(calculateAndDisplayMacros, 0); // Use setTimeout to ensure state is updated
     } else {
       setCalculatedMacros(null);
     }
@@ -111,16 +150,33 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
         nutritionInfo: JSON.stringify(nutritionInfo, null, 2)
       });
       
-      // Create modified nutrition info with the selected serving size
-      const modifiedNutritionInfo = { ...nutritionInfo };
+      // For the nutrition label parsing case, we want to calculate based on number of servings
+      // Get the per-serving nutrition values
+      const fatPerServing = nutritionInfo.fat_grams_per_serving || 0;
+      const carbsPerServing = nutritionInfo.carb_grams_per_serving || 0;
+      const proteinPerServing = nutritionInfo.protein_grams_per_serving || 0;
       
-      // If we have a selected serving size from the dropdown, use it for calculations
-      if (selectedServingSize) {
-        // Use the selected serving size from the dropdown
-        modifiedNutritionInfo.serving_size = selectedServingSize;
-      }
+      // Calculate number of servings
+      const numberOfServings = parsedAmount / (selectedServingSize || 1);
       
-      const macros = calculateMacros(modifiedNutritionInfo, parsedAmount);
+      // Calculate the macros
+      const macros = {
+        calories: Math.round(((proteinPerServing * 4) + (carbsPerServing * 4) + (fatPerServing * 9)) * numberOfServings * 10) / 10,
+        protein: Math.round(proteinPerServing * numberOfServings * 10) / 10,
+        carbs: Math.round(carbsPerServing * numberOfServings * 10) / 10,
+        fat: Math.round(fatPerServing * numberOfServings * 10) / 10,
+        fiber: 0  // Usually not available from nutrition label
+      };
+      
+      console.log("Calculated macros for submission based on servings:", {
+        numberOfServings,
+        perServing: {
+          protein: proteinPerServing,
+          carbs: carbsPerServing,
+          fat: fatPerServing
+        },
+        calculated: macros
+      });
       console.log("Final calculated macros for submission:", macros);
       
       const createdAt = Math.floor(Date.now() / 1000);
@@ -170,9 +226,10 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
       setSelectedServingSize(selectedServing.serving_size);
       setSelectedIndex(index);
       
-      // Only recalculate macros if amount is already entered
-      if (amount) {
-        calculateAndDisplayMacros();
+      // Recalculate macros immediately if amount is already entered
+      if (amount && parseFloat(amount) > 0) {
+        // Use setTimeout to ensure state updates are applied first
+        setTimeout(calculateAndDisplayMacros, 0);
       }
     }
   };
