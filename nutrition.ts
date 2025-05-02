@@ -23,34 +23,61 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
   
   if (isNewFormat) {
     // New format processing
-    // Calculate calories (rough estimate if not available)
     // Ensure serving size is a number
-    const servingSizeValue = typeof nutrition.serving_size === 'number' 
-      ? nutrition.serving_size 
-      : typeof nutrition.serving_size === 'string' 
-        ? parseFloat(nutrition.serving_size) 
-        : 0;
-        
-    let servingUnit = nutrition.serving_unit || 'g';
+    let servingSizeValue: number;
+    let servingUnit: string;
     
-    // Convert serving size to grams if needed
-    let servingSizeGrams = servingSizeValue;
-    if (servingUnit === 'oz') {
-      servingSizeGrams = servingSizeValue * 28.35; // Convert oz to g
+    // Determine serving size and unit based on availability of serving_type
+    if (nutrition.serving_type && nutrition.serving_type.length > 0 && nutrition.serving_size !== undefined) {
+      // If we have a specific serving size selected (from dropdown), use that
+      servingSizeValue = typeof nutrition.serving_size === 'number' 
+        ? nutrition.serving_size 
+        : typeof nutrition.serving_size === 'string' 
+          ? parseFloat(nutrition.serving_size) 
+          : 0;
+      
+      servingUnit = nutrition.serving_unit || 'g';
+    } else if (nutrition.serving_size !== undefined) {
+      // Fallback to original serving_size/serving_unit if no serving_type
+      servingSizeValue = typeof nutrition.serving_size === 'number' 
+        ? nutrition.serving_size 
+        : typeof nutrition.serving_size === 'string' 
+          ? parseFloat(nutrition.serving_size) 
+          : 0;
+      
+      servingUnit = nutrition.serving_unit || 'g';
+    } else {
+      // Default values if nothing is provided
+      servingSizeValue = 100;
+      servingUnit = 'g';
     }
     
-    // Calculate multiplier based on amount relative to serving size
-    const multiplier = servingSizeGrams > 0 ? amountInGrams / servingSizeGrams : 1;
+    // Convert to grams for common units
+    let servingSizeGrams = servingSizeValue;
+    if (servingUnit.toLowerCase() === 'oz') {
+      servingSizeGrams = servingSizeValue * 28.35; // Convert oz to g
+    } else if (servingUnit.toLowerCase() === 'ml') {
+      servingSizeGrams = servingSizeValue; // Approximate 1ml = 1g for simplicity
+    } else if (servingUnit.toLowerCase() === 'cup') {
+      servingSizeGrams = servingSizeValue * 240; // Approximate 1 cup = 240g
+    } else if (servingUnit.toLowerCase() === 'tbsp') {
+      servingSizeGrams = servingSizeValue * 15; // Approximate 1 tbsp = 15g
+    } else if (servingUnit.toLowerCase() === 'tsp') {
+      servingSizeGrams = servingSizeValue * 5; // Approximate 1 tsp = 5g
+    }
+    
+    // Calculate number of servings
+    const numberOfServings = servingSizeGrams > 0 ? amountInGrams / servingSizeGrams : 1;
     
     // Set macros based on the new format
     const fat = nutrition.fat_grams_per_serving || 0;
     const carbs = nutrition.carb_grams_per_serving || 0;
     const protein = nutrition.protein_grams_per_serving || 0;
     
-    // Apply the multiplier to get the actual values for the requested amount
-    const adjustedFat = fat * multiplier;
-    const adjustedCarbs = carbs * multiplier;
-    const adjustedProtein = protein * multiplier;
+    // Apply the number of servings to get the actual values for the requested amount
+    const adjustedFat = fat * numberOfServings;
+    const adjustedCarbs = carbs * numberOfServings;
+    const adjustedProtein = protein * numberOfServings;
     
     macros.fat = adjustedFat;
     macros.carbs = adjustedCarbs;
@@ -64,7 +91,11 @@ export function calculateMacros(nutrition: NutritionInfo, amountInGrams: number)
       fat: adjustedFat,
       carbs: adjustedCarbs,
       protein: adjustedProtein,
-      multiplier,
+      numberOfServings,
+      servingSizeValue,
+      servingUnit,
+      servingSizeGrams,
+      amountInGrams,
       calories: macros.calories,
       original: { fat, carbs, protein }
     });
