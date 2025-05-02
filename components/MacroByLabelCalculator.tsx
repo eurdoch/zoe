@@ -1,10 +1,10 @@
 import {useState, useEffect} from "react";
-import {View, TextInput, Button, StyleSheet, Text, ActivityIndicator, TouchableOpacity, Modal, FlatList} from "react-native";
+import {View, TextInput, Button, StyleSheet, Text, ActivityIndicator, TouchableOpacity} from "react-native";
 import {calculateMacros} from "../nutrition";
 import {postFood} from "../network/food";
 import NutritionInfo from "../types/NutritionInfo";
 import {showToastError, showToastInfo} from "../utils";
-import { Icon } from '@ui-kitten/components';
+import { Icon, Select, SelectItem, IndexPath } from '@ui-kitten/components';
 
 interface MacroByLabelCalculatorProps {
   nutritionInfo: NutritionInfo;
@@ -17,9 +17,9 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calculatedMacros, setCalculatedMacros] = useState<any>(null);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState('');
   const [selectedServingSize, setSelectedServingSize] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<IndexPath | null>(null);
   
   // Get available serving units from nutrition info
   const availableUnits = nutritionInfo.serving_type?.map(st => st.serving_unit) || [];
@@ -30,6 +30,7 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
       const defaultServing = nutritionInfo.serving_type[0];
       setSelectedUnit(defaultServing.serving_unit);
       setSelectedServingSize(defaultServing.serving_size);
+      setSelectedIndex(new IndexPath(0)); // Select first item by default
       // Don't set the amount field automatically
     } else if (nutritionInfo.serving_unit) {
       // Fallback to legacy format if serving_type is not available
@@ -161,23 +162,17 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
     }
   }
 
-  // Handle unit selection
-  const handleUnitSelect = (unit: string) => {
-    // Find the serving size for the selected unit
-    if (nutritionInfo.serving_type) {
-      const selectedServing = nutritionInfo.serving_type.find(st => st.serving_unit === unit);
-      if (selectedServing) {
-        setSelectedUnit(unit);
-        setSelectedServingSize(selectedServing.serving_size);
-        // Don't update the amount field
-        
-        // Close dropdown
-        setDropdownVisible(false);
-        
-        // Only recalculate macros if amount is already entered
-        if (amount) {
-          calculateAndDisplayMacros();
-        }
+  // Handle unit selection from UI Kitten Select component
+  const handleSelectChange = (index: IndexPath) => {
+    if (nutritionInfo.serving_type && nutritionInfo.serving_type.length > index.row) {
+      const selectedServing = nutritionInfo.serving_type[index.row];
+      setSelectedUnit(selectedServing.serving_unit);
+      setSelectedServingSize(selectedServing.serving_size);
+      setSelectedIndex(index);
+      
+      // Only recalculate macros if amount is already entered
+      if (amount) {
+        calculateAndDisplayMacros();
       }
     }
   };
@@ -202,56 +197,23 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
           placeholderTextColor="#999"
           keyboardType="numeric"
         />
-        {nutritionInfo.serving_type && nutritionInfo.serving_type.length > 1 ? (
-          <TouchableOpacity 
-            style={styles.unitSelector}
-            onPress={() => setDropdownVisible(true)}
+        
+        {nutritionInfo.serving_type && nutritionInfo.serving_type.length > 0 ? (
+          <Select
+            style={styles.unitSelect}
+            selectedIndex={selectedIndex}
+            onSelect={index => handleSelectChange(index as IndexPath)}
+            value={selectedUnit}
+            placeholder="Unit"
           >
-            <Text style={styles.unitText}>{displayUnit}</Text>
-            <Icon name="chevron-down-outline" style={styles.dropdownIcon} fill="#999" />
-          </TouchableOpacity>
+            {nutritionInfo.serving_type.map((item, index) => (
+              <SelectItem key={`unit-${index}`} title={item.serving_unit} />
+            ))}
+          </Select>
         ) : (
           <Text style={styles.unitText}>{displayUnit}</Text>
         )}
       </View>
-
-      {/* Unit Dropdown Modal */}
-      <Modal
-        visible={dropdownVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setDropdownVisible(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1}
-          onPress={() => setDropdownVisible(false)}
-        >
-          <View style={styles.dropdownContainer}>
-            <Text style={styles.dropdownTitle}>Select Unit</Text>
-            <FlatList
-              data={nutritionInfo.serving_type}
-              keyExtractor={(item, index) => `serving-${index}`}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.dropdownItem,
-                    item.serving_unit === selectedUnit && styles.dropdownItemSelected
-                  ]}
-                  onPress={() => handleUnitSelect(item.serving_unit)}
-                >
-                  <Text style={[
-                    styles.dropdownItemText,
-                    item.serving_unit === selectedUnit && styles.dropdownItemTextSelected
-                  ]}>
-                    {item.serving_unit}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
       
       {calculatedMacros && (
         <View style={styles.macrosContainer}>
@@ -362,59 +324,11 @@ const styles = StyleSheet.create({
   unitText: {
     fontSize: 16,
     marginLeft: 5,
-  },
-  unitSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 6,
-  },
-  dropdownIcon: {
-    width: 16,
-    height: 16,
-    marginLeft: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  dropdownContainer: {
-    width: '80%',
-    maxHeight: '70%',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  dropdownTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  dropdownItem: {
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
-  dropdownItemSelected: {
-    backgroundColor: '#e6f7ff',
-  },
-  dropdownItemText: {
-    fontSize: 16,
-  },
-  dropdownItemTextSelected: {
-    fontWeight: 'bold',
-    color: '#007AFF',
+  unitSelect: {
+    minWidth: 120,
+    marginLeft: 10,
   },
 });
 
