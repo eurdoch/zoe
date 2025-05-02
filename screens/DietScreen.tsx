@@ -4,7 +4,6 @@ import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
-import NutritionInfo from '../types/NutritionInfo';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import MacroCalculator from '../components/MacroCalculator';
 import { Icon } from '@ui-kitten/components';
