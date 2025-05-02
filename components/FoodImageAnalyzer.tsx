@@ -24,7 +24,7 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
 
   useEffect(() => {
     if (!cameraActive && !isProcessing) {
-      navigation.navigate('Diet');
+      navigation.popTo('Diet');
     }
   }, [cameraActive, isProcessing]);
 

@@ -16,6 +16,7 @@ import {
   purchaseUpdatedListener,
   purchaseErrorListener,
   SubscriptionPurchase,
+  Subscription,
 } from 'react-native-iap';
 
 interface User {
@@ -33,7 +34,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionPurchase[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -116,14 +117,14 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
     };
   }, [user]);
 
-  const handleSubscriptionSelect = async (subscription: SubscriptionPurchase) => {
+  const handleSubscriptionSelect = async (subscription: Subscription) => {
     console.log('Selected subscription:', subscription);
     setModalVisible(false);
     setPurchaseLoading(true);
     
     try {
       const productId = subscription.productId;
-      const offerToken = Platform.OS === 'android' 
+      const offerToken = Platform.OS === 'android' && 'subscriptionOfferDetails' in subscription
         ? subscription.subscriptionOfferDetails?.[0]?.offerToken 
         : '';
       
@@ -365,29 +366,33 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
                   onPress={() => handleSubscriptionSelect(item)}
                 >
                   <Text style={styles.subscriptionTitle}>
-                    {Platform.OS === 'ios' ? item.title : item.name}
+                    {Platform.OS === 'ios' 
+                      ? ('title' in item ? item.title : 'Kallos Premium') 
+                      : ('name' in item ? item.name : 'Kallos Premium')}
                   </Text>
                   
                   {Platform.OS === 'ios' ? (
                     <>
                       <Text style={styles.subscriptionPrice}>
-                        {item.localizedPrice}
+                        {'localizedPrice' in item ? item.localizedPrice : '$4.99/month'}
                       </Text>
-                      {item.introductoryPrice === "$0.00" && (
+                      {'introductoryPrice' in item && item.introductoryPrice === "$0.00" && (
                         <Text style={styles.trialText}>
-                          {`${item.introductoryPriceNumberOfPeriodsIOS}-day free trial`}
+                          {`${'introductoryPriceNumberOfPeriodsIOS' in item ? item.introductoryPriceNumberOfPeriodsIOS : '14'}-day free trial`}
                         </Text>
                       )}
                       <Text style={styles.subscriptionDescription}>
-                        {item.description}
+                        {'description' in item ? item.description : 'Premium subscription to Kallos'}
                       </Text>
                     </>
                   ) : (
                     <>
                       <Text style={styles.androidSubscriptionText}>
-                        {item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
-                          ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice}/month`
-                          : `${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice}/month`}
+                        {'subscriptionOfferDetails' in item && item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
+                          ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice || '$4.99'}/month`
+                          : `${('subscriptionOfferDetails' in item ? 
+                              item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice : 
+                              '$4.99')}/month`}
                       </Text>
                     </>
                   )}

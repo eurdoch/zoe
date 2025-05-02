@@ -26,7 +26,7 @@ const NutritionLabelParser = ({ navigation }: NavigationProps) => {
 
   useEffect(() => {
     if (!cameraActive) {
-      navigation.navigate('Diet');
+      navigation.popTo('Diet');
     }
   }, [cameraActive]);
 

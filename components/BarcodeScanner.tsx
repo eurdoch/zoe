@@ -73,7 +73,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
 
   const closeCamera = () => {
     setCameraActive(true);
-    navigation.navigate('Diet');
+    navigation.popTo('Diet');
   }
 
   return (
