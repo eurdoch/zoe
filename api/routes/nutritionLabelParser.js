@@ -14,13 +14,19 @@ export default function nutritionLabelParserRoutes() {
         
         Return a JSON object with exactly these keys and structure:
         {
-          "serving_size": number,  // The numeric portion of the serving size (e.g., 1, 28, 100)
-          "serving_unit": string,  // The unit of the serving (e.g., "g", "oz", "cup", "tbsp")
+          "serving_type": [
+            {
+              "serving_size": number,  // The numeric portion of the serving size (e.g., 1, 28, 100)
+              "serving_unit": string   // The unit of the serving (e.g., "g", "oz", "cup", "tbsp")
+            }
+          ],
           "fat_grams_per_serving": number,  // Total fat in grams per serving
           "carb_grams_per_serving": number,  // Total carbohydrates in grams per serving
           "protein_grams_per_serving": number  // Protein in grams per serving
         }
         
+        The serving_type should be an array of objects, each containing serving_size and serving_unit.
+        Include all serving sizes mentioned on the label.
         Make sure all numeric values are just numbers (not strings). 
         If a value is not found, use null.
         Do not include additional fields.
