@@ -19,7 +19,7 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
   const [calculatedMacros, setCalculatedMacros] = useState<any>(null);
   const [selectedUnit, setSelectedUnit] = useState('');
   const [selectedServingSize, setSelectedServingSize] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<IndexPath | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<IndexPath | undefined>(undefined);
   
   // Get available serving units from nutrition info
   const availableUnits = nutritionInfo.serving_type?.map(st => st.serving_unit) || [];
@@ -258,7 +258,7 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
         {nutritionInfo.serving_type && nutritionInfo.serving_type.length > 0 ? (
           <Select
             style={styles.unitSelect}
-            selectedIndex={selectedIndex}
+            selectedIndex={selectedIndex as IndexPath}
             onSelect={index => handleSelectChange(index as IndexPath)}
             value={selectedUnit}
             placeholder="Unit"
