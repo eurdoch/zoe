@@ -254,11 +254,14 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <FloatingActionButton
-          icon="search-outline"
-          onPress={() => navigateToScreen('DietLog')}
-          style={styles.fabPositionReset}
-        />
+        <View style={styles.fabWithLabelContainer}>
+          <Text style={styles.fabLabel}>View Diet Log</Text>
+          <FloatingActionButton
+            icon="search-outline"
+            onPress={() => navigateToScreen('DietLog')}
+            style={styles.fabPositionReset}
+          />
+        </View>
       </Animated.View>
 
       <Animated.View 
@@ -279,11 +282,14 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <FloatingActionButton
-          icon="file-text-outline"
-          onPress={() => navigateToScreen('NutritionLabelParser')}
-          style={styles.fabPositionReset}
-        />
+        <View style={styles.fabWithLabelContainer}>
+          <Text style={styles.fabLabel}>Scan Nutrition Label</Text>
+          <FloatingActionButton
+            icon="file-text-outline"
+            onPress={() => navigateToScreen('NutritionLabelParser')}
+            style={styles.fabPositionReset}
+          />
+        </View>
       </Animated.View>
 
       <Animated.View 
@@ -304,11 +310,14 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <FloatingActionButton
-          icon="camera-outline"
-          onPress={() => navigateToScreen('BarcodeScanner')}
-          style={styles.fabPositionReset}
-        />
+        <View style={styles.fabWithLabelContainer}>
+          <Text style={styles.fabLabel}>Scan Barcode</Text>
+          <FloatingActionButton
+            icon="camera-outline"
+            onPress={() => navigateToScreen('BarcodeScanner')}
+            style={styles.fabPositionReset}
+          />
+        </View>
       </Animated.View>
 
       {/* Magic Wand Button */}
@@ -330,11 +339,14 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           }
         ]}
       >
-        <FloatingActionButton
-          icon="flash-outline"
-          onPress={() => navigateToScreen('FoodImageAnalyzer')}
-          style={styles.fabPositionReset}
-        />
+        <View style={styles.fabWithLabelContainer}>
+          <Text style={styles.fabLabel}>Analyze Food</Text>
+          <FloatingActionButton
+            icon="flash-outline"
+            onPress={() => navigateToScreen('FoodImageAnalyzer')}
+            style={styles.fabPositionReset}
+          />
+        </View>
       </Animated.View>
 
       {/* Main FAB button */}
@@ -491,9 +503,10 @@ const styles = StyleSheet.create({
   fabMenuItem: {
     position: 'absolute',
     right: 30,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
     zIndex: 998,
+    maxWidth: 230, // Limit maximum width
   },
   fabPositionReset: {
     position: 'relative',
@@ -518,6 +531,26 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  // New styles for FAB with label
+  fabWithLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', // This centers items vertically
+    justifyContent: 'flex-end',
+    minWidth: 56, // At least button width
+  },
+  fabLabel: {
+    color: 'white',
+    marginRight: 10,
+    fontWeight: 'bold',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    fontSize: 14,
+    textAlign: 'right', // Align text to the right
+    textAlignVertical: 'center', // Center text vertically (Android)
+    alignSelf: 'center', // Center vertically within container
   },
   // Keeping these for backward compatibility
   fabMenuButton: {
