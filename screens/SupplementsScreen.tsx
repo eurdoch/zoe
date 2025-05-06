@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -6,7 +6,9 @@ import {
   Animated, 
   Pressable,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  Platform,
+  Keyboard
 } from 'react-native';
 import { 
   Layout, 
@@ -68,6 +70,9 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   const [newSupplementName, setNewSupplementName] = useState<string>("");
   const [recentEntries, setRecentEntries] = useState<SupplementEntry[]>([]);
   
+  // Reference to the amount input field
+  const amountInputRef = useRef<any>(null);
+  
   // Animation state for Recent Entries panel
   const [recentEntriesVisible, setRecentEntriesVisible] = useState<boolean>(false);
   const slideAnim = useState(new Animated.Value(0))[0];
@@ -75,6 +80,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   // Animation state for Add Supplement panel
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const addSupplementAnim = useState(new Animated.Value(0))[0];
+  const modalPosition = useState(new Animated.Value(0))[0];
   
   // Animation state for the fab menu
   const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
@@ -126,16 +132,34 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   
   // Function to show the add supplement slide-up panel
   const showAddSupplementModal = () => {
+    // First set modal visible
     setModalVisible(true);
+    
+    // Then animate it in
     Animated.timing(addSupplementAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
+    
+    // After animation, ensure the keyboard stays up
+    setTimeout(() => {
+      if (selectedItem?.value === 'new_supplement' && newSupplementName === '') {
+        // If user needs to enter a new supplement name, focus there
+        // This will be handled by autoFocus
+      } else if (amountInputRef.current && amount === '') {
+        // Otherwise focus the amount field if empty
+        amountInputRef.current.focus();
+      }
+    }, 500);
   };
   
   // Function to hide the add supplement slide-up panel
   const hideAddSupplementModal = () => {
+    // Dismiss keyboard first
+    Keyboard.dismiss();
+    
+    // Then animate the panel closing
     Animated.timing(addSupplementAnim, {
       toValue: 0,
       duration: 300,
@@ -183,6 +207,38 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       }, 300); // Match the animation duration
     }
   }, [modalVisible]);
+  
+  // Handle keyboard showing/hiding with the exact implementation that worked in WeightScreen
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        // When keyboard shows, animate modal to move up above keyboard
+        Animated.timing(modalPosition, {
+          toValue: -e.endCoordinates.height,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+    
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        // When keyboard hides, animate modal back to original position
+        Animated.timing(modalPosition, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+    
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, [modalPosition]);
 
   useEffect(() => {
     // First load the data
@@ -259,11 +315,16 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   const addSupplementTransform = {
     transform: [
       {
+        // Initial animation to slide in from bottom
         translateY: addSupplementAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [500, 0], // Use a large enough value to ensure it's off-screen
+          outputRange: [300, 0], // Slide up animation
         }),
       },
+      {
+        // Additional animation to adjust for keyboard
+        translateY: modalPosition,
+      }
     ],
   };
 
@@ -526,91 +587,115 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
             style={styles.closeOverlayArea}
             onPress={hideAddSupplementModal} 
           />
-          <Animated.View 
-            style={[
-              styles.slideUpPanel, 
-              styles.addSupplementPanel, // Add specific style for the add supplement panel
-              addSupplementTransform,
-              { 
-                backgroundColor: 'white', 
-                borderTopLeftRadius: 15, 
-                borderTopRightRadius: 15,
-                zIndex: 1001 // Higher than the overlay
-              }
-            ]}
-          >
-            <View>
-              <View style={styles.slideUpHeader}>
-                <Text category="h6">Add Supplement</Text>
+          
+            <Animated.View 
+              style={[
+                styles.slideUpPanel, 
+                styles.addSupplementPanel,
+                addSupplementTransform,
+                { 
+                  backgroundColor: 'white', 
+                  borderTopLeftRadius: 15, 
+                  borderTopRightRadius: 15,
+                  zIndex: 1001 // Higher than the overlay
+                }
+              ]}
+            >
+              <View>
+                <View style={styles.slideUpHeader}>
+                  <Text category="h6">Add Supplement</Text>
+                </View>
+                <Divider />
+                
+                {selectedItem?.value === 'new_supplement' ? (
+                  <Input
+                    style={styles.input}
+                    placeholder="Enter new supplement name"
+                    value={newSupplementName}
+                    onChangeText={setNewSupplementName}
+                    returnKeyType="next"
+                    autoFocus={true}
+                  />
+                ) : (
+                  <Select
+                    style={styles.select}
+                    placeholder="Select supplement"
+                    value={selectedItem ? selectedItem.label : ''}
+                    onSelect={(index) => {
+                      // Convert IndexPath to number
+                      const selectedIndex = typeof index === 'object' ? 
+                        Array.isArray(index) ? index[0].row : index.row : 0;
+                      const item = dropdownItems[selectedIndex];
+                      setSelectedItem(item);
+                      setNewSupplementName("");
+                      
+                      // Focus the amount input after selection
+                      if (item.value !== 'new_supplement') {
+                        // Add a delay to make sure focus happens after dropdown closes
+                        setTimeout(() => {
+                          if (amountInputRef.current) {
+                            amountInputRef.current.focus();
+                          }
+                        }, 300);
+                      }
+                    }}
+                  >
+                    {dropdownItems.map(item => (
+                      <SelectItem key={item.value} title={item.label} />
+                    ))}
+                  </Select>
+                )}
+                
+                <View style={styles.amountContainer}>
+                  <Input
+                    ref={amountInputRef}
+                    style={styles.amountInput}
+                    placeholder="Amount"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
+                    returnKeyType="done"
+                    onSubmitEditing={handleAddSupplement}
+                  />
+                  <Select
+                    style={styles.unitSelect}
+                    placeholder={selectedUnit.label}
+                    value={selectedUnit.label}
+                    onSelect={(index) => {
+                      // Convert IndexPath to number
+                      const selectedIndex = typeof index === 'object' ? 
+                        Array.isArray(index) ? index[0].row : index.row : 0;
+                      setSelectedUnit(options[selectedIndex]);
+                      
+                      // Re-focus the amount input after unit selection with longer delay
+                      setTimeout(() => {
+                        if (amountInputRef.current) {
+                          amountInputRef.current.focus();
+                        }
+                      }, 300); // Longer delay for more reliable focus
+                    }}
+                  >
+                    {options.map(option => (
+                      <SelectItem key={option.value} title={option.label} />
+                    ))}
+                  </Select>
+                </View>
+                
+                <LinearGradient
+                  colors={['#444444', '#222222']}
+                  style={styles.gradientContainer}
+                >
+                  <Button 
+                    style={[styles.addButton, { backgroundColor: 'transparent' }]} 
+                    onPress={handleAddSupplement}
+                    appearance="filled"
+                    size="large"
+                  >
+                    {(evaProps: any) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
+                  </Button>
+                </LinearGradient>
               </View>
-              <Divider />
-              
-              {selectedItem?.value === 'new_supplement' ? (
-                <Input
-                  style={styles.input}
-                  placeholder="Enter new supplement name"
-                  value={newSupplementName}
-                  onChangeText={setNewSupplementName}
-                />
-              ) : (
-                <Select
-                  style={styles.select}
-                  placeholder="Select supplement"
-                  value={selectedItem ? selectedItem.label : ''}
-                  onSelect={(index) => {
-                    // Convert IndexPath to number
-                    const selectedIndex = typeof index === 'object' ? 
-                      Array.isArray(index) ? index[0].row : index.row : 0;
-                    const item = dropdownItems[selectedIndex];
-                    setSelectedItem(item);
-                    setNewSupplementName("");
-                  }}
-                >
-                  {dropdownItems.map(item => (
-                    <SelectItem key={item.value} title={item.label} />
-                  ))}
-                </Select>
-              )}
-              
-              <View style={styles.amountContainer}>
-                <Input
-                  style={styles.amountInput}
-                  placeholder="Amount"
-                  value={amount}
-                  onChangeText={setAmount}
-                />
-                <Select
-                  style={styles.unitSelect}
-                  placeholder={selectedUnit.label}
-                  value={selectedUnit.label}
-                  onSelect={(index) => {
-                    // Convert IndexPath to number
-                    const selectedIndex = typeof index === 'object' ? 
-                      Array.isArray(index) ? index[0].row : index.row : 0;
-                    setSelectedUnit(options[selectedIndex]);
-                  }}
-                >
-                  {options.map(option => (
-                    <SelectItem key={option.value} title={option.label} />
-                  ))}
-                </Select>
-              </View>
-              
-              <LinearGradient
-                colors={['#444444', '#222222']}
-                style={styles.gradientContainer}
-              >
-                <Button 
-                  style={[styles.addButton, { backgroundColor: 'transparent' }]} 
-                  onPress={handleAddSupplement}
-                  appearance="filled"
-                  size="large"
-                >
-                  {(evaProps: any) => <Text {...evaProps} style={styles.buttonText}>ADD</Text>}
-                </Button>
-              </LinearGradient>
-            </View>
-          </Animated.View>
+            </Animated.View>
         </View>
       )}
     </Layout>
