@@ -9,7 +9,6 @@ import MacroCalculator from '../components/MacroCalculator';
 import { Icon } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
-import MacroByImageAnalysis from '../components/MacroByImageAnalysis';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingActionButton from '../components/FloatingActionButton';
@@ -31,10 +30,8 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const { 
     nutritionInfo, 
     scannedProduct, 
-    foodImageAnalysis,
     setNutritionInfo, 
-    setScannedProduct,
-    setFoodImageAnalysis
+    setScannedProduct
   } = useFoodData();
   
   // Animation values for the expanding FAB menu
@@ -65,7 +62,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setModalVisible(false);
     setNutritionInfo(null);
     setScannedProduct(null);
-    setFoodImageAnalysis(null);
     loadData();
   }
 
@@ -103,14 +99,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           setDeleteEntry(null);
           setModalVisible(true);
         }
-        else if (foodImageAnalysis) {
-          setDeleteEntry(null);
-          setModalVisible(true);
-        }
       });
 
       return unsubscribe;
-  }, [navigation, nutritionInfo, scannedProduct, foodImageAnalysis]);
+  }, [navigation, nutritionInfo, scannedProduct]);
 
   const handleDeleteEntry = (id: string) => {
     deleteFood(id)
@@ -205,7 +197,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const navigateToScreen = async (screen: string) => {
     toggleFabMenu();
     
-    if (screen === 'FoodImageAnalyzer' || screen === 'NutritionLabelParser' || screen === 'BarcodeScanner') {
+    if (screen === 'NutritionLabelParser' || screen === 'BarcodeScanner') {
       const hasPermission = await requestCameraPermission();
       
       if (hasPermission) {
@@ -240,7 +232,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 290, // 65px gap from button at 225
+            bottom: 225, // 65px gap from button at 160
             transform: [
               { scale: animation },
               { 
@@ -255,7 +247,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         ]}
       >
         <View style={styles.fabWithLabelContainer}>
-          <Text style={styles.fabLabel}>View Diet Log</Text>
+          <Text style={styles.fabLabel}>Search</Text>
           <FloatingActionButton
             icon="search-outline"
             onPress={() => navigateToScreen('DietLog')}
@@ -268,7 +260,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 225, // 65px gap from button at 160
+            bottom: 160, // 65px gap from button at 95
             transform: [
               { scale: animation },
               { 
@@ -296,7 +288,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 160, // 65px gap from button at 95
+            bottom: 95, // Direct replacement of the removed button
             transform: [
               { scale: animation },
               { 
@@ -320,34 +312,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         </View>
       </Animated.View>
 
-      {/* Magic Wand Button */}
-      <Animated.View 
-        style={[
-          styles.fabMenuItem, 
-          {
-            bottom: 95, // 65px gap from main button at 30
-            transform: [
-              { scale: animation },
-              { 
-                translateY: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0]
-                })
-              }
-            ],
-            opacity: animation
-          }
-        ]}
-      >
-        <View style={styles.fabWithLabelContainer}>
-          <Text style={styles.fabLabel}>Analyze Food</Text>
-          <FloatingActionButton
-            icon="flash-outline"
-            onPress={() => navigateToScreen('FoodImageAnalyzer')}
-            style={styles.fabPositionReset}
-          />
-        </View>
-      </Animated.View>
 
       {/* Main FAB button */}
       {isFabMenuOpen ? (
@@ -400,7 +364,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           // Clear context when modal is closed
           setNutritionInfo(null);
           setScannedProduct(null);
-          setFoodImageAnalysis(null);
         }}
       >
         { 
@@ -423,14 +386,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
               productResponse={scannedProduct} 
               setModalVisible={setModalVisible} 
               onFoodAdded={onFoodAdded}
-            />
-          )
-        }
-        {
-          foodImageAnalysis && (
-            <MacroByImageAnalysis 
-              analysisResult={foodImageAnalysis}
-              onConfirm={onFoodAdded}
             />
           )
         }
