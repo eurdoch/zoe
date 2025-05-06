@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, Animated, Pressable } from 'react-native';
+import { View, StyleSheet, Dimensions, Animated, Pressable, Platform, Keyboard } from 'react-native';
 import { 
   Layout, 
   Text, 
@@ -30,6 +30,7 @@ const WeightScreen = () => {
   const [weight, setWeight] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalAnim] = useState(new Animated.Value(0));
+  const [modalPosition] = useState(new Animated.Value(0));
   const [selectedWeight, setSelectedWeight] = useState<WeightEntry | null>(null);
   const [weightModalVisible, setWeightModalVisible] = useState<boolean>(false);
   const navigation = useNavigation();
@@ -121,6 +122,38 @@ const WeightScreen = () => {
   useEffect(() => {
     loadData();
   }, []);
+  
+  // Handle keyboard showing/hiding
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        // When keyboard shows, animate modal to move up above keyboard
+        Animated.timing(modalPosition, {
+          toValue: -e.endCoordinates.height,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+    
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        // When keyboard hides, animate modal back to original position
+        Animated.timing(modalPosition, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+    
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, [modalPosition]);
 
   const handleDataPointClick = async (point: DataPoint) => {
     console.log('Weight screen - data point clicked:', point);
@@ -245,11 +278,16 @@ const WeightScreen = () => {
   const modalTransform = {
     transform: [
       {
+        // Initial animation to slide in from bottom
         translateY: modalAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [500, 0], // Start from off-screen
+          outputRange: [300, 0],
         }),
       },
+      {
+        // Additional animation to adjust for keyboard
+        translateY: modalPosition,
+      }
     ],
   };
 
@@ -298,35 +336,36 @@ const WeightScreen = () => {
               }
             ]}
           >
-            <View>
-              <View style={styles.slideUpHeader}>
-                <Text category="h6">Add Weight</Text>
-              </View>
-              <Divider />
-              <View style={styles.formContainer}>
-                <Input
-                  value={weight}
-                  onChangeText={setWeight}
-                  placeholder="Enter weight"
-                  keyboardType="numeric"
-                  style={styles.input}
+            <View style={styles.slideUpHeader}>
+              <Text category="h6">Add Weight</Text>
+            </View>
+            <Divider />
+            <View style={styles.formContainer}>
+              <Input
+                value={weight}
+                onChangeText={setWeight}
+                placeholder="Enter weight"
+                keyboardType="numeric"
+                style={styles.input}
+                size="large"
+                textStyle={styles.inputText}
+                autoFocus={true}
+                onSubmitEditing={handleAddWeight}
+                returnKeyType="done"
+              />
+              <LinearGradient
+                colors={['#444444', '#222222']}
+                style={styles.gradientContainer}
+              >
+                <Button 
+                  style={styles.addButton}
+                  onPress={handleAddWeight}
+                  appearance="filled"
                   size="large"
-                  textStyle={styles.inputText}
-                />
-                <LinearGradient
-                  colors={['#444444', '#222222']}
-                  style={styles.gradientContainer}
                 >
-                  <Button 
-                    style={styles.addButton}
-                    onPress={handleAddWeight}
-                    appearance="filled"
-                    size="large"
-                  >
-                    <Text style={styles.buttonText}>Add</Text>
-                  </Button>
-                </LinearGradient>
-              </View>
+                  <Text style={styles.buttonText}>Add</Text>
+                </Button>
+              </LinearGradient>
             </View>
           </Animated.View>
         </View>
@@ -467,12 +506,13 @@ const styles = StyleSheet.create({
   slideUpPanel: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 24,
+    paddingBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 10,
+    width: '100%',
   },
   slideUpHeader: {
     flexDirection: 'row',
@@ -481,7 +521,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   formContainer: {
-    padding: 16,
+    padding: 10,
   },
   gradientContainer: {
     marginVertical: 8,
@@ -490,7 +530,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginTop: 0,
-    height: 50,
+    height: 44,
     borderRadius: 15,
     borderWidth: 0,
     backgroundColor: 'transparent',
