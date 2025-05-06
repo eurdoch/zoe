@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+import HeaderLogo from './components/HeaderLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
 import HomeScreen, { handleLogout, HomeScreenHeaderRight } from './screens/HomeScreen';
@@ -130,7 +131,7 @@ const App = () => {
                 name="Home"
                 component={HomeScreen}
                 options={({ navigation }) => ({
-                  title: "Kallos",
+                  headerTitle: () => <HeaderLogo />,
                   headerTitleAlign: "center",
                   headerRight: () => (
                     <HomeScreenHeaderRight navigation={navigation} />
