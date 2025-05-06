@@ -22,7 +22,9 @@ import {
   Icon,
   List,
   ListItem,
-  Divider
+  Divider,
+  Datepicker,
+  IconProps
 } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
@@ -69,6 +71,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   const [selectedUnit, setSelectedUnit] = useState<Option>({value: "", label: "unit"});
   const [newSupplementName, setNewSupplementName] = useState<string>("");
   const [recentEntries, setRecentEntries] = useState<SupplementEntry[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   // Reference to the amount input field
   const amountInputRef = useRef<any>(null);
@@ -180,8 +183,8 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   };
   
   const loadData = () => {
-    // Get start of current day in Unix time
-    const startOfDay = getCurrentDayUnixTime();
+    // Get start of selected day in Unix time
+    const startOfDay = getSelectedDayUnixTime(selectedDate);
     // End of day is start of day + 24 hours (in seconds)
     const endOfDay = startOfDay + (24 * 60 * 60);
     
@@ -197,6 +200,40 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         throw error; // Re-throw the error to allow proper error handling
       });
   }
+  
+  // Helper function to get the Unix time for the start of the selected date
+  const getSelectedDayUnixTime = (date: Date): number => {
+    const newDate = new Date(date);
+    newDate.setHours(0, 0, 0, 0);
+    return Math.floor(newDate.getTime() / 1000);
+  }
+  
+  // Date navigation functions
+  const goToPreviousDay = () => {
+    const prevDay = new Date(selectedDate);
+    prevDay.setDate(prevDay.getDate() - 1);
+    setSelectedDate(prevDay);
+  };
+
+  const goToNextDay = () => {
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    setSelectedDate(nextDay);
+  };
+  
+  // Calendar icon for DatePicker
+  const CalendarIcon = (props?: IconProps) => (
+    <Icon {...props} name='calendar-outline'/>
+  );
+  
+  // Arrow icons for date navigation
+  const LeftArrowIcon = (props?: IconProps) => (
+    <Icon {...props} name='arrow-back-outline'/>
+  );
+  
+  const RightArrowIcon = (props?: IconProps) => (
+    <Icon {...props} name='arrow-forward-outline'/>
+  );
 
   useEffect(() => {
     if (modalVisible === false) {
@@ -240,6 +277,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     };
   }, [modalPosition]);
 
+  // Load data when component mounts
   useEffect(() => {
     // First load the data
     loadData()
@@ -265,6 +303,17 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         showToastError('Could not get supplements: ' + err.toString());
       });
   }, []);
+  
+  // Reload data when selected date changes
+  useEffect(() => {
+    loadData()
+      .catch(err => {
+        console.error('Error reloading data for new date:', err);
+        if (err instanceof AuthenticationError) {
+          handleAuthError(err);
+        }
+      });
+  }, [selectedDate]);
 
   const handleAddSupplement = async (_e: any) => {
     const parsedAmount = parseFloat(amount);
@@ -272,10 +321,13 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       const supplementName = selectedItem?.value === 'new_supplement' ? convertToDatabaseFormat(newSupplementName) : selectedItem?.value;
       if (supplementName) {
         try {
+          // Use the selected date timestamp instead of current time
+          const timestamp = Math.floor(new Date(selectedDate).getTime() / 1000);
+          
           await postSupplement({
             name: supplementName,
             amount: parsedAmount,
-            createdAt: Math.floor(Date.now() / 1000),
+            createdAt: timestamp,
             amount_unit: selectedUnit.value,
           });
           showToastInfo('Supplement added.');
@@ -434,13 +486,37 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
 
   return (
     <Layout style={styles.container}>
+      {/* Date picker header */}
+      <View style={styles.datePickerContainer}>
+        <Button
+          appearance="ghost"
+          accessoryLeft={LeftArrowIcon}
+          onPress={goToPreviousDay}
+          style={styles.dateNavButton}
+        />
+        <View style={styles.datePickerWrapper}>
+          <Datepicker
+            date={selectedDate}
+            onSelect={setSelectedDate}
+            accessoryLeft={CalendarIcon}
+            style={styles.datePicker}
+          />
+        </View>
+        <Button
+          appearance="ghost"
+          accessoryLeft={RightArrowIcon}
+          onPress={goToNextDay}
+          style={styles.dateNavButton}
+        />
+      </View>
+      
       {supplementEntries.length === 0 ? (
         <View style={styles.emptyStateContainer}>
-          <Text category="h6" appearance="hint">No supplements taken today</Text>
+          <Text category="h6" appearance="hint">No supplements taken on this day</Text>
         </View>
       ) : (
         <Card style={styles.card}>
-          <Text category="h6" style={styles.listTitle}>Today's Supplements</Text>
+          <Text category="h6" style={styles.listTitle}>Supplements for {selectedDate.toLocaleDateString()}</Text>
           <Divider />
           <List
             data={supplementEntries}
@@ -706,6 +782,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  datePickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  datePickerWrapper: {
+    marginHorizontal: 10,
+  },
+  datePicker: {
+    borderRadius: 8,
+    width: 160,
+  },
+  dateNavButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
   },
   card: {
     marginBottom: 16,
