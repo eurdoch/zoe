@@ -163,7 +163,7 @@ const App = () => {
                 name="Exercise"
                 component={ExerciseScreen}
                 options={{
-                  title: "exercise",
+                  title: "Exercise",
                   headerTitleAlign: "center",
                 }}
               />
