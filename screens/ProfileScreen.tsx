@@ -130,11 +130,11 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       
       console.log(`Requesting subscription for product ID: ${productId}`);
       
-      // For development/debugging mode, simulate successful purchase on iOS and Android
+      // For development/debugging mode on Android only, simulate successful purchase
       // Android: Real Play Store purchases can't be tested in debug builds
-      // iOS: Can avoid needing to set up sandbox testers during initial development
-      if (__DEV__ && (Platform.OS === 'android' || Platform.OS === 'ios')) {
-        console.log(`Debug mode: Simulating successful ${Platform.OS} purchase`);
+      // iOS: Always use real payment flow to test with sandbox accounts
+      if (__DEV__ && Platform.OS === 'android') {
+        console.log(`Debug mode: Simulating successful Android purchase`);
         
         // Simulate a brief delay
         await new Promise(resolve => setTimeout(resolve, 1500));
