@@ -145,7 +145,8 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       useNativeDriver: true,
     }).start();
     
-    // After animation, ensure the keyboard stays up
+    // After animation starts, ensure the keyboard stays up
+    // Reduced timeout for quicker focus to prevent modal from being behind keyboard
     setTimeout(() => {
       if (selectedItem?.value === 'new_supplement' && newSupplementName === '') {
         // If user needs to enter a new supplement name, focus there
@@ -154,7 +155,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         // Otherwise focus the amount field if empty
         amountInputRef.current.focus();
       }
-    }, 500);
+    }, 300); // Reduced from 500ms to 300ms for faster focus
   };
   
   // Function to hide the add supplement slide-up panel
@@ -245,14 +246,18 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
     }
   }, [modalVisible]);
   
-  // Handle keyboard showing/hiding with the exact implementation that worked in WeightScreen
+  // Handle keyboard showing/hiding with improved implementation for modal visibility
   useEffect(() => {
     const keyboardWillShowListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
-        // When keyboard shows, animate modal to move up above keyboard
+        // When keyboard shows, animate modal to move up to ensure it's fully visible
+        // Adding extra padding to ensure the bottom of the modal is visible
+        const keyboardHeight = e.endCoordinates.height;
+        const safeOffset = keyboardHeight + 20; // 20px extra padding for better visibility
+        
         Animated.timing(modalPosition, {
-          toValue: -e.endCoordinates.height,
+          toValue: -safeOffset,
           duration: 300,
           useNativeDriver: true,
         }).start();
@@ -378,6 +383,8 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         translateY: modalPosition,
       }
     ],
+    // Ensure the modal doesn't get cut off at the bottom
+    maxHeight: Dimensions.get('window').height * 0.8,
   };
 
   const fetchSupplementHistory = () => {
@@ -932,7 +939,7 @@ const styles = StyleSheet.create({
   addSupplementPanel: {
     // Set the panel to fit its content
     height: 'auto',
-    paddingBottom: 30,  // Increased padding at bottom
+    paddingBottom: Platform.OS === 'ios' ? 50 : 40,  // Increased padding at bottom for better visibility with keyboard
   },
   slideUpHeader: {
     flexDirection: 'row',
