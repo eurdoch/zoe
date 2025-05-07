@@ -8,7 +8,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 import { 
   Layout, 
@@ -24,10 +25,12 @@ import {
   ListItem,
   Divider,
   Datepicker,
-  IconProps
+  IconProps,
+  TopNavigation,
+  TopNavigationAction
 } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
-import { getSupplement, getSupplementNames, postSupplement } from '../network/supplement';
+import { getSupplement, getSupplementNames, postSupplement, deleteSupplement } from '../network/supplement';
 import SupplementEntry from '../types/SupplementEntry';
 import { convertFromDatabaseFormat, convertToDatabaseFormat, formatTime, showToastError, showToastInfo, getCurrentDayUnixTime } from '../utils';
 import DropdownItem from '../types/DropdownItem';
@@ -72,6 +75,8 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   const [newSupplementName, setNewSupplementName] = useState<string>("");
   const [recentEntries, setRecentEntries] = useState<SupplementEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedSupplement, setSelectedSupplement] = useState<SupplementEntry | null>(null);
+  const [detailsModalVisible, setDetailsModalVisible] = useState<boolean>(false);
   
   // Reference to the amount input field
   const amountInputRef = useRef<any>(null);
@@ -172,6 +177,54 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
       setModalVisible(false);
     });
   };
+  
+  // Function to show the supplement details modal
+  const showSupplementDetails = (supplement: SupplementEntry) => {
+    setSelectedSupplement(supplement);
+    setDetailsModalVisible(true);
+  };
+  
+  // Function to hide the supplement details modal
+  const hideSupplementDetails = () => {
+    setDetailsModalVisible(false);
+    setSelectedSupplement(null);
+  };
+  
+  // Function to handle supplement deletion
+  const handleDeleteSupplement = () => {
+    if (!selectedSupplement) return;
+    
+    Alert.alert(
+      "Delete Supplement",
+      `Are you sure you want to delete ${convertFromDatabaseFormat(selectedSupplement.name)}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteSupplement(selectedSupplement._id);
+              showToastInfo(`Deleted ${convertFromDatabaseFormat(selectedSupplement.name)}`);
+              hideSupplementDetails();
+              await loadData(); // Refresh the list
+            } catch (error) {
+              console.error('Error deleting supplement:', error);
+              
+              if (error instanceof AuthenticationError) {
+                handleAuthError(error);
+              } else {
+                showToastError('Could not delete supplement. Please try again.');
+              }
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const toggleFabMenu = () => {
     const toValue = isFabMenuOpen ? 0 : 1;
@@ -234,6 +287,15 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
   
   const RightArrowIcon = (props?: IconProps) => (
     <Icon {...props} name='arrow-forward-outline'/>
+  );
+  
+  // Icons for details modal
+  const CloseIcon = (props?: IconProps) => (
+    <Icon {...props} name='close-outline'/>
+  );
+  
+  const TrashIcon = (props?: IconProps) => (
+    <Icon {...props} name='trash-outline' fill='#FF3D71'/>
   );
 
   useEffect(() => {
@@ -445,6 +507,7 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
         </View>
       )}
       accessoryRight={() => <Text category="p2">{item.amount + ' ' + item.amount_unit}</Text>}
+      onPress={() => showSupplementDetails(item)}
     />
   );
 
@@ -781,6 +844,59 @@ const SupplementScreen: React.FC<SupplementScreenProps> = ({ navigation: propNav
             </Animated.View>
         </View>
       )}
+      
+      {/* Supplement Details Modal */}
+      <Modal
+        visible={detailsModalVisible}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={hideSupplementDetails}
+        style={styles.detailsModal}
+      >
+        {selectedSupplement && (
+          <Card style={styles.detailsCard} disabled={true}>
+            <View style={styles.detailsHeader}>
+              <Text category="h5">{convertFromDatabaseFormat(selectedSupplement.name)}</Text>
+              <Button
+                appearance="ghost"
+                status="basic"
+                accessoryLeft={CloseIcon}
+                onPress={hideSupplementDetails}
+                style={styles.closeButton}
+              />
+            </View>
+            
+            <Divider style={styles.divider} />
+            
+            <View style={styles.detailsContent}>
+              <View style={styles.detailRow}>
+                <Text category="s1">Amount:</Text>
+                <Text category="p1">{selectedSupplement.amount} {selectedSupplement.amount_unit}</Text>
+              </View>
+              
+              <View style={styles.detailRow}>
+                <Text category="s1">Time:</Text>
+                <Text category="p1">{formatTime(selectedSupplement.createdAt)}</Text>
+              </View>
+              
+              <View style={styles.detailRow}>
+                <Text category="s1">Date:</Text>
+                <Text category="p1">{new Date(selectedSupplement.createdAt * 1000).toLocaleDateString()}</Text>
+              </View>
+            </View>
+            
+            <Divider style={styles.divider} />
+            
+            <Button
+              appearance="ghost"
+              status="danger"
+              accessoryLeft={TrashIcon}
+              onPress={handleDeleteSupplement}
+            >
+              DELETE
+            </Button>
+          </Card>
+        )}
+      </Modal>
     </Layout>
   );
 };
@@ -965,6 +1081,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     color: '#888',
+  },
+  // Supplement details modal styles
+  detailsModal: {
+    width: '90%',
+    maxWidth: 400,
+  },
+  detailsCard: {
+    borderRadius: 10,
+    padding: 8,
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    padding: 0,
+  },
+  divider: {
+    marginVertical: 12,
+  },
+  detailsContent: {
+    marginVertical: 8,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
 });
 
