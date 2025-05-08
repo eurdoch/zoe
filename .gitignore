@@ -87,6 +87,7 @@ upgrade_packages.sh
 *.bak
 .aws
 api/ecosystem.config.js
+api/ecosystem_dev.config.cjs
 deploy.sh
 rotate-instances.sh
 
