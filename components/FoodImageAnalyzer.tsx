@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator} from "react-native";
+import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform} from "react-native";
 import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getFoodImageAnalysis } from "../network/nutrition";
@@ -18,6 +18,7 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<FoodImageAnalysisResult | null>(null);
+  const [description, setDescription] = useState<string>('');
   
   // Use the food data context
   const { setFoodImageAnalysis } = useFoodData();
@@ -56,7 +57,7 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
       const rawImageString = base64Data.slice(base64Data.indexOf(',') + 1);
       
       // Process with API
-      const result = await getFoodImageAnalysis(rawImageString);
+      const result = await getFoodImageAnalysis(rawImageString, description);
       
       // Log results to console
       console.log("===== Food Image Analysis Results =====");
@@ -91,7 +92,10 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <Camera
         ref={camera}
         style={StyleSheet.absoluteFill}
@@ -106,6 +110,17 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
           <Text style={styles.processingText}>Analyzing food image...</Text>
         </View>
       )}
+      
+      <View style={styles.descriptionContainer}>
+        <TextInput
+          style={styles.descriptionInput}
+          placeholder="Enter food description"
+          placeholderTextColor="rgba(255, 255, 255, 0.7)"
+          value={description}
+          onChangeText={setDescription}
+          multiline={false}
+        />
+      </View>
       
       <View style={styles.controls}>
         <TouchableOpacity
@@ -124,7 +139,7 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
       <View style={styles.instructionContainer}>
         <Text style={styles.instructionText}>Take a clear photo of your food</Text>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -144,6 +159,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     textAlign: 'center',
+  },
+  descriptionContainer: {
+    position: 'absolute',
+    bottom: 100, // Position above the Capture button
+    left: 20,
+    right: 20,
+    zIndex: 2,
+  },
+  descriptionInput: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 10,
+    color: 'white',
+    padding: 12,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   controls: {
     position: 'absolute',

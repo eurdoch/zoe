@@ -230,15 +230,22 @@ export async function getNutritionLabelImgInfo(base64ImageString: string): Promi
   return response.json();
 }
 
-export async function getFoodImageAnalysis(base64ImageString: string): Promise<any> {
+export async function getFoodImageAnalysis(base64ImageString: string, foodDescription?: string): Promise<any> {
+  const requestBody: any = {
+    base64ImageString,
+  };
+  
+  // Include foodDescription in the request if provided
+  if (foodDescription) {
+    requestBody.description = foodDescription;
+  }
+  
   const response = await fetch(`${VITALE_BOX_URL}/foodimageanalyzer`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      base64ImageString,
-    }),
+    body: JSON.stringify(requestBody),
   });
   return response.json();
 }
