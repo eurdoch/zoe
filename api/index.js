@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import exerciseRoutes from './routes/exerciseRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
@@ -19,6 +20,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = 3000;
+
+// Enable CORS for all routes - important for development with mobile apps
+app.use(cors({
+  origin: '*', // Allow all origins in development
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json({limit: '5mb'}))
 
