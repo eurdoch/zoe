@@ -197,7 +197,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const navigateToScreen = async (screen: string) => {
     toggleFabMenu();
     
-    if (screen === 'NutritionLabelParser' || screen === 'BarcodeScanner') {
+    if (screen === 'NutritionLabelParser' || screen === 'BarcodeScanner' || screen === 'FoodImageAnalyzer') {
       const hasPermission = await requestCameraPermission();
       
       if (hasPermission) {
@@ -232,7 +232,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 225, // 65px gap from button at 160
+            bottom: 290, // Increased to maintain spacing with 4 buttons
             transform: [
               { scale: animation },
               { 
@@ -260,7 +260,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 160, // 65px gap from button at 95
+            bottom: 225, // Adjusted for proper spacing between buttons
             transform: [
               { scale: animation },
               { 
@@ -288,7 +288,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         style={[
           styles.fabMenuItem, 
           {
-            bottom: 95, // Direct replacement of the removed button
+            bottom: 160, // Increased from 95 to make room for new button
             transform: [
               { scale: animation },
               { 
@@ -307,6 +307,34 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           <FloatingActionButton
             icon="camera-outline"
             onPress={() => navigateToScreen('BarcodeScanner')}
+            style={styles.fabPositionReset}
+          />
+        </View>
+      </Animated.View>
+
+      <Animated.View 
+        style={[
+          styles.fabMenuItem, 
+          {
+            bottom: 95, // Bottom position for new button
+            transform: [
+              { scale: animation },
+              { 
+                translateY: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0]
+                })
+              }
+            ],
+            opacity: animation
+          }
+        ]}
+      >
+        <View style={styles.fabWithLabelContainer}>
+          <Text style={styles.fabLabel}>Use the shoggoth brain</Text>
+          <FloatingActionButton
+            icon="bulb-outline"
+            onPress={() => navigateToScreen('FoodImageAnalyzer')}
             style={styles.fabPositionReset}
           />
         </View>
