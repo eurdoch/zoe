@@ -17,7 +17,7 @@ export default function foodImageAnalyzerRoutes() {
         Return a JSON object with exactly these keys and structure:
         {
           "food_name": string,  // Brief description of the food in the image
-          "calories": number,  // Estimated calories
+          "total_calories": number,  // Estimated calories
           "protein_grams": number,  // Estimated protein in grams
           "carb_grams": number,  // Estimated carbohydrates in grams
           "fat_grams": number,  // Estimated fat in grams
@@ -25,6 +25,7 @@ export default function foodImageAnalyzerRoutes() {
         }
         
         Keep in mind that protein, carbs and fat contain 4, 4, and 9 calories per gram respectively.
+        Use protein_grams, carb_grams and fat_grams to calculate the total calories.
         
         For confidence level:
         - "low": Hard to estimate accurately
