@@ -5,6 +5,7 @@ import {postFood} from "../network/food";
 import NutritionInfo from "../types/NutritionInfo";
 import {showToastError, showToastInfo} from "../utils";
 import { Icon, Select, SelectItem, IndexPath } from '@ui-kitten/components';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface MacroByLabelCalculatorProps {
   nutritionInfo: NutritionInfo;
@@ -303,12 +304,17 @@ const MacroByLabelCalculator = ({ nutritionInfo, onFoodAdded, navigation }: Macr
           <ActivityIndicator size="small" color="#fff" />
         </View>
       ) : (
-        <TouchableOpacity 
-          style={styles.submitButton} 
-          onPress={handleAddDietLog}
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={styles.gradientContainer}
         >
-          <Text style={styles.submitButtonText}>Add</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.submitButton} 
+            onPress={handleAddDietLog}
+          >
+            <Text style={styles.submitButtonText}>Add</Text>
+          </TouchableOpacity>
+        </LinearGradient>
       )}
     </View>
   )
@@ -365,18 +371,26 @@ const styles = StyleSheet.create({
   macroValue: {
     fontWeight: '600',
   },
+  gradientContainer: {
+    marginVertical: 0,
+    borderRadius: 15,
+    overflow: 'hidden',
+    width: '100%',
+    marginTop: 0,
+  },
   submitButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
+    height: 60,
+    borderRadius: 15,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    paddingHorizontal: 20,
   },
   submitButtonText: {
-    color: 'white',
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
+    color: 'white',
   },
   unitText: {
     fontSize: 16,

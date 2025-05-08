@@ -5,12 +5,14 @@ import {
   StyleSheet,
   TextInput,
   Button,
+  TouchableOpacity,
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { showToastError, showToastInfo } from '../utils';
 import OldProductResponse, { ProductResponse } from '../types/ProductResponse';
 import Food from '../types/Food';
 import { postFood } from '../network/food';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface MacroCalculatorProps {
   productResponse: ProductResponse | OldProductResponse;
@@ -212,7 +214,17 @@ const MacroCalculator: React.FC<MacroCalculatorProps> = ({
         />
       </View>
 
-      <Button title="Add" onPress={calculateMacros} />
+      <LinearGradient
+        colors={['#444444', '#222222']}
+        style={styles.gradientContainer}
+      >
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={calculateMacros}
+        >
+          <Text style={styles.submitButtonText}>Add</Text>
+        </TouchableOpacity>
+      </LinearGradient>
     </View>
   );
 };
@@ -290,6 +302,27 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 16,
     color: '#007AFF',
+  },
+  gradientContainer: {
+    marginVertical: 0,
+    borderRadius: 15,
+    overflow: 'hidden',
+    width: '100%',
+    marginTop: 0,
+  },
+  submitButton: {
+    height: 60,
+    borderRadius: 15,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
   macrosContainer: {
     marginTop: 20,

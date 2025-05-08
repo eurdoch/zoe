@@ -368,10 +368,20 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       >
         { 
           deleteEntry && (
-            <View>
-              <Text>Delete entry?</Text>
-              <Text>{deleteEntry.name + ' ' + deleteEntry.macros.calories}</Text>
-              <Button title="DELETE" onPress={() => handleDeleteEntry(deleteEntry._id)} />
+            <View style={styles.deleteModalContent}>
+              <Text style={styles.deleteModalTitle}>Delete entry?</Text>
+              <Text style={styles.deleteModalText}>{deleteEntry.name + ' ' + deleteEntry.macros.calories}</Text>
+              <LinearGradient
+                colors={['#444444', '#222222']}
+                style={styles.gradientContainer}
+              >
+                <TouchableOpacity
+                  onPress={() => handleDeleteEntry(deleteEntry._id)}
+                  style={styles.deleteButton}
+                >
+                  <Text style={styles.deleteButtonText}>DELETE</Text>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
           )
         }
@@ -429,6 +439,40 @@ const styles = StyleSheet.create({
   },
   rootContainer: {
     flex: 1,
+  },
+  // Modal styles
+  deleteModalContent: {
+    alignItems: 'center',
+    padding: 10,
+  },
+  deleteModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  deleteModalText: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  gradientContainer: {
+    marginVertical: 0,
+    borderRadius: 15,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  deleteButton: {
+    height: 60,
+    borderRadius: 15,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  deleteButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
   // FAB and FAB menu styles
   fab: {
