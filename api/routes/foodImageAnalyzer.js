@@ -24,6 +24,8 @@ export default function foodImageAnalyzerRoutes() {
           "confidence": string  // Your confidence level: "low", "medium", or "high"
         }
         
+        Keep in mind that protein, carbs and fat contain 4, 4, and 9 calories per gram respectively.
+        
         For confidence level:
         - "low": Hard to estimate accurately
         - "medium": Reasonable estimate but with uncertainty
