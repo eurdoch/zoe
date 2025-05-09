@@ -1,6 +1,6 @@
 import Exercise from "../types/Exercise";
 import ExerciseEntry from "../types/ExerciseEntry";
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
 
@@ -21,7 +21,8 @@ export async function postExercise(exercise: Exercise): Promise<ExerciseEntry> {
     };
     
     // Save the exercise to the server with authentication
-    const response = await fetch(`${API_BASE_URL}/exercise`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/exercise`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +63,8 @@ export async function getExerciseNames(): Promise<string[]> {
     }
     
     // Get all exercises from the server
-    const response = await fetch(`${API_BASE_URL}/exercise/names`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/exercise/names`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -98,8 +100,9 @@ export async function getExerciseDataByName(name: string): Promise<ExerciseEntry
     }
     
     // Get all exercises from the server
-    console.log('URI: ', `${API_BASE_URL}/exercise?name=${encodeURIComponent(name)}`);
-    const response = await fetch(`${API_BASE_URL}/exercise?name=${encodeURIComponent(name)}`, {
+    const baseUrl = await getApiBaseUrl();
+    console.log('URI: ', `${baseUrl}/exercise?name=${encodeURIComponent(name)}`);
+    const response = await fetch(`${baseUrl}/exercise?name=${encodeURIComponent(name)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -137,7 +140,8 @@ export async function getExerciseById(id: string): Promise<ExerciseEntry> {
     }
     
     // Get exercise by ID from the server using query parameter
-    const response = await fetch(`${API_BASE_URL}/exercise?id=${encodeURIComponent(id)}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/exercise?id=${encodeURIComponent(id)}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -180,7 +184,8 @@ export async function deleteExerciseById(id: string): Promise<void> {
     }
     
     // Delete the exercise from the server
-    const response = await fetch(`${API_BASE_URL}/exercise/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/exercise/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

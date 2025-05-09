@@ -18,7 +18,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import PhoneInput from "react-native-phone-number-input";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 
 type LoginScreenProps = {
   navigation: NavigationProp<any>;
@@ -41,7 +41,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       setIsLoading(true);
       
       try {
-        const response = await fetch(`${API_BASE_URL}/verify/send`, {
+        const baseUrl = await getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/verify/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -76,7 +77,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/verify/check`, {
+      const baseUrl = await getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/verify/check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -192,7 +194,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     onPress={async () => {
                       setIsLoading(true);
                       try {
-                        const response = await fetch(`${API_BASE_URL}/verify/send`, {
+                        const baseUrl = await getApiBaseUrl();
+                        const response = await fetch(`${baseUrl}/verify/send`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',

@@ -1,21 +1,43 @@
-// App configuration settings
 import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 
-// Remote API base URL - use special addresses for development, remote URL in production
-export const API_BASE_URL = __DEV__ 
-  ? Platform.select({
-      // 10.0.2.2 is the special IP that allows Android emulator to access host machine's localhost
-      // 10.0.3.2 works for GenyMotion
-      // localhost works for iOS simulator
-      android: 'http://10.0.2.2:3000',
-      ios: 'http://localhost:3000',
-      // Use this when testing on physical device - replace with your computer's local network IP
-      // default: 'http://192.168.x.x:3000'
-    }) || 'http://10.0.2.2:3000'
+// Instead of exporting the promise directly, we'll create a function to get the URL
+let resolvedBaseUrl: string | null = null;
+
+export const getApiBaseUrl = async (): Promise<string> => {
+  // Return cached value if we've already resolved it
+  if (resolvedBaseUrl) {
+    return resolvedBaseUrl;
+  }
+  
+  if (__DEV__) {
+    const isEmulator = await DeviceInfo.isEmulator();
+    resolvedBaseUrl = isEmulator
+      ? Platform.select({
+          android: 'http://10.0.2.2:3000',
+          ios: 'http://localhost:3000',
+        }) || 'http://10.0.2.2:3000'
+      : 'https://directto.link';
+  } else {
+    resolvedBaseUrl = 'https://directto.link';
+  }
+  
+  console.log('API_BASE_URL resolved to: ', resolvedBaseUrl);
+  return resolvedBaseUrl;
+};
+
+// For backward compatibility, keep the original export but warn about it
+export const API_BASE_URL = __DEV__
+  ? DeviceInfo.isEmulator().then(isEmulator => {
+      console.warn('Direct use of API_BASE_URL is deprecated. Use getApiBaseUrl() instead.');
+      return isEmulator
+        ? Platform.select({
+            android: 'http://10.0.2.2:3000',
+            ios: 'http://localhost:3000',
+          }) || 'http://10.0.2.2:3000'
+        : 'https://directto.link';
+    })
   : 'https://directto.link';
-
-// For backward compatibility
-export const SYNC_ENABLED = false;
 
 // Application settings
 export const APP_SETTINGS = {

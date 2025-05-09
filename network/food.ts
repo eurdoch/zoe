@@ -1,6 +1,6 @@
 import FoodEntry from "../types/FoodEntry";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 
 export async function postFood(food: any): Promise<any> {
@@ -13,7 +13,8 @@ export async function postFood(food: any): Promise<any> {
       throw new AuthenticationError('Authentication token not found. Please log in again.');
     }
     
-    const response = await fetch(`${API_BASE_URL}/food`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/food`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +51,8 @@ export async function getFood(id: string): Promise<FoodEntry> {
       throw new AuthenticationError('Authentication token not found. Please log in again.');
     }
     
-    const response = await fetch(`${API_BASE_URL}/food/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/food/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -85,7 +87,8 @@ export async function deleteFood(id: string): Promise<any> {
       throw new AuthenticationError('Authentication token not found. Please log in again.');
     }
     
-    const response = await fetch(`${API_BASE_URL}/food/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/food/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -120,7 +123,8 @@ export async function getFoodByUnixTime(unixTime: number): Promise<FoodEntry[]> 
       throw new AuthenticationError('Authentication token not found. Please log in again.');
     }
     
-    const response = await fetch(`${API_BASE_URL}/food?unixTime=${unixTime}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/food?unixTime=${unixTime}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

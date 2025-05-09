@@ -1,6 +1,6 @@
 import Weight from "../types/Weight";
 import WeightEntry from "../types/WeightEntry";
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
 
@@ -22,7 +22,8 @@ export async function postWeight(weight: Weight): Promise<WeightEntry> {
     };
     
     // Save the weight to the server
-    const response = await fetch(`${API_BASE_URL}/weight`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/weight`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -63,7 +64,8 @@ export async function getWeight(startDate?: number, endDate?: number): Promise<W
     }
     
     // Construct the URL with query parameters if provided
-    let url = `${API_BASE_URL}/weight`;
+    const baseUrl = await getApiBaseUrl();
+    let url = `${baseUrl}/weight`;
     const queryParams = [];
     
     if (startDate !== undefined) {
@@ -116,7 +118,8 @@ export async function deleteWeight(id: string): Promise<void> {
     }
     
     // Delete the weight from the server
-    const response = await fetch(`${API_BASE_URL}/weight/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/weight/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

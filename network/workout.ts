@@ -1,6 +1,6 @@
 import Workout from "../types/Workout";
 import WorkoutEntry from "../types/WorkoutEntry";
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
 
@@ -23,7 +23,8 @@ export async function postWorkout(workout: Workout): Promise<WorkoutEntry> {
     };
     
     // Save the workout to the server
-    const response = await fetch(`${API_BASE_URL}/workout`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/workout`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -64,7 +65,8 @@ export async function getWorkout(id: string): Promise<WorkoutEntry | null> {
     }
     
     // Get workout by ID from the server
-    const response = await fetch(`${API_BASE_URL}/workout/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/workout/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -106,7 +108,8 @@ export async function getWorkouts(): Promise<WorkoutEntry[]> {
     }
     
     // Get all workouts from the server
-    const response = await fetch(`${API_BASE_URL}/workout`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/workout`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -143,7 +146,8 @@ export async function deleteWorkout(id: string): Promise<void> {
     }
     
     // Delete the workout from the server
-    const response = await fetch(`${API_BASE_URL}/workout/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/workout/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -187,7 +191,8 @@ export async function updateWorkout(workoutEntry: WorkoutEntry): Promise<Workout
     };
     
     // Update the workout on the server
-    const response = await fetch(`${API_BASE_URL}/workout`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/workout`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

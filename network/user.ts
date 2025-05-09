@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 import User from '../types/User';
 
@@ -14,7 +14,8 @@ export async function getUser(token: string): Promise<User> {
       throw new AuthenticationError('Authentication token not provided');
     }
     
-    const response = await fetch(`${API_BASE_URL}/verify/user`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/verify/user`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

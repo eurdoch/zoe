@@ -1,6 +1,6 @@
 import Supplement from "../types/Supplement";
 import SupplementEntry from "../types/SupplementEntry";
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
 
@@ -21,7 +21,8 @@ export async function postSupplement(supplement: Supplement): Promise<Supplement
     };
     
     // Save the supplement to the server
-    const response = await fetch(`${API_BASE_URL}/supplement`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/supplement`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +63,8 @@ export async function getSupplementNames(): Promise<string[]> {
     }
     
     // Get all supplements from the server
-    const response = await fetch(`${API_BASE_URL}/supplement`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/supplement`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -104,7 +106,8 @@ export async function getSupplement(startDate?: number, endDate?: number, last_l
     }
     
     // Construct the URL with query parameters if provided
-    let url = `${API_BASE_URL}/supplement`;
+    const baseUrl = await getApiBaseUrl();
+    let url = `${baseUrl}/supplement`;
     const queryParams = [];
     
     if (startDate !== undefined) {
@@ -162,7 +165,8 @@ export async function getSupplementById(id: string): Promise<SupplementEntry> {
     }
     
     // Get supplement by ID from the server
-    const response = await fetch(`${API_BASE_URL}/supplement/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/supplement/${id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -204,7 +208,8 @@ export async function deleteSupplement(id: string): Promise<void> {
     }
     
     // Delete the supplement from the server
-    const response = await fetch(`${API_BASE_URL}/supplement/${id}`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/supplement/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

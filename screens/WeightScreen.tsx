@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import FloatingActionButton from '../components/FloatingActionButton';
 import { getWeight, postWeight, deleteWeight } from '../network/weight';
 import { mapWeightEntriesToDataPoint, showToastError, showToastInfo, formatTime, formatTimeWithYear } from '../utils';
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import ScatterPlot from '../ScatterPlot';
 import DataPoint from '../types/DataPoint';
 import WeightEntry from '../types/WeightEntry';
@@ -177,7 +177,8 @@ const WeightScreen = () => {
         }
         
         // Get weight entry from API using the ID
-        const weightResponse = await fetch(`${API_BASE_URL}/weight/${point.label}`, {
+        const baseUrl = await getApiBaseUrl();
+        const weightResponse = await fetch(`${baseUrl}/weight/${point.label}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`
