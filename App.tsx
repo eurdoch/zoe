@@ -20,6 +20,7 @@ import WorkoutScreen from './screens/WorkoutScreen';
 import WeightScreen from './screens/WeightScreen';
 import SupplementScreen from './screens/SupplementsScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 import BarcodeScanner from './components/BarcodeScanner';
 import NutritionLabelParser from './components/NutritionLabelParser.tsx';
 import FoodImageAnalyzer from './components/FoodImageAnalyzer.tsx';
@@ -42,6 +43,7 @@ type RootStackParamList = {
   Weight: undefined;
   Supplement: undefined;
   Profile: undefined;
+  PrivacyPolicy: undefined;
   BarcodeScanner: undefined;
   NutritionLabelParser: undefined;
   FoodImageAnalyzer: undefined;
@@ -233,6 +235,14 @@ const App = () => {
                 component={ProfileScreen}
                 options={{
                   title: "profile",
+                  headerTitleAlign: "center",
+                }}
+              />
+              <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
+                options={{
+                  title: "Privacy Policy",
                   headerTitleAlign: "center",
                 }}
               />

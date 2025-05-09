@@ -337,6 +337,17 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
             </View>
           )}
           
+          <View style={styles.infoContainer}>
+            <Button
+              appearance="ghost"
+              status="basic"
+              onPress={() => navigation.navigate('PrivacyPolicy')}
+              style={styles.privacyButton}
+            >
+              Privacy Policy
+            </Button>
+          </View>
+          
           {!user.premium && (
             <View style={styles.subscriptionContainer}>
               <Button
@@ -496,6 +507,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3366FF',
     marginTop: 6,
+  },
+  privacyButton: {
+    paddingHorizontal: 0,
+    justifyContent: 'flex-start',
   },
 });
 
