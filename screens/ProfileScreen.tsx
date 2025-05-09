@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, TouchableOpacity, FlatList } from 'react-native';
-import { Card, Layout, Button } from '@ui-kitten/components';
+import { Card, Layout, Button, Text as KittenText } from '@ui-kitten/components';
+import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
@@ -337,27 +338,43 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
             </View>
           )}
           
-          <View style={styles.infoContainer}>
-            <Button
-              appearance="ghost"
-              status="basic"
-              onPress={() => navigation.navigate('PrivacyPolicy')}
-              style={styles.privacyButton}
+          <View style={styles.buttonContainer}>
+            <LinearGradient
+              colors={['#444444', '#222222']}
+              style={styles.gradientContainer}
             >
-              Privacy Policy
-            </Button>
+              <Button
+                appearance="filled"
+                size="large"
+                onPress={() => navigation.navigate('PrivacyPolicy')}
+                style={[styles.menuButton, { backgroundColor: 'transparent' }]}
+              >
+                {(evaProps) => <KittenText {...evaProps} style={styles.buttonText}>Privacy Policy</KittenText>}
+              </Button>
+            </LinearGradient>
           </View>
           
           {!user.premium && (
-            <View style={styles.subscriptionContainer}>
-              <Button
-                status="primary"
-                onPress={() => setModalVisible(true)}
-                disabled={purchaseLoading}
-                accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
+            <View style={styles.buttonContainer}>
+              <LinearGradient
+                colors={['#3366FF', '#1144CC']}
+                style={styles.gradientContainer}
               >
-                {purchaseLoading ? 'Processing...' : 'Upgrade to Premium'}
-              </Button>
+                <Button
+                  appearance="filled"
+                  size="large"
+                  onPress={() => setModalVisible(true)}
+                  disabled={purchaseLoading}
+                  style={[styles.menuButton, { backgroundColor: 'transparent' }]}
+                  accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
+                >
+                  {(evaProps) => (
+                    <KittenText {...evaProps} style={styles.buttonText}>
+                      {purchaseLoading ? 'Processing...' : 'Upgrade to Premium'}
+                    </KittenText>
+                  )}
+                </Button>
+              </LinearGradient>
             </View>
           )}
         </Card>
@@ -373,42 +390,55 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
               data={subscriptions}
               keyExtractor={(item) => item.productId}
               renderItem={({ item }) => (
-                <TouchableOpacity 
-                  style={styles.subscriptionOption}
-                  onPress={() => handleSubscriptionSelect(item)}
-                >
-                  <Text style={styles.subscriptionTitle}>
-                    {Platform.OS === 'ios' 
-                      ? ('title' in item ? item.title : 'Kallos Premium') 
-                      : ('name' in item ? item.name : 'Kallos Premium')}
-                  </Text>
-                  
-                  {Platform.OS === 'ios' ? (
-                    <>
-                      <Text style={styles.subscriptionPrice}>
-                        {'localizedPrice' in item ? item.localizedPrice : '$4.99/month'}
-                      </Text>
-                      {'introductoryPrice' in item && item.introductoryPrice === "$0.00" && (
-                        <Text style={styles.trialText}>
-                          {`${'introductoryPriceNumberOfPeriodsIOS' in item ? item.introductoryPriceNumberOfPeriodsIOS : '14'}-day free trial`}
-                        </Text>
+                <View style={styles.modalButtonContainer}>
+                  <LinearGradient
+                    colors={['#3366FF', '#1144CC']}
+                    style={styles.gradientContainer}
+                  >
+                    <Button
+                      appearance="filled"
+                      size="large"
+                      onPress={() => handleSubscriptionSelect(item)}
+                      style={[styles.menuButton, { backgroundColor: 'transparent' }]}
+                    >
+                      {(evaProps) => (
+                        <View style={{ alignItems: 'center', width: '100%' }}>
+                          <KittenText {...evaProps} style={styles.buttonText}>
+                            {Platform.OS === 'ios' 
+                              ? ('title' in item ? item.title : 'Kallos Premium') 
+                              : ('name' in item ? item.name : 'Kallos Premium')}
+                          </KittenText>
+                          
+                          {Platform.OS === 'ios' ? (
+                            <>
+                              <Text style={styles.subscriptionPrice}>
+                                {'localizedPrice' in item ? item.localizedPrice : '$4.99/month'}
+                              </Text>
+                              {'introductoryPrice' in item && item.introductoryPrice === "$0.00" && (
+                                <Text style={styles.trialText}>
+                                  {`${'introductoryPriceNumberOfPeriodsIOS' in item ? item.introductoryPriceNumberOfPeriodsIOS : '14'}-day free trial`}
+                                </Text>
+                              )}
+                              <Text style={styles.subscriptionDescription}>
+                                {'description' in item ? item.description : 'Premium subscription to Kallos'}
+                              </Text>
+                            </>
+                          ) : (
+                            <>
+                              <Text style={[styles.androidSubscriptionText, { color: 'white' }]}>
+                                {'subscriptionOfferDetails' in item && item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
+                                  ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice || '$4.99'}/month`
+                                  : `${('subscriptionOfferDetails' in item ? 
+                                      item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice : 
+                                      '$4.99')}/month`}
+                              </Text>
+                            </>
+                          )}
+                        </View>
                       )}
-                      <Text style={styles.subscriptionDescription}>
-                        {'description' in item ? item.description : 'Premium subscription to Kallos'}
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.androidSubscriptionText}>
-                        {'subscriptionOfferDetails' in item && item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
-                          ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice || '$4.99'}/month`
-                          : `${('subscriptionOfferDetails' in item ? 
-                              item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice : 
-                              '$4.99')}/month`}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+                    </Button>
+                  </LinearGradient>
+                </View>
               )}
             />
           )}
@@ -490,27 +520,45 @@ const styles = StyleSheet.create({
   },
   subscriptionPrice: {
     fontSize: 14,
-    color: '#3366FF',
+    color: 'white',
     marginBottom: 4,
   },
   subscriptionDescription: {
     fontSize: 12,
-    color: '#8F9BB3',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   trialText: {
     fontSize: 13,
-    color: '#00C853',
+    color: '#00FF7F',
     fontWeight: 'bold',
     marginBottom: 4,
   },
   androidSubscriptionText: {
     fontSize: 14,
-    color: '#3366FF',
+    color: 'white',
     marginTop: 6,
   },
-  privacyButton: {
-    paddingHorizontal: 0,
-    justifyContent: 'flex-start',
+  buttonContainer: {
+    marginVertical: 8,
+    width: '100%',
+  },
+  gradientContainer: {
+    marginVertical: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  menuButton: {
+    height: 60,
+    borderRadius: 15,
+    borderWidth: 0,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  modalButtonContainer: {
+    marginBottom: 10,
   },
 });
 
