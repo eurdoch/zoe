@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 import { showToastError } from '../utils';
+import { updatePremiumStatus } from '../network/user';
 import CustomModal from '../CustomModal';
 import {
   initConnection,
@@ -67,28 +68,58 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
           const receipt = purchase.transactionReceipt ? purchase.transactionReceipt : '';
           
           if (receipt) {
-            // Here you would typically send the receipt to your backend
-            // for validation with Apple/Google servers
+            // Send the receipt to the backend for validation and status update
             console.log('Transaction receipt:', receipt);
             
-            // For demonstration purposes, we'll just mark the user as premium locally
-            // In a real app, you would receive confirmation from your backend
-            const updatedUser = user ? { ...user, premium: true } : null;
-            if (updatedUser) {
-              setUser(updatedUser);
-              await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+            try {
+              // Get the auth token
+              const token = await AsyncStorage.getItem('token');
+              
+              if (!token) {
+                throw new Error('Authentication token not found');
+              }
+              
+              // Send receipt to backend and update premium status
+              const currentPlatform = Platform.OS as 'ios' | 'android';
+              const updatedUser = await updatePremiumStatus(token, receipt, currentPlatform);
+              
+              // Update local user object with response from backend
+              if (updatedUser) {
+                setUser(updatedUser);
+                await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+                console.log('Premium status updated on backend:', updatedUser.premium);
+              }
+              
+              // Acknowledge the purchase
+              await finishTransaction({ purchase, isConsumable: false });
+              console.log('Transaction finished');
+              
+              // Show success message
+              Alert.alert(
+                'Subscription Activated',
+                'Thank you for subscribing to Kallos Premium!',
+                [{ text: 'OK' }]
+              );
+            } catch (error) {
+              console.error('Error updating premium status on backend:', error);
+              
+              // If backend validation fails, still update locally but show warning
+              const updatedUser = user ? { ...user, premium: true } : null;
+              if (updatedUser) {
+                setUser(updatedUser);
+                await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+              }
+              
+              // Acknowledge the purchase even if backend update fails
+              await finishTransaction({ purchase, isConsumable: false });
+              
+              // Show warning that backend sync failed
+              Alert.alert(
+                'Subscription Activated',
+                'Your subscription has been activated, but there was an issue syncing with our servers. Your premium features will work, but you may need to restart the app.',
+                [{ text: 'OK' }]
+              );
             }
-            
-            // Acknowledge the purchase
-            await finishTransaction({ purchase, isConsumable: false });
-            console.log('Transaction finished');
-            
-            // Show success message
-            Alert.alert(
-              'Subscription Activated',
-              'Thank you for subscribing to Kallos Premium!',
-              [{ text: 'OK' }]
-            );
           }
         } catch (error) {
           console.error('Error processing purchase:', error);
@@ -140,19 +171,56 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
         // Simulate a brief delay
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Update user to premium
-        const updatedUser = user ? { ...user, premium: true } : null;
-        if (updatedUser) {
-          setUser(updatedUser);
-          await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        try {
+          // Get the auth token
+          const token = await AsyncStorage.getItem('token');
+          
+          if (!token) {
+            throw new Error('Authentication token not found');
+          }
+          
+          // Create a simulated receipt for debug mode
+          const debugReceipt = JSON.stringify({
+            productId: SUBSCRIPTION_ID,
+            transactionId: `debug-${Date.now()}`,
+            transactionDate: new Date().toISOString(),
+            debug: true
+          });
+          
+          // Send simulated receipt to backend and update premium status
+          console.log('Sending debug receipt to backend');
+          const updatedUser = await updatePremiumStatus(token, debugReceipt, 'android');
+          
+          // Update local user object with response from backend
+          if (updatedUser) {
+            setUser(updatedUser);
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('Premium status updated on backend (debug mode):', updatedUser.premium);
+          }
+          
+          // Show success message
+          Alert.alert(
+            'DEBUG: Subscription Activated',
+            'Simulated purchase successful and synced with backend',
+            [{ text: 'OK' }]
+          );
+        } catch (error) {
+          console.error('Error updating premium status on backend (debug mode):', error);
+          
+          // If backend validation fails, still update locally
+          const updatedUser = user ? { ...user, premium: true } : null;
+          if (updatedUser) {
+            setUser(updatedUser);
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+          
+          // Show warning that backend sync failed
+          Alert.alert(
+            'DEBUG: Subscription Activated',
+            'Simulated purchase successful but backend sync failed: ' + (error instanceof Error ? error.message : String(error)),
+            [{ text: 'OK' }]
+          );
         }
-        
-        // Show success message
-        Alert.alert(
-          'DEBUG: Subscription Activated',
-          'Simulated purchase successful in debug mode',
-          [{ text: 'OK' }]
-        );
         
         return;
       }

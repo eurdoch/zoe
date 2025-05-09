@@ -39,3 +39,53 @@ export async function getUser(token: string): Promise<User> {
     throw error;
   }
 }
+
+/**
+ * Updates the user's premium status in the backend
+ * @param token JWT authentication token
+ * @param receiptData The purchase receipt data from the app store
+ * @param platform 'ios' or 'android' to indicate which platform the purchase was made on
+ * @returns Updated User object with premium status if successful
+ * @throws AuthenticationError if token is invalid (401/403 status)
+ */
+export async function updatePremiumStatus(
+  token: string, 
+  receiptData: string, 
+  platform: 'ios' | 'android'
+): Promise<User> {
+  try {
+    if (!token) {
+      throw new AuthenticationError('Authentication token not provided');
+    }
+    
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/verify/premium`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        receipt: receiptData,
+        platform: platform,
+        timestamp: new Date().toISOString()
+      })
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to update premium status: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to update premium status: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error updating premium status:', error);
+    throw error;
+  }
+}
