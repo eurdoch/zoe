@@ -9,6 +9,7 @@ import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
 import foodImageAnalyzerRoutes from './routes/foodImageAnalyzer.js';
 import verificationRoutes from './routes/verificationRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import authenticateToken from './middleware/auth.js';
 import 'dotenv/config';
 
@@ -61,6 +62,7 @@ async function connectToDatabase() {
     app.use('/workout', authenticateToken, workoutRoutes(workoutCollection));
     app.use('/weight', authenticateToken, weightRoutes(weightCollection));
     app.use('/supplement', authenticateToken, supplementRoutes(supplementCollection));
+    app.use('/user', userRoutes(userCollection));
 
     app.listen(port, '0.0.0.0', () => {
       console.log(`Server is running on port ${port}`);

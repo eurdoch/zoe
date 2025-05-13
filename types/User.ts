@@ -5,6 +5,7 @@ interface User {
   premium: boolean;
   created_at: Date;
   last_login: Date;
+  daily_calories?: number;
 }
 
 export default User;

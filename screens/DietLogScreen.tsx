@@ -179,7 +179,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             appearance="filled"
             size="large"
           >
-            {(evaProps) => <KittenText {...evaProps} style={styles.buttonText}>Search</KittenText>}
+            {(evaProps: any) => <KittenText {...evaProps} style={styles.buttonText}>Search</KittenText>}
           </Button>
         </LinearGradient>
       </Layout>
