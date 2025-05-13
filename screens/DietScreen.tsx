@@ -6,7 +6,7 @@ import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import MacroCalculator from '../components/MacroCalculator';
-import { Icon } from '@ui-kitten/components';
+import { Icon, Datepicker, Layout } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
 import { AuthenticationError } from '../errors/NetworkError';
@@ -25,6 +25,8 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [datePickerVisible, setDatePickerVisible] = useState<boolean>(false);
   
   // Use the food data context instead of local state
   const { 
@@ -66,8 +68,9 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   }
 
   const loadData = () => {
-    const today = Math.floor(Date.now() / 1000);
-    getFoodByUnixTime(today)
+    // Convert selected date to unix timestamp (seconds)
+    const dateTimestamp = Math.floor(selectedDate.getTime() / 1000);
+    getFoodByUnixTime(dateTimestamp)
       .then(entries => {
         console.log('entries', entries);
         let count = 0;
@@ -86,6 +89,35 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
       });
   }
+
+  // Add this effect to reload data when selectedDate changes
+  useEffect(() => {
+    loadData();
+  }, [selectedDate]);
+  
+  // Functions to navigate between dates
+  const goToPreviousDay = () => {
+    const prevDay = new Date(selectedDate);
+    prevDay.setDate(prevDay.getDate() - 1);
+    setSelectedDate(prevDay);
+  };
+
+  const goToNextDay = () => {
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    setSelectedDate(nextDay);
+  };
+
+  // Function to handle date selection from DatePicker
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setDatePickerVisible(false);
+  };
+
+  // Calendar icon for the DatePicker
+  const CalendarIcon = (props: any) => (
+    <Icon {...props} name='calendar-outline'/>
+  );
 
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
@@ -211,7 +243,36 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   return (
     <View style={styles.rootContainer}>
       <View style={styles.headerContainer}>
-        <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
+        <View style={styles.dateNavigationContainer}>
+          <TouchableOpacity onPress={goToPreviousDay} style={styles.navigationArrow}>
+            <Icon name="arrow-left-outline" fill="#333" style={styles.arrowIcon} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            onPress={() => setDatePickerVisible(true)} 
+            style={styles.datePickerButton}
+          >
+            <Text style={styles.date}>
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={goToNextDay} style={styles.navigationArrow}>
+            <Icon name="arrow-right-outline" fill="#333" style={styles.arrowIcon} />
+          </TouchableOpacity>
+        </View>
+        
+        {datePickerVisible && (
+          <Datepicker
+            date={selectedDate}
+            onSelect={handleDateSelect}
+            accessoryLeft={CalendarIcon}
+            min={new Date(2000, 0, 1)}
+            max={new Date(2030, 11, 31)}
+            style={styles.datePicker}
+          />
+        )}
+        
         <Text style={styles.totalCalories}>Total Calories: {totalCalories} </Text>
       </View>
       <ScrollView style={styles.foodEntryList}>
@@ -436,9 +497,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
   },
+  dateNavigationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 10,
+    marginBottom: 5,
+  },
+  navigationArrow: {
+    padding: 8,
+    borderRadius: 20,
+  },
+  arrowIcon: {
+    width: 24,
+    height: 24,
+  },
+  datePickerButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 10,
+    borderRadius: 8,
+  },
   date: {
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  datePicker: {
+    width: '80%',
+    maxWidth: 300,
+    marginVertical: 10,
   },
   totalCalories: {
     fontSize: 16,
