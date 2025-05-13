@@ -307,6 +307,9 @@ export default function verificationRoutes(userCollection) {
 
       // Get receipt data from request body
       const { receipt, platform, timestamp } = req.body;
+      console.log('DEBUG receipt: ', receipt);
+      console.log('DEBUG platform: ', platform);
+      console.log('DEBUG timestampe: ', timestamp);
       
       if (!receipt || !platform) {
         return res.status(400).json({ 
