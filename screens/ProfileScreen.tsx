@@ -21,19 +21,19 @@ import {
   Subscription,
 } from 'react-native-iap';
 
-interface User {
-  user_id?: string;
-  name: string;
-  email: string;
-  premium?: boolean;
-  created_at?: string;
-  last_login?: string;
-}
+// Type for the UI-Kitten props parameter
+type KittenProps = {
+  style?: any;
+  [key: string]: any;
+};
+
+// Import the User type instead of defining it locally
+import UserType from '../types/User';
 
 const SUBSCRIPTION_ID = 'kallos_premium';
 
 const ProfileScreen = ({ navigation }: { navigation: any }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -104,7 +104,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
               console.error('Error updating premium status on backend:', error);
               
               // If backend validation fails, still update locally but show warning
-              const updatedUser = user ? { ...user, premium: true } : null;
+              const updatedUser: UserType | null = user ? { ...user, premium: true } : null;
               if (updatedUser) {
                 setUser(updatedUser);
                 await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
@@ -417,7 +417,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
                 onPress={() => navigation.navigate('PrivacyPolicy')}
                 style={[styles.menuButton, { backgroundColor: 'transparent' }]}
               >
-                {(evaProps) => <KittenText {...evaProps} style={styles.buttonText}>Privacy Policy</KittenText>}
+                {(evaProps: KittenProps) => <KittenText {...evaProps} style={styles.buttonText}>Privacy Policy</KittenText>}
               </Button>
             </LinearGradient>
           </View>
@@ -436,7 +436,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
                   style={[styles.menuButton, { backgroundColor: 'transparent' }]}
                   accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
                 >
-                  {(evaProps) => (
+                  {(evaProps: KittenProps) => (
                     <KittenText {...evaProps} style={styles.buttonText}>
                       {purchaseLoading ? 'Processing...' : 'Upgrade to Premium'}
                     </KittenText>
@@ -469,7 +469,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
                       onPress={() => handleSubscriptionSelect(item)}
                       style={[styles.menuButton, { backgroundColor: 'transparent' }]}
                     >
-                      {(evaProps) => (
+                      {(evaProps: KittenProps) => (
                         <View style={{ alignItems: 'center', width: '100%' }}>
                           <KittenText {...evaProps} style={styles.buttonText}>
                             {Platform.OS === 'ios' 
