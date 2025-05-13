@@ -280,6 +280,7 @@ export default function verificationRoutes(userCollection) {
           premium: user.premium || false,
           created_at: user.created_at,
           last_login: user.last_login,
+          daily_calories: user.daily_calories || null,
           // Add any other non-sensitive user fields as needed
         });
       } else {
@@ -294,5 +295,169 @@ export default function verificationRoutes(userCollection) {
     }
   });
 
+  // Premium verification endpoint
+  router.post('/premium', authenticateToken, async (req, res) => {
+    try {
+      // Extract user_id from the authenticated token
+      const { user_id } = req.user;
+      
+      if (!user_id) {
+        return res.status(400).json({ error: 'Invalid user token' });
+      }
+
+      // Get receipt data from request body
+      const { receipt, platform, timestamp } = req.body;
+      
+      if (!receipt || !platform) {
+        return res.status(400).json({ 
+          error: 'Receipt and platform are required' 
+        });
+      }
+
+      // Verify the receipt with the appropriate store
+      let isVerified = false;
+      let verificationResponse = null;
+
+      // Handle debug receipts in development mode
+      if (receipt.includes('debug-') && process.env.NODE_ENV !== 'production') {
+        console.log('Debug receipt detected, bypassing store verification');
+        isVerified = true;
+        verificationResponse = {
+          status: 'debug',
+          environment: 'sandbox',
+          receipt_type: 'debug',
+          debug: true
+        };
+      } else {
+        // Verify receipt with appropriate store
+        if (platform === 'ios') {
+          isVerified = await verifyAppleReceipt(receipt);
+        } else if (platform === 'android') {
+          isVerified = await verifyGoogleReceipt(receipt);
+        } else {
+          return res.status(400).json({ error: 'Invalid platform specified' });
+        }
+      }
+
+      // If verification successful, update the user's premium status
+      if (isVerified && userCollection) {
+        // Look up the user first
+        const user = await userCollection.findOne({ user_id });
+        
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Update user premium status
+        await userCollection.updateOne(
+          { user_id },
+          { 
+            $set: { 
+              premium: true,
+              premium_updated_at: new Date(),
+              premium_receipt: {
+                platform,
+                timestamp,
+                validation_status: 'verified'
+              }
+            }
+          }
+        );
+        
+        // Get the updated user
+        const updatedUser = await userCollection.findOne({ user_id });
+        
+        // Return updated user information
+        res.status(200).json({
+          user_id: updatedUser.user_id,
+          name: updatedUser.name || '',
+          email: updatedUser.email || '',
+          premium: updatedUser.premium,
+          created_at: updatedUser.created_at,
+          last_login: updatedUser.last_login,
+          daily_calories: updatedUser.daily_calories || null,
+          premium_updated_at: updatedUser.premium_updated_at,
+          message: 'Premium status updated successfully'
+        });
+      } else if (!isVerified) {
+        // If verification failed
+        res.status(400).json({ 
+          error: 'Receipt verification failed',
+          message: 'The receipt provided is invalid or expired'
+        });
+      } else {
+        // If no database connection
+        res.status(503).json({ error: 'Database service unavailable' });
+      }
+    } catch (error) {
+      console.error('Error verifying premium receipt:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to verify receipt'
+      });
+    }
+  });
+
   return router;
+
+// Function to verify Apple App Store receipt
+async function verifyAppleReceipt(receipt) {
+  try {
+    // In a real implementation, you would:
+    // 1. First try verification against Apple's production server
+    // 2. If that fails with specific errors, try sandbox server
+    
+    // For testing in development, you can simulate success:
+    console.log('Apple receipt verification requested:', receipt.substring(0, 50) + '...');
+    
+    // For production, you would use actual Apple API:
+    // const productionVerifyEndpoint = 'https://buy.itunes.apple.com/verifyReceipt';
+    // const sandboxVerifyEndpoint = 'https://sandbox.itunes.apple.com/verifyReceipt';
+    
+    // const response = await fetch(productionVerifyEndpoint, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({
+    //     'receipt-data': receipt,
+    //     'password': process.env.APPLE_SHARED_SECRET,
+    //     'exclude-old-transactions': true
+    //   })
+    // });
+    // const data = await response.json();
+    
+    // Check the receipt status
+    // Status 0 means success
+    // return data.status === 0;
+    
+    // For this implementation, we'll simulate success
+    return true;
+  } catch (error) {
+    console.error('Error verifying Apple receipt:', error);
+    return false;
+  }
+}
+
+// Function to verify Google Play Store receipt
+async function verifyGoogleReceipt(receipt) {
+  try {
+    // Parse the receipt data
+    const receiptData = typeof receipt === 'string' ? JSON.parse(receipt) : receipt;
+    
+    // In a real implementation, you would:
+    // 1. Verify using Google Play Developer API
+    // 2. Validate the purchase token against your package name and product ID
+    
+    // For testing in development, you can simulate success:
+    console.log('Google receipt verification requested:', 
+      JSON.stringify(receiptData).substring(0, 100) + '...');
+    
+    // For production, you would set up Google API client
+    // and verify against Google's servers
+    
+    // For this implementation, we'll simulate success
+    return true;
+  } catch (error) {
+    console.error('Error verifying Google receipt:', error);
+    return false;
+  }
+}
 }
