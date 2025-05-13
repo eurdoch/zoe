@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Dimensions, TouchableOpacity, Alert, View } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
@@ -9,6 +9,7 @@ import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import LinearGradient from 'react-native-linear-gradient';
 import { 
   Layout, 
   Text, 
@@ -16,7 +17,8 @@ import {
   Button, 
   Icon, 
   Spinner, 
-  List 
+  List,
+  Text as KittenText 
 } from '@ui-kitten/components';
 
 interface DietLogScreenProps {
@@ -167,14 +169,19 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
           accessoryRight={searchIcon}
           size="large"
         />
-        <Button
-          onPress={handleSearchByText}
-          style={styles.searchButton}
-          appearance="filled"
-          status="primary"
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={styles.gradientContainer}
         >
-          Search
-        </Button>
+          <Button
+            onPress={handleSearchByText}
+            style={[styles.searchButton, { backgroundColor: 'transparent' }]}
+            appearance="filled"
+            size="large"
+          >
+            {(evaProps) => <KittenText {...evaProps} style={styles.buttonText}>Search</KittenText>}
+          </Button>
+        </LinearGradient>
       </Layout>
       
       {isLoading ? (
@@ -232,18 +239,28 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    paddingTop: 16,
-    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     width: Dimensions.get("window").width,
   },
   input: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 4,
+  },
+  gradientContainer: {
+    marginLeft: 4,
+    borderRadius: 15,
+    overflow: 'hidden',
   },
   searchButton: {
-    borderRadius: 4,
+    height: 50,
+    borderRadius: 15,
+    borderWidth: 0,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
   },
   list: {
     flex: 1,
