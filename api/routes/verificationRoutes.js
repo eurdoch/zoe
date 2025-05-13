@@ -188,7 +188,7 @@ export default function verificationRoutes(userCollection) {
               last_login: user.last_login,
               created_at: user.created_at,
               premium: user.premium || false,
-              // Any other fields to include from user record
+              daily_calories: user.daily_calories || null,
             };
           } else {
             console.log('Creating new user with ID:', userId);
