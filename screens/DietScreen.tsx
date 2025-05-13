@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking, Dimensions } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
@@ -13,11 +13,130 @@ import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingActionButton from '../components/FloatingActionButton';
 import LinearGradient from 'react-native-linear-gradient';
+import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 
 interface DietScreenProps {
   navigation: any;
   route: any;
 }
+
+// Interface for macro nutrient data
+interface MacroData {
+  fat: number;
+  carbs: number;
+  protein: number;
+  fatCalories: number;
+  carbsCalories: number;
+  proteinCalories: number;
+}
+
+// MacroPieChart component
+const MacroPieChart: React.FC<{ 
+  macroData: MacroData, 
+  size: number 
+}> = ({ macroData, size }) => {
+  const radius = size / 2;
+  const centerX = radius;
+  const centerY = radius;
+  
+  // Define colors for each macro nutrient
+  const colors = {
+    fat: '#FF9500',    // Orange
+    carbs: '#4CD964',  // Green
+    protein: '#007AFF' // Blue
+  };
+  
+  // Calculate angles for each segment based on percentages
+  const total = macroData.fat + macroData.carbs + macroData.protein;
+  
+  // If there's no data, show an empty circle
+  if (total === 0) {
+    return (
+      <Svg width={size} height={size}>
+        <Circle 
+          cx={centerX}
+          cy={centerY}
+          r={radius - 5} 
+          fill="none"
+          stroke="#E5E5EA"
+          strokeWidth={10}
+        />
+        <SvgText
+          x={centerX}
+          y={centerY}
+          fontSize={14}
+          fontWeight="bold"
+          fill="#8E8E93"
+          textAnchor="middle"
+          alignmentBaseline="middle"
+        >
+          No Data
+        </SvgText>
+      </Svg>
+    );
+  }
+  
+  // Calculate the SVG paths for each segment
+  const createArc = (startAngle: number, endAngle: number): string => {
+    const startRad = (startAngle - 90) * Math.PI / 180;
+    const endRad = (endAngle - 90) * Math.PI / 180;
+    
+    const startX = centerX + (radius - 5) * Math.cos(startRad);
+    const startY = centerY + (radius - 5) * Math.sin(startRad);
+    const endX = centerX + (radius - 5) * Math.cos(endRad);
+    const endY = centerY + (radius - 5) * Math.sin(endRad);
+    
+    const largeArc = endAngle - startAngle <= 180 ? 0 : 1;
+    
+    return `M ${centerX} ${centerY} L ${startX} ${startY} A ${radius - 5} ${radius - 5} 0 ${largeArc} 1 ${endX} ${endY} Z`;
+  };
+  
+  // Calculate angles
+  let startAngle = 0;
+  const fatAngle = (macroData.fat / total) * 360;
+  const carbsAngle = (macroData.carbs / total) * 360;
+  const proteinAngle = (macroData.protein / total) * 360;
+
+  // Create paths
+  const fatPath = createArc(startAngle, startAngle + fatAngle);
+  startAngle += fatAngle;
+  
+  const carbsPath = createArc(startAngle, startAngle + carbsAngle);
+  startAngle += carbsAngle;
+  
+  const proteinPath = createArc(startAngle, startAngle + proteinAngle);
+  
+  return (
+    <Svg width={size} height={size}>
+      {macroData.fat > 0 && <Path d={fatPath} fill={colors.fat} />}
+      {macroData.carbs > 0 && <Path d={carbsPath} fill={colors.carbs} />}
+      {macroData.protein > 0 && <Path d={proteinPath} fill={colors.protein} />}
+      
+      {/* Center circle for better appearance */}
+      <Circle cx={centerX} cy={centerY} r={radius / 3} fill="white" />
+    </Svg>
+  );
+};
+
+// MacroLegend component
+const MacroLegend: React.FC<{ macroData: MacroData }> = ({ macroData }) => {
+  return (
+    <View style={styles.legendContainer}>
+      <View style={styles.legendItem}>
+        <View style={[styles.legendColor, { backgroundColor: '#FF9500' }]} />
+        <Text style={styles.legendText}>Fat: {macroData.fat}% ({Math.round(macroData.fatCalories)} cal)</Text>
+      </View>
+      <View style={styles.legendItem}>
+        <View style={[styles.legendColor, { backgroundColor: '#4CD964' }]} />
+        <Text style={styles.legendText}>Carbs: {macroData.carbs}% ({Math.round(macroData.carbsCalories)} cal)</Text>
+      </View>
+      <View style={styles.legendItem}>
+        <View style={[styles.legendColor, { backgroundColor: '#007AFF' }]} />
+        <Text style={styles.legendText}>Protein: {macroData.protein}% ({Math.round(macroData.proteinCalories)} cal)</Text>
+      </View>
+    </View>
+  );
+};
 
 const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([])
@@ -27,6 +146,17 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState<boolean>(false);
+  const [macroData, setMacroData] = useState<MacroData>({
+    fat: 0,
+    carbs: 0,
+    protein: 0,
+    fatCalories: 0,
+    carbsCalories: 0,
+    proteinCalories: 0
+  });
+  
+  // Hardcoded daily calorie goal
+  const dailyCalorieGoal = 1556;
   
   // Use the food data context instead of local state
   const { 
@@ -67,18 +197,67 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     loadData();
   }
 
+  // Calculate macronutrient totals and percentages
+  const calculateMacroTotals = (entries: FoodEntry[]) => {
+    let totalFat = 0;
+    let totalCarbs = 0;
+    let totalProtein = 0;
+    let totalCalories = 0;
+
+    entries.forEach(entry => {
+      totalFat += entry.macros.fat;
+      totalCarbs += entry.macros.carbs;
+      totalProtein += entry.macros.protein;
+      totalCalories += entry.macros.calories;
+    });
+
+    // Convert to calories (1g fat = 9 calories, 1g carbs/protein = 4 calories)
+    const fatCalories = totalFat * 9;
+    const carbsCalories = totalCarbs * 4;
+    const proteinCalories = totalProtein * 4;
+
+    // Calculate percentages
+    const totalMacroCalories = fatCalories + carbsCalories + proteinCalories;
+    
+    // Avoid division by zero
+    const fatPercentage = totalMacroCalories > 0 ? Math.round((fatCalories / totalMacroCalories) * 100) : 0;
+    const carbsPercentage = totalMacroCalories > 0 ? Math.round((carbsCalories / totalMacroCalories) * 100) : 0;
+    const proteinPercentage = totalMacroCalories > 0 ? Math.round((proteinCalories / totalMacroCalories) * 100) : 0;
+
+    return {
+      totalFat,
+      totalCarbs,
+      totalProtein,
+      totalCalories,
+      fatCalories,
+      carbsCalories,
+      proteinCalories,
+      fatPercentage,
+      carbsPercentage,
+      proteinPercentage
+    };
+  };
+
   const loadData = () => {
     // Convert selected date to unix timestamp (seconds)
     const dateTimestamp = Math.floor(selectedDate.getTime() / 1000);
     getFoodByUnixTime(dateTimestamp)
       .then(entries => {
         console.log('entries', entries);
-        let count = 0;
-        entries.forEach(entry => {
-          count += entry.macros.calories;
-        });
-        setTotalCalories(count);
+        
+        const macroData = calculateMacroTotals(entries);
+        setTotalCalories(macroData.totalCalories);
         setFoodEntries(entries);
+        
+        // Set macro data for pie chart
+        setMacroData({
+          fat: macroData.fatPercentage,
+          carbs: macroData.carbsPercentage,
+          protein: macroData.proteinPercentage,
+          fatCalories: macroData.fatCalories,
+          carbsCalories: macroData.carbsCalories,
+          proteinCalories: macroData.proteinCalories
+        });
       })
       .catch(error => {
         console.error('Error loading food entries:', error);
@@ -273,7 +452,18 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           />
         )}
         
-        <Text style={styles.totalCalories}>Total Calories: {totalCalories} </Text>
+        <View style={styles.calorieContainer}>
+          <Text style={styles.totalCalories}>Total Calories: {totalCalories || 0} / {dailyCalorieGoal}</Text>
+        </View>
+        
+        {/* Macronutrient Pie Chart */}
+        <View style={styles.macroChartContainer}>
+          <MacroPieChart 
+            macroData={macroData} 
+            size={150} 
+          />
+          <MacroLegend macroData={macroData} />
+        </View>
       </View>
       <ScrollView style={styles.foodEntryList}>
         {foodEntries.map((entry, index) => (
@@ -529,9 +719,50 @@ const styles = StyleSheet.create({
     maxWidth: 300,
     marginVertical: 10,
   },
+  calorieContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 5,
+    marginBottom: 10,
+    gap: 20,
+  },
   totalCalories: {
     fontSize: 16,
-    marginTop: 5,
+    fontWeight: 'bold',
+  },
+  calorieGoal: {
+    fontSize: 16,
+    color: '#666',
+  },
+  macroChartContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    width: '100%',
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 15,
+    marginBottom: 5,
+    gap: 12,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendColor: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 5,
+  },
+  legendText: {
+    fontSize: 12,
   },
   boldFont: {
     fontWeight: 'bold',
