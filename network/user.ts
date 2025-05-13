@@ -89,3 +89,47 @@ export async function updatePremiumStatus(
     throw error;
   }
 }
+
+/**
+ * Updates user information including daily calorie goal
+ * @param token JWT authentication token
+ * @param userData Object containing user data to update
+ * @returns Updated User object if successful
+ * @throws AuthenticationError if token is invalid (401/403 status)
+ */
+export async function updateUserInfo(
+  token: string,
+  userData: { daily_calories?: number, name?: string, email?: string }
+): Promise<User> {
+  try {
+    if (!token) {
+      throw new AuthenticationError('Authentication token not provided');
+    }
+    
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/user`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to update user information: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to update user information: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error updating user information:', error);
+    throw error;
+  }
+}

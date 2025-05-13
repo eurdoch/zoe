@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking, Dimensions, TextInput } from 'react-native';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import MacroCalculator from '../components/MacroCalculator';
-import { Icon, Datepicker, Layout } from '@ui-kitten/components';
+import { Icon, Datepicker, Layout, Button as KittenButton, Text as KittenText } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
 import { AuthenticationError } from '../errors/NetworkError';
@@ -14,6 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingActionButton from '../components/FloatingActionButton';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
+import User from '../types/User';
+import { updateUserInfo } from '../network/user';
 
 interface DietScreenProps {
   navigation: any;
@@ -155,8 +157,12 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     proteinCalories: 0
   });
   
-  // Hardcoded daily calorie goal
-  const dailyCalorieGoal = 1556;
+  // User state and calorie goal state
+  const [user, setUser] = useState<User | null>(null);
+  const [calorieGoal, setCalorieGoal] = useState<number>(0);
+  const [editingCalorieGoal, setEditingCalorieGoal] = useState<boolean>(false);
+  const [newCalorieGoal, setNewCalorieGoal] = useState<string>('');
+  const [isUpdatingCalorieGoal, setIsUpdatingCalorieGoal] = useState<boolean>(false);
   
   // Use the food data context instead of local state
   const { 
@@ -279,18 +285,30 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     const prevDay = new Date(selectedDate);
     prevDay.setDate(prevDay.getDate() - 1);
     setSelectedDate(prevDay);
+    // Reset editing state when changing dates
+    if (editingCalorieGoal) {
+      setEditingCalorieGoal(false);
+    }
   };
 
   const goToNextDay = () => {
     const nextDay = new Date(selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
     setSelectedDate(nextDay);
+    // Reset editing state when changing dates
+    if (editingCalorieGoal) {
+      setEditingCalorieGoal(false);
+    }
   };
 
   // Function to handle date selection from DatePicker
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setDatePickerVisible(false);
+    // Reset editing state when changing dates
+    if (editingCalorieGoal) {
+      setEditingCalorieGoal(false);
+    }
   };
 
   // Calendar icon for the DatePicker
@@ -298,10 +316,95 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     <Icon {...props} name='calendar-outline'/>
   );
 
+  // Load user data from AsyncStorage
+  const loadUserData = async () => {
+    try {
+      const userJson = await AsyncStorage.getItem('user');
+      if (userJson) {
+        const userData = JSON.parse(userJson) as User;
+        console.log('DEBUG: ', userData);
+        setUser(userData);
+        
+        // Set calorie goal from user data or use default
+        if (userData.daily_calories) {
+          setCalorieGoal(userData.daily_calories);
+        } else {
+          setCalorieGoal(2000); // Default calorie goal if not set
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  // Check if selected date is the current day
+  const isCurrentDay = () => {
+    const today = new Date();
+    return (
+      selectedDate.getDate() === today.getDate() &&
+      selectedDate.getMonth() === today.getMonth() &&
+      selectedDate.getFullYear() === today.getFullYear()
+    );
+  };
+
+  // Update user calorie goal
+  const updateCalorieGoal = async () => {
+    if (!newCalorieGoal || isNaN(Number(newCalorieGoal))) {
+      showToastError('Please enter a valid number for your calorie goal');
+      return;
+    }
+
+    const goalValue = parseInt(newCalorieGoal, 10);
+    if (goalValue <= 0) {
+      showToastError('Calorie goal must be greater than zero');
+      return;
+    }
+
+    try {
+      setIsUpdatingCalorieGoal(true);
+      
+      // Get auth token
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new AuthenticationError('Authentication token not found');
+      }
+      
+      // Update user info via API
+      const updatedUser = await updateUserInfo(token, {
+        daily_calories: goalValue
+      });
+      
+      // Update local state and storage
+      setUser(updatedUser);
+      setCalorieGoal(goalValue);
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Reset UI state
+      setEditingCalorieGoal(false);
+      setNewCalorieGoal('');
+      showToastInfo('Calorie goal updated successfully');
+    } catch (error) {
+      console.error('Error updating calorie goal:', error);
+      if (error instanceof AuthenticationError) {
+        handleAuthError(error);
+      } else {
+        showToastError('Failed to update calorie goal. Please try again.');
+      }
+    } finally {
+      setIsUpdatingCalorieGoal(false);
+    }
+  };
+
+  useEffect(() => {
+    // Load user data when component mounts
+    loadUserData();
+  }, []);
+
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
         console.log('DietScreen focused');
         loadData();
+        loadUserData(); // Reload user data when screen is focused
         if (nutritionInfo) {
           setDeleteEntry(null);
           setModalVisible(true);
@@ -453,7 +556,63 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         )}
         
         <View style={styles.calorieContainer}>
-          <Text style={styles.totalCalories}>Total Calories: {totalCalories || 0} / {dailyCalorieGoal}</Text>
+          {isCurrentDay() ? (
+            <>
+              <Text style={styles.totalCalories}>Total Calories: {totalCalories || 0} / {calorieGoal}</Text>
+              {!editingCalorieGoal && (
+                <TouchableOpacity 
+                  onPress={() => {
+                    setEditingCalorieGoal(true);
+                    setNewCalorieGoal(calorieGoal.toString());
+                  }}
+                  style={styles.editButton}
+                >
+                  <Icon name="edit-outline" width={20} height={20} fill="#666" />
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            <Text style={styles.totalCalories}>Total Calories: {totalCalories || 0}</Text>
+          )}
+          
+          {isCurrentDay() && editingCalorieGoal && (
+            <View style={styles.editCalorieContainer}>
+              <TextInput
+                style={styles.calorieInput}
+                value={newCalorieGoal}
+                onChangeText={setNewCalorieGoal}
+                keyboardType="number-pad"
+                placeholder="Enter calorie goal"
+                placeholderTextColor="#999"
+              />
+              <View style={styles.editButtonsRow}>
+                <LinearGradient
+                  colors={['#444444', '#222222']}
+                  style={styles.smallGradientContainer}
+                >
+                  <KittenButton
+                    size="small"
+                    appearance="filled"
+                    onPress={updateCalorieGoal}
+                    disabled={isUpdatingCalorieGoal}
+                    style={[styles.saveButton, { backgroundColor: 'transparent' }]}
+                  >
+                    {(evaProps: any) => <KittenText {...evaProps} style={styles.buttonText}>Save</KittenText>}
+                  </KittenButton>
+                </LinearGradient>
+                
+                <KittenButton
+                  size="small"
+                  appearance="outline"
+                  status="basic"
+                  onPress={() => setEditingCalorieGoal(false)}
+                  style={styles.cancelButton}
+                >
+                  Cancel
+                </KittenButton>
+              </View>
+            </View>
+          )}
         </View>
         
         {/* Macronutrient Pie Chart */}
@@ -725,7 +884,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
     marginBottom: 10,
-    gap: 20,
+    gap: 10,
   },
   totalCalories: {
     fontSize: 16,
@@ -734,6 +893,46 @@ const styles = StyleSheet.create({
   calorieGoal: {
     fontSize: 16,
     color: '#666',
+  },
+  editButton: {
+    padding: 4,
+  },
+  editCalorieContainer: {
+    alignItems: 'center',
+    marginLeft: 5,
+  },
+  calorieInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    width: 120,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  editButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  smallGradientContainer: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  saveButton: {
+    minWidth: 70,
+    borderRadius: 8,
+    borderWidth: 0,
+  },
+  cancelButton: {
+    minWidth: 70,
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'white',
   },
   macroChartContainer: {
     marginTop: 10,
