@@ -415,7 +415,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
         else if (scannedProduct) {
           setDeleteEntry(null);
-          setModalVisible(true);
+          setOptionsModalVisible(true);
         }
       });
 
@@ -708,24 +708,27 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             <MacroByLabelCalculator onFoodAdded={onFoodAdded} nutritionInfo={nutritionInfo} />
           ) 
         }
-        {
-          scannedProduct && (
-            <MacroCalculator 
-              productResponse={scannedProduct} 
-              setModalVisible={setModalVisible} 
-              onFoodAdded={onFoodAdded}
-            />
-          )
-        }
       </CustomModal>
       
-      {/* Food Entry Options Modal */}
+      {/* Consolidated Food Entry Modal that handles both options and results */}
       <CustomModal
         visible={optionsModalVisible}
-        setVisible={setOptionsModalVisible}
+        setVisible={() => {
+          setOptionsModalVisible(false);
+          // Clear context when modal is closed if user cancels
+          setScannedProduct(null);
+        }}
         animationType="slide"
       >
-        <FoodEntryModalContent onActionSelected={handleFoodOptionSelected} />
+        <FoodEntryModalContent 
+          onActionSelected={handleFoodOptionSelected} 
+          productResponse={scannedProduct}
+          onFoodAdded={onFoodAdded}
+          closeModal={() => {
+            setOptionsModalVisible(false);
+            setScannedProduct(null);
+          }}
+        />
       </CustomModal>
     </View>
   );
