@@ -18,6 +18,44 @@ class BedrockService {
     });
   }
 
+  async processPrompt(
+    prompt,
+  ) {
+    try {
+      const command = new InvokeModelCommand({
+        modelId: config.MODEL_ID,
+        contentType: "application/json",
+        accept: "application/json",
+        body: JSON.stringify({
+          "anthropic_version": "bedrock-2023-05-31",
+          "max_tokens": 8096,
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": prompt,
+                }
+              ]
+            }
+          ]
+        }),
+      });
+
+      const response = await this.client.send(command);
+      const responseBody = JSON.parse(
+        new TextDecoder().decode(response.body)
+      );
+
+      return responseBody.content[0].text;
+
+    } catch (error) {
+      console.error("Error processing request:", error);
+      throw new Error(`Bedrock API error: ${error}`);
+    }
+  }
+
   async processImageAndPrompt(
     imageBase64,
     prompt,
@@ -66,9 +104,11 @@ class BedrockService {
   }
 }
 
+const bedrockService = new BedrockService();
+
+// TODO deprecated, marked for deletion
 export async function extractNutritionInfo(imageBase64String, prompt) {
   try {
-    const bedrockService = new BedrockService();
     const result = await bedrockService.processImageAndPrompt(
       imageBase64String,
       prompt,
@@ -81,3 +121,15 @@ export async function extractNutritionInfo(imageBase64String, prompt) {
   }
 }
 
+export async function getNutritionInfo(prompt) {
+  try {
+    const result = await bedrockService.processPrompt(
+      prompt,
+    );
+
+    return result;
+  } catch (error) {
+    console.error("Error analyzing image:", error);
+    throw error;
+  }
+}

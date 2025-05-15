@@ -1,5 +1,5 @@
 import express from 'express';
-import {extractNutritionInfo} from '../bedrock.js';
+import {extractNutritionInfo, getNutritionInfo} from '../bedrock.js';
 const router = express.Router();
 
 export default function foodImageAnalyzerRoutes() {
@@ -9,23 +9,17 @@ export default function foodImageAnalyzerRoutes() {
     try {
       const { base64ImageString } = req.body;
       const prompt = `
-        Look at this food image and estimate the macronutrient content.
-        
-        Analyze the food carefully and make an educated estimate of its nutritional content.
-        If there are multiple food items, consider the entire meal.
+        Using the data determine the macronutrient content.
+
+        Data: {req.data}
         
         Return a JSON object with exactly these keys and structure:
         {
-          "food_name": string,  // Brief description of the food in the image
-          "total_calories": number,  // Estimated calories
           "protein_grams": number,  // Estimated protein in grams
           "carb_grams": number,  // Estimated carbohydrates in grams
           "fat_grams": number,  // Estimated fat in grams
           "confidence": string  // Your confidence level: "low", "medium", or "high"
         }
-        
-        Keep in mind that protein, carbs and fat contain 4, 4, and 9 calories per gram respectively.
-        Use protein_grams, carb_grams and fat_grams to calculate the total calories.
         
         For confidence level:
         - "low": Hard to estimate accurately
@@ -37,7 +31,7 @@ export default function foodImageAnalyzerRoutes() {
       `;
       
       logger.info('POST /foodimageanalyzer');
-      const result = await extractNutritionInfo(base64ImageString, prompt);
+      const result = await getNutritionInfo(base64ImageString, prompt);
       console.log(result);
       const resultJson = JSON.parse(result);
       res.status(201).json(resultJson);
