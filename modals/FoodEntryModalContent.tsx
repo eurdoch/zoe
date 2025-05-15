@@ -13,13 +13,17 @@ const FoodEntryModalContent: React.FC<Props> = ({ onActionSelected }) => {
   const [description, setDescription] = useState<string>('');
   const actions = [
     { id: 'search', icon: 'search-outline' },
-    { id: 'barcode', icon: 'camera-outline' }
   ];
 
-  // Placeholder handler for MDI barcode scan
+  // Handler for MDI barcode scan - navigate to BarcodeScanner
   const handleMdiBarcodeScan = () => {
-    console.log('MDI Barcode Scan pressed');
-    // Add your custom logic here
+    onActionSelected('barcode', description);
+  };
+
+  // Placeholder handler for camera icon - does nothing for now
+  const handleCameraPress = () => {
+    console.log('Camera icon pressed - no action assigned');
+    // No navigation for now
   };
 
   return (
@@ -53,7 +57,20 @@ const FoodEntryModalContent: React.FC<Props> = ({ onActionSelected }) => {
             </TouchableOpacity>
           ))}
           
-          {/* MDI Barcode Scan Icon */}
+          {/* Camera Icon (No action) */}
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleCameraPress}
+          >
+            <LinearGradient
+              colors={['#444444', '#222222']}
+              style={styles.gradientButton}
+            >
+              <Icon name="camera-outline" width={28} height={28} fill="#FFFFFF" />
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          {/* MDI Barcode Scan Icon (Goes to BarcodeScanner) */}
           <TouchableOpacity
             style={styles.iconButton}
             onPress={handleMdiBarcodeScan}
