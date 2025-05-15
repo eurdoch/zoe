@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface FoodDataContextType {
-  data: string;
-  setData: (data: string) => void;
+  foodData: string;
+  setFoodData: (data: string) => void;
   clearFoodData: () => void;
 }
 
@@ -21,15 +21,15 @@ interface FoodDataProviderProps {
 }
 
 export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) => {
-  const [data, setData] = useState<string>('');
+  const [foodData, setFoodData] = useState<string>('');
 
   const clearFoodData = () => {
-    setData('');
+    setFoodData('');
   };
 
   const value = {
-    data,
-    setData,
+    foodData,
+    setFoodData,
     clearFoodData,
   };
 
