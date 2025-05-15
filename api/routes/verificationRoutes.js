@@ -1,8 +1,22 @@
 import express from 'express';
 import twilio from 'twilio';
-import { MongoClient } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import authenticateToken from '../middleware/auth.js';
+
+// Initialize Google Play Auth
+import { google } from 'googleapis';
+import fs from 'fs';
+import { purchaseErrorListener } from 'react-native-iap';
+
+const serviceAccount = JSON.parse(
+  fs.readFileSync('./zotik-456123-92758162bfa1.json', 'utf8')
+);
+const jwtClient = new google.auth.JWT(
+  serviceAccount.client_email,
+  null,
+  serviceAccount.private_key,
+  ['https://www.googleapis.com/auth/androidpublisher']
+);
 
 // Initialize Twilio client at module level
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -318,32 +332,19 @@ export default function verificationRoutes(userCollection) {
       }
 
       // Verify the receipt with the appropriate store
-      let isVerified = false;
-      let verificationResponse = null;
+      let verificationResponse = {};
 
-      // Handle debug receipts in development mode
-      if (receipt.includes('debug-') && process.env.NODE_ENV !== 'production') {
-        console.log('Debug receipt detected, bypassing store verification');
-        isVerified = true;
-        verificationResponse = {
-          status: 'debug',
-          environment: 'sandbox',
-          receipt_type: 'debug',
-          debug: true
-        };
+      // Verify receipt with appropriate store
+      if (platform === 'ios') {
+        verificationResponse = await verifyAppleReceipt(receipt);
+      } else if (platform === 'android') {
+        verificationResponse = await verifyGoogleReceipt(receipt);
       } else {
-        // Verify receipt with appropriate store
-        if (platform === 'ios') {
-          isVerified = await verifyAppleReceipt(receipt);
-        } else if (platform === 'android') {
-          isVerified = await verifyGoogleReceipt(receipt);
-        } else {
-          return res.status(400).json({ error: 'Invalid platform specified' });
-        }
+        return res.status(400).json({ error: 'Invalid platform specified' });
       }
 
       // If verification successful, update the user's premium status
-      if (isVerified && userCollection) {
+      if (verificationResponse.isValid && userCollection) {
         // Look up the user first
         const user = await userCollection.findOne({ user_id });
         
@@ -358,15 +359,18 @@ export default function verificationRoutes(userCollection) {
             $set: { 
               premium: true,
               premium_updated_at: new Date(),
-              premium_receipt: {
-                platform,
-                timestamp,
-                validation_status: 'verified'
-              }
+              subscription_receipts: [
+                ...(subscription_receipts || []),
+                {
+                  platform,
+                  timestamp,
+                  validation_status: 'verified'
+                }
+              ].sort((a, b) => b.timestamp - a.timestamp)
             }
           }
         );
-        
+
         // Get the updated user
         const updatedUser = await userCollection.findOne({ user_id });
         
@@ -382,7 +386,7 @@ export default function verificationRoutes(userCollection) {
           premium_updated_at: updatedUser.premium_updated_at,
           message: 'Premium status updated successfully'
         });
-      } else if (!isVerified) {
+      } else if (!verificationResponse.isValid) {
         // If verification failed
         res.status(400).json({ 
           error: 'Receipt verification failed',
@@ -442,25 +446,31 @@ async function verifyAppleReceipt(receipt) {
 // Function to verify Google Play Store receipt
 async function verifyGoogleReceipt(receipt) {
   try {
-    // Parse the receipt data
-    const receiptData = typeof receipt === 'string' ? JSON.parse(receipt) : receipt;
-    
-    // In a real implementation, you would:
-    // 1. Verify using Google Play Developer API
-    // 2. Validate the purchase token against your package name and product ID
-    
-    // For testing in development, you can simulate success:
-    console.log('Google receipt verification requested:', 
-      JSON.stringify(receiptData).substring(0, 100) + '...');
-    
-    // For production, you would set up Google API client
-    // and verify against Google's servers
-    
-    // For this implementation, we'll simulate success
-    return true;
+    await jwtClient.authorize();
+    const androidPublisher = google.androidpublisher({
+      version: 'v3',
+      auth: jwtClient
+    });
+
+    const purchase = await androidPublisher.purchases.products.get({
+      packageName: receipt.packageName,
+      productId: receipt.productId,
+      token: receipt.purchaseToken
+    });
+    const isValid = purchase.data.purchaseState === 0;
+
+    return {
+      isValid,
+      purchaseData: purchase.data,
+      error: null
+    }
   } catch (error) {
     console.error('Error verifying Google receipt:', error);
-    return false;
+    return {
+      isValid,
+      purchaseData: purchase.data,
+      error,
+    }
   }
 }
-}
+

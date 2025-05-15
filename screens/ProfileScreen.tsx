@@ -162,69 +162,6 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       
       console.log(`Requesting subscription for product ID: ${productId}`);
       
-      // For development/debugging mode on Android only, simulate successful purchase
-      // Android: Real Play Store purchases can't be tested in debug builds
-      // iOS: Always use real payment flow to test with sandbox accounts
-      if (__DEV__ && Platform.OS === 'android') {
-        console.log(`Debug mode: Simulating successful Android purchase`);
-        
-        // Simulate a brief delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        try {
-          // Get the auth token
-          const token = await AsyncStorage.getItem('token');
-          
-          if (!token) {
-            throw new Error('Authentication token not found');
-          }
-          
-          // Create a simulated receipt for debug mode
-          const debugReceipt = JSON.stringify({
-            productId: SUBSCRIPTION_ID,
-            transactionId: `debug-${Date.now()}`,
-            transactionDate: new Date().toISOString(),
-            debug: true
-          });
-          
-          // Send simulated receipt to backend and update premium status
-          console.log('Sending debug receipt to backend');
-          const updatedUser = await updatePremiumStatus(token, debugReceipt, 'android');
-          
-          // Update local user object with response from backend
-          if (updatedUser) {
-            setUser(updatedUser);
-            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-            console.log('Premium status updated on backend (debug mode):', updatedUser.premium);
-          }
-          
-          // Show success message
-          Alert.alert(
-            'DEBUG: Subscription Activated',
-            'Simulated purchase successful and synced with backend',
-            [{ text: 'OK' }]
-          );
-        } catch (error) {
-          console.error('Error updating premium status on backend (debug mode):', error);
-          
-          // If backend validation fails, still update locally
-          const updatedUser = user ? { ...user, premium: true } : null;
-          if (updatedUser) {
-            setUser(updatedUser);
-            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-          }
-          
-          // Show warning that backend sync failed
-          Alert.alert(
-            'DEBUG: Subscription Activated',
-            'Simulated purchase successful but backend sync failed: ' + (error instanceof Error ? error.message : String(error)),
-            [{ text: 'OK' }]
-          );
-        }
-        
-        return;
-      }
-      
       // Normal production flow
       // For Android, we need to pass the offerToken
       if (Platform.OS === 'android' && offerToken) {
