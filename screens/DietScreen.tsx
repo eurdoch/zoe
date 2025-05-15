@@ -4,14 +4,11 @@ import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
-import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
-import MacroCalculator from '../components/MacroCalculator';
-import { Icon, Datepicker, Layout, Button as KittenButton, Text as KittenText } from '@ui-kitten/components';
+import { Icon, Datepicker, Button as KittenButton, Text as KittenText } from '@ui-kitten/components';
 import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FloatingActionButton from '../components/FloatingActionButton';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 import User from '../types/User';
@@ -33,6 +30,7 @@ interface MacroData {
   proteinCalories: number;
 }
 
+// TODO refactor to separate file
 // MacroPieChart component
 const MacroPieChart: React.FC<{ 
   macroData: MacroData, 
@@ -167,14 +165,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   
   // Use the food data context instead of local state
   const { 
-    nutritionInfo, 
-    scannedProduct, 
-    setNutritionInfo, 
-    setScannedProduct
+    foodData,
+    setFoodData,
+    clearFoodData
   } = useFoodData();
   
-  // No longer needed with modal approach
-
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
     console.log('Authentication error detected:', error);
@@ -197,14 +192,21 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   }, [navigation]);
 
   const onFoodAdded = () => {
+    // Close both modals
     setModalVisible(false);
-    setNutritionInfo(null);
-    setScannedProduct(null);
-    // Clear any stored description
-    AsyncStorage.removeItem('food_description').catch(err => 
-      console.error('Error removing food description:', err)
-    );
+    setOptionsModalVisible(false);
+    
+    // Clear all food-related context data
+    clearFoodData();
+    
+    // Clear consolidated food data
+    clearFoodData();
+    
+    // Reload the food entries list
     loadData();
+    
+    // Show success message to user
+    showToastInfo('Food entry added successfully');
   }
 
   // Calculate macronutrient totals and percentages
@@ -404,24 +406,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     loadUserData();
   }, []);
 
-  useEffect(() => {
-      const unsubscribe = navigation.addListener('focus', () => {
-        console.log('DietScreen focused');
-        loadData();
-        loadUserData(); // Reload user data when screen is focused
-        if (nutritionInfo) {
-          setDeleteEntry(null);
-          setModalVisible(true);
-        }
-        else if (scannedProduct) {
-          setDeleteEntry(null);
-          setOptionsModalVisible(true);
-        }
-      });
-
-      return unsubscribe;
-  }, [navigation, nutritionInfo, scannedProduct]);
-
   const handleDeleteEntry = (id: string) => {
     deleteFood(id)
       .then(result => {
@@ -506,9 +490,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     }
   };
 
-  const handleFoodOptionSelected = async (action: string, description?: string) => {
-    setOptionsModalVisible(false);
-    
+  const handleFoodOptionSelected = async (action: string) => {
     let screenName = '';
     switch(action) {
       case 'search':
@@ -527,26 +509,19 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         return;
     }
     
-    // Store description in AsyncStorage if provided
-    if (description) {
-      try {
-        await AsyncStorage.setItem('food_description', description);
-      } catch (error) {
-        console.error('Error saving food description:', error);
-      }
-    }
+    setOptionsModalVisible(false);
     
-    if (screenName === 'NutritionLabelParser' || screenName === 'BarcodeScanner' || screenName === 'FoodImageAnalyzer') {
+    if (screenName === 'BarcodeScanner' || screenName === 'FoodImageAnalyzer') {
       const hasPermission = await requestCameraPermission();
       
       if (hasPermission) {
         navigation.navigate(screenName);
       }
     } else {
-      // For screens that don't need camera permission
       navigation.navigate(screenName);
     }
   };
+
   return (
     <View style={styles.rootContainer}>
       <View style={styles.headerContainer}>
@@ -680,8 +655,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         setVisible={() => {
           setModalVisible(false);
           // Clear context when modal is closed
-          setNutritionInfo(null);
-          setScannedProduct(null);
+          clearFoodData();
         }}
       >
         { 
@@ -703,11 +677,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             </View>
           )
         }
-        {
-          nutritionInfo && (
-            <MacroByLabelCalculator onFoodAdded={onFoodAdded} nutritionInfo={nutritionInfo} />
-          ) 
-        }
       </CustomModal>
       
       {/* Consolidated Food Entry Modal that handles both options and results */}
@@ -716,17 +685,16 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         setVisible={() => {
           setOptionsModalVisible(false);
           // Clear context when modal is closed if user cancels
-          setScannedProduct(null);
+          clearFoodData();
         }}
         animationType="slide"
       >
         <FoodEntryModalContent 
           onActionSelected={handleFoodOptionSelected} 
-          productResponse={scannedProduct}
           onFoodAdded={onFoodAdded}
           closeModal={() => {
             setOptionsModalVisible(false);
-            setScannedProduct(null);
+            clearFoodData();
           }}
         />
       </CustomModal>

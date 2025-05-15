@@ -8,7 +8,8 @@ import { Icon, Select, SelectItem, IndexPath } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 
 interface MacroByLabelCalculatorProps {
-  nutritionInfo: NutritionInfo;
+  nutritionInfo?: NutritionInfo; // Optional now, for backward compatibility
+  consolidatedData?: string; // New prop for consolidated data string
   onFoodAdded: () => void;
   navigation?: any; // Optional navigation prop for navigating back to Diet screen
 }
