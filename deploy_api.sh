@@ -132,16 +132,28 @@ for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
   ATTEMPTS=0
   
   while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-    NEW_INSTANCE_COUNT=$(aws autoscaling describe-auto-scaling-groups \
+    echo "Checking for new instance status in AZ $AZ (Attempt $((ATTEMPTS+1))/$MAX_ATTEMPTS)..."
+    
+    # Get full response and save to variable
+    ASG_RESPONSE=$(aws autoscaling describe-auto-scaling-groups \
       --auto-scaling-group-name "$ASG_NAME" \
-      --query "length(AutoScalingGroups[0].Instances[?LifecycleState=='InService' && AvailabilityZone=='$AZ'])" \
-      --output text)
+      --output json)
+    
+    # Print the full response for debugging
+    echo "AWS Response:"
+    echo "$ASG_RESPONSE" | jq .
+    
+    # Extract instance count from the response
+    NEW_INSTANCE_COUNT=$(echo "$ASG_RESPONSE" | \
+      jq "[.AutoScalingGroups[0].Instances[] | select(.LifecycleState==\"InService\" and .AvailabilityZone==\"$AZ\")] | length")
+    
+    echo "InService instances in AZ $AZ: $NEW_INSTANCE_COUNT"
     
     if [ "$NEW_INSTANCE_COUNT" -ge "1" ]; then
       echo "New instance is now InService in AZ $AZ"
       break
     else
-      echo "Waiting for new instance in AZ $AZ to become InService... (Attempt $((ATTEMPTS+1))/$MAX_ATTEMPTS)"
+      echo "Waiting for new instance in AZ $AZ to become InService..."
       sleep 10
       ATTEMPTS=$((ATTEMPTS+1))
     fi
