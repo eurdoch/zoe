@@ -326,6 +326,7 @@ export default function verificationRoutes(userCollection) {
           error: 'Receipt and platform are required' 
         });
       }
+      console.log('DEBUG receipt: ', receipt);
 
       // Verify the receipt with the appropriate store
       let verificationResponse = {};
