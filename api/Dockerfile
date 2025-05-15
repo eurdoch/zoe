@@ -5,6 +5,7 @@ RUN npm install -g pm2
 
 WORKDIR /app
 COPY ecosystem.config.js .
+COPY zotik-456123-92758162bfa1.json .
 WORKDIR /app/api
 
 # Copy package files first for better layer caching
