@@ -6,7 +6,6 @@ import authenticateToken from '../middleware/auth.js';
 // Initialize Google Play Auth
 import { google } from 'googleapis';
 import fs from 'fs';
-import { purchaseErrorListener } from 'react-native-iap';
 
 const serviceAccount = JSON.parse(
   fs.readFileSync('./zotik-456123-92758162bfa1.json', 'utf8')
@@ -405,6 +404,7 @@ export default function verificationRoutes(userCollection) {
   });
 
   return router;
+}
 
 // Function to verify Apple App Store receipt
 async function verifyAppleReceipt(receipt) {
@@ -467,8 +467,8 @@ async function verifyGoogleReceipt(receipt) {
   } catch (error) {
     console.error('Error verifying Google receipt:', error);
     return {
-      isValid,
-      purchaseData: purchase.data,
+      isValid: false,
+      purchaseData: null,
       error,
     }
   }
