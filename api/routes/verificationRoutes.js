@@ -444,6 +444,46 @@ async function verifyAppleReceipt(receipt) {
 // Function to verify Google Play Store receipt
 async function verifyGoogleReceipt(receipt) {
   try {
+    console.log('Google receipt verification requested, receipt type:', typeof receipt);
+    
+    // Parse the receipt if it's a string
+    let receiptData;
+    if (typeof receipt === 'string') {
+      try {
+        receiptData = JSON.parse(receipt);
+        console.log('Successfully parsed receipt string to JSON');
+      } catch (parseError) {
+        console.error('Failed to parse receipt string:', parseError);
+        // If can't parse as JSON, it might be a direct purchase token
+        receiptData = {
+          packageName: process.env.ANDROID_PACKAGE_NAME || 'com.zotik',
+          productId: process.env.ANDROID_PRODUCT_ID || 'kallos_premium',
+          purchaseToken: receipt
+        };
+        console.log('Using receipt string as purchase token with default package/product');
+      }
+    } else {
+      receiptData = receipt;
+    }
+    
+    console.log('Receipt data for verification:', receiptData);
+    
+    // Check if we have all required parameters
+    if (!receiptData.packageName || !receiptData.productId || !receiptData.purchaseToken) {
+      console.error('Missing required receipt parameters:', {
+        hasPackageName: !!receiptData.packageName,
+        hasProductId: !!receiptData.productId,
+        hasPurchaseToken: !!receiptData.purchaseToken
+      });
+      
+      return {
+        isValid: false,
+        purchaseData: null,
+        error: new Error('Missing required receipt parameters')
+      };
+    }
+    
+    // Authorize and verify
     await jwtClient.authorize();
     const androidPublisher = google.androidpublisher({
       version: 'v3',
@@ -451,9 +491,9 @@ async function verifyGoogleReceipt(receipt) {
     });
 
     const purchase = await androidPublisher.purchases.products.get({
-      packageName: receipt.packageName,
-      productId: receipt.productId,
-      token: receipt.purchaseToken
+      packageName: receiptData.packageName,
+      productId: receiptData.productId,
+      token: receiptData.purchaseToken
     });
     const isValid = purchase.data.purchaseState === 0;
 
