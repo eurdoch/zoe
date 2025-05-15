@@ -59,7 +59,7 @@ export async function updatePremiumStatus(
     }
     
     const baseUrl = await getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/verify/premium`, {
+    const response = await fetch(`${baseUrl}/verify/subscribe`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

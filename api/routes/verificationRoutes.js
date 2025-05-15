@@ -308,8 +308,8 @@ export default function verificationRoutes(userCollection) {
     }
   });
 
-  // Premium verification endpoint
-  router.post('/premium', authenticateToken, async (req, res) => {
+  // Subscription verification endpoint
+  router.post('/subscribe', authenticateToken, async (req, res) => {
     try {
       // Extract user_id from the authenticated token
       const { user_id } = req.user;
@@ -320,9 +320,6 @@ export default function verificationRoutes(userCollection) {
 
       // Get receipt data from request body
       const { receipt, platform, timestamp } = req.body;
-      console.log('DEBUG receipt: ', receipt);
-      console.log('DEBUG platform: ', platform);
-      console.log('DEBUG timestampe: ', timestamp);
       
       if (!receipt || !platform) {
         return res.status(400).json({ 
