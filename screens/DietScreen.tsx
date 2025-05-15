@@ -16,6 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 import User from '../types/User';
 import { updateUserInfo } from '../network/user';
+import FoodEntryModalContent from '../modals/FoodEntryModalContent';
 
 interface DietScreenProps {
   navigation: any;
@@ -145,7 +146,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [totalCalories, setTotalCalories] = useState<number | null>(null);
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [isFabMenuOpen, setIsFabMenuOpen] = useState<boolean>(false);
+  const [optionsModalVisible, setOptionsModalVisible] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState<boolean>(false);
   const [macroData, setMacroData] = useState<MacroData>({
@@ -172,8 +173,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setScannedProduct
   } = useFoodData();
   
-  // Animation values for the expanding FAB menu
-  const animation = useState(new Animated.Value(0))[0];
+  // No longer needed with modal approach
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -445,14 +445,8 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setModalVisible(true);
   }
 
-  const toggleFabMenu = () => {
-    const toValue = isFabMenuOpen ? 0 : 1;
-    Animated.spring(animation, {
-      toValue,
-      friction: 5,
-      useNativeDriver: true,
-    }).start();
-    setIsFabMenuOpen(!isFabMenuOpen);
+  const toggleFoodOptionsModal = () => {
+    setOptionsModalVisible(true);
   };
 
   const requestCameraPermission = async () => {
@@ -508,18 +502,36 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     }
   };
 
-  const navigateToScreen = async (screen: string) => {
-    toggleFabMenu();
+  const handleFoodOptionSelected = async (action: string) => {
+    setOptionsModalVisible(false);
     
-    if (screen === 'NutritionLabelParser' || screen === 'BarcodeScanner' || screen === 'FoodImageAnalyzer') {
+    let screenName = '';
+    switch(action) {
+      case 'search':
+        screenName = 'DietLog';
+        break;
+      case 'label':
+        screenName = 'NutritionLabelParser';
+        break;
+      case 'barcode':
+        screenName = 'BarcodeScanner';
+        break;
+      case 'image':
+        screenName = 'FoodImageAnalyzer';
+        break;
+      default:
+        return;
+    }
+    
+    if (screenName === 'NutritionLabelParser' || screenName === 'BarcodeScanner' || screenName === 'FoodImageAnalyzer') {
       const hasPermission = await requestCameraPermission();
       
       if (hasPermission) {
-        navigation.navigate(screen);
+        navigation.navigate(screenName);
       }
     } else {
       // For screens that don't need camera permission
-      navigation.navigate(screen);
+      navigation.navigate(screenName);
     }
   };
   return (
@@ -637,163 +649,18 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           </View>
         ))}
       </ScrollView>
-      {/* Expanded FAB menu buttons */}
-      <Animated.View 
-        style={[
-          styles.fabMenuItem, 
-          {
-            bottom: 290, // Increased to maintain spacing with 4 buttons
-            transform: [
-              { scale: animation },
-              { 
-                translateY: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0]
-                })
-              }
-            ],
-            opacity: animation
-          }
-        ]}
-      >
-        <View style={styles.fabWithLabelContainer}>
-          <Text style={styles.fabLabel}>Search</Text>
-          <FloatingActionButton
-            icon="search-outline"
-            onPress={() => navigateToScreen('DietLog')}
-            style={styles.fabPositionReset}
-          />
-        </View>
-      </Animated.View>
-
-      <Animated.View 
-        style={[
-          styles.fabMenuItem, 
-          {
-            bottom: 225, // Adjusted for proper spacing between buttons
-            transform: [
-              { scale: animation },
-              { 
-                translateY: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0]
-                })
-              }
-            ],
-            opacity: animation
-          }
-        ]}
-      >
-        <View style={styles.fabWithLabelContainer}>
-          <Text style={styles.fabLabel}>Scan Nutrition Label</Text>
-          <FloatingActionButton
-            icon="file-text-outline"
-            onPress={() => navigateToScreen('NutritionLabelParser')}
-            style={styles.fabPositionReset}
-          />
-        </View>
-      </Animated.View>
-
-      <Animated.View 
-        style={[
-          styles.fabMenuItem, 
-          {
-            bottom: 160, // Increased from 95 to make room for new button
-            transform: [
-              { scale: animation },
-              { 
-                translateY: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0]
-                })
-              }
-            ],
-            opacity: animation
-          }
-        ]}
-      >
-        <View style={styles.fabWithLabelContainer}>
-          <Text style={styles.fabLabel}>Scan Barcode</Text>
-          <FloatingActionButton
-            icon="camera-outline"
-            onPress={() => navigateToScreen('BarcodeScanner')}
-            style={styles.fabPositionReset}
-          />
-        </View>
-      </Animated.View>
-
-      <Animated.View 
-        style={[
-          styles.fabMenuItem, 
-          {
-            bottom: 95, // Bottom position for new button
-            transform: [
-              { scale: animation },
-              { 
-                translateY: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 0]
-                })
-              }
-            ],
-            opacity: animation
-          }
-        ]}
-      >
-        <View style={styles.fabWithLabelContainer}>
-          <Text style={styles.fabLabel}>Use the shoggoth brain</Text>
-          <FloatingActionButton
-            icon="bulb-outline"
-            onPress={() => navigateToScreen('FoodImageAnalyzer')}
-            style={styles.fabPositionReset}
-          />
-        </View>
-      </Animated.View>
-
-
       {/* Main FAB button */}
-      {isFabMenuOpen ? (
-        <TouchableOpacity 
-          style={[styles.fab, styles.fabActive]} 
-          onPress={toggleFabMenu}
+      <TouchableOpacity 
+        style={styles.mainFabPositionReset} 
+        onPress={toggleFoodOptionsModal}
+      >
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={styles.gradientFab}
         >
-          <Animated.View style={{
-            transform: [
-              { 
-                rotate: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0deg', '45deg']
-                })
-              }
-            ]
-          }}>
-            <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
-          </Animated.View>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity 
-          style={styles.mainFabPositionReset} 
-          onPress={toggleFabMenu}
-        >
-          <LinearGradient
-            colors={['#444444', '#222222']}
-            style={styles.gradientFab}
-          >
-            <Animated.View style={{
-              transform: [
-                { 
-                  rotate: animation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0deg', '45deg']
-                  })
-                }
-              ]
-            }}>
-              <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
-            </Animated.View>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
+          <Icon name='plus-outline' style={styles.fabIcon} fill='white' />
+        </LinearGradient>
+      </TouchableOpacity>
 
       <CustomModal
         visible={modalVisible}
@@ -837,6 +704,15 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             />
           )
         }
+      </CustomModal>
+      
+      {/* Food Entry Options Modal */}
+      <CustomModal
+        visible={optionsModalVisible}
+        setVisible={setOptionsModalVisible}
+        animationType="slide"
+      >
+        <FoodEntryModalContent onActionSelected={handleFoodOptionSelected} />
       </CustomModal>
     </View>
   );
