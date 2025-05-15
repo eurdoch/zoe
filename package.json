@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
+    "@mdi/js": "^7.4.47",
+    "@mdi/react": "^1.6.1",
     "@openspacelabs/react-native-zoomable-view": "^2.3.1",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/netinfo": "^11.4.1",

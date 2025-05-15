@@ -200,6 +200,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setModalVisible(false);
     setNutritionInfo(null);
     setScannedProduct(null);
+    // Clear any stored description
+    AsyncStorage.removeItem('food_description').catch(err => 
+      console.error('Error removing food description:', err)
+    );
     loadData();
   }
 
@@ -502,7 +506,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     }
   };
 
-  const handleFoodOptionSelected = async (action: string) => {
+  const handleFoodOptionSelected = async (action: string, description?: string) => {
     setOptionsModalVisible(false);
     
     let screenName = '';
@@ -521,6 +525,15 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         break;
       default:
         return;
+    }
+    
+    // Store description in AsyncStorage if provided
+    if (description) {
+      try {
+        await AsyncStorage.setItem('food_description', description);
+      } catch (error) {
+        console.error('Error saving food description:', error);
+      }
     }
     
     if (screenName === 'NutritionLabelParser' || screenName === 'BarcodeScanner' || screenName === 'FoodImageAnalyzer') {
