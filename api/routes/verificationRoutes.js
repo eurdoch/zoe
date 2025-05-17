@@ -496,12 +496,14 @@ async function verifyGoogleReceipt(receipt) {
       'productId:', receiptData.productId,
       'token:', receiptData.purchaseToken
     );
-    const purchase = await androidPublisher.purchases.products.get({
+    const purchase = await androidPublisher.purchases.subscriptions.get({
       packageName: receiptData.packageName,
-      productId: receiptData.productId,
+      subscriptionId: receiptData.productId,
       token: receiptData.purchaseToken
     });
-    const isValid = purchase.data.purchaseState === 0;
+    const isValid = purchase.data.paymentState === 1 && 
+                !purchase.data.cancelReason &&
+                new Date(parseInt(purchase.data.expiryTimeMillis)) > new Date();
 
     return {
       isValid,
