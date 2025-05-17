@@ -490,6 +490,12 @@ async function verifyGoogleReceipt(receipt) {
       auth: jwtClient
     });
 
+    console.log(
+      '====== Receipt info ======',
+      'packageName:', receiptData.packageName,
+      'productId:', receiptData.productId,
+      'token:', receiptData.purchaseToken
+    );
     const purchase = await androidPublisher.purchases.products.get({
       packageName: receiptData.packageName,
       productId: receiptData.productId,
