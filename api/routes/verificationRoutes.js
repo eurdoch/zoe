@@ -1,7 +1,8 @@
 import express from 'express';
-import twilio from 'twilio';
 import jwt from 'jsonwebtoken';
 import authenticateToken from '../middleware/auth.js';
+import { SESClient, SendEmailCommand, SendTemplatedEmailCommand } from "@aws-sdk/client-ses";
+import crypto from 'crypto';
 
 // Initialize Google Play Auth
 import { google } from 'googleapis';
@@ -17,24 +18,32 @@ const jwtClient = new google.auth.JWT(
   ['https://www.googleapis.com/auth/androidpublisher']
 );
 
-// Initialize Twilio client at module level
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const serviceSid = process.env.TWILIO_SERVICE_SID;
+// Initialize AWS SES client
+const sesClient = new SESClient({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
 
-// Create a single client instance to be reused
-const client = twilio(accountSid, authToken);
+// SES Configuration
+const SES_SENDER_EMAIL = process.env.SES_SENDER_EMAIL || 'noreply@zotik.com';
 
 // JWT secret - in production, store in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'zoe-app-jwt-secret-key-development-only';
 const JWT_EXPIRES_IN = '90d'; // 3 months
 const DEMO_JWT_EXPIRES_IN = '2h'; // 10 minutes for demo account
-const DEMO_PHONE_NUMBER = process.env.DEMO_PHONE_NUMBER;
+const DEMO_EMAIL = process.env.DEMO_EMAIL;
 
-// Phone number hashing function - must match client-side implementation exactly
-const generateConsistentHash = (phone) => {
-  // Normalize the phone number by removing non-digit characters
-  const normalizedPhone = phone.replace(/\D/g, '');
+// Store verification codes temporarily
+const verificationCodes = new Map();
+const VERIFICATION_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
+
+// Email hash function - must match client-side implementation exactly
+const generateConsistentHash = (email) => {
+  // Normalize the email by converting to lowercase
+  const normalizedEmail = email.toLowerCase();
   
   // Fixed salt - should be stored in environment variables in production
   const salt = process.env.SALT;
@@ -70,7 +79,7 @@ const generateConsistentHash = (phone) => {
   
   for (let i = 0; i < segments; i++) {
     // Use deterministic seed for each segment based on input
-    const segmentInput = normalizedPhone + i.toString();
+    const segmentInput = normalizedEmail + i.toString();
     hashParts.push(hashSegment(segmentInput, i));
   }
   
@@ -80,42 +89,89 @@ const generateConsistentHash = (phone) => {
   return fullHash;
 };
 
+// Generate a verification code
+const generateVerificationCode = () => {
+  return crypto.randomInt(100000, 999999).toString();
+};
+
 const router = express.Router();
 
 export default function verificationRoutes(userCollection) {
 
-  // Create a new verification
+  // Send verification email
   router.post('/send', async (req, res) => {
-    const { phoneNumber } = req.body;
+    const { email } = req.body;
     
-    if (!phoneNumber) {
-      return res.status(400).json({ error: 'Phone number is required' });
+    if (!email) {
+      return res.status(400).json({ error: 'Email address is required' });
     }
 
-    // For demo account, skip actual Twilio verification
-    if (phoneNumber === DEMO_PHONE_NUMBER) {
-      console.log('Demo account detected, skipping Twilio verification send');
-      // Return a mock verification object that looks like Twilio's response
+    // For demo account, skip actual verification
+    if (email === DEMO_EMAIL) {
+      console.log('Demo account detected, skipping email verification send');
+      // Return a mock verification object
       return res.status(200).json({
-        sid: 'demo-verification-sid',
         status: 'pending',
-        to: phoneNumber,
-        channel: 'sms',
+        to: email,
+        channel: 'email',
         date_created: new Date().toISOString(),
         valid: true
       });
     }
 
     try {
-      const verification = await client.verify.v2
-        .services(serviceSid)
-        .verifications.create({
-          to: phoneNumber,
-          channel: 'sms'
-        });
+      // Generate a verification code
+      const verificationCode = generateVerificationCode();
       
-      // Return the entire verification object directly
-      res.status(200).json(verification);
+      // Store the code with expiry time
+      verificationCodes.set(email, {
+        code: verificationCode,
+        expires: Date.now() + VERIFICATION_CODE_EXPIRY
+      });
+      
+      // Prepare the email
+      const sendEmailCommand = new SendEmailCommand({
+        Destination: {
+          ToAddresses: [email],
+        },
+        Message: {
+          Body: {
+            Html: {
+              Charset: "UTF-8",
+              Data: `
+                <html>
+                  <body>
+                    <h1>Kaloos Verification Code</h1>
+                    <p>Your verification code is: <strong>${verificationCode}</strong></p>
+                    <p>This code will expire in 10 minutes.</p>
+                  </body>
+                </html>
+              `,
+            },
+            Text: {
+              Charset: "UTF-8",
+              Data: `Your Kaloos verification code is: ${verificationCode}. This code will expire in 10 minutes.`,
+            },
+          },
+          Subject: {
+            Charset: "UTF-8",
+            Data: "Kaloos Verification Code",
+          },
+        },
+        Source: SES_SENDER_EMAIL,
+      });
+      
+      // Send the email
+      await sesClient.send(sendEmailCommand);
+      
+      // Return success response
+      res.status(200).json({
+        status: 'pending',
+        to: email,
+        channel: 'email',
+        date_created: new Date().toISOString(),
+        valid: true
+      });
     } catch (error) {
       console.error('Error sending verification code:', error);
       res.status(500).json({
@@ -126,11 +182,11 @@ export default function verificationRoutes(userCollection) {
 
   // Check verification code
   router.post('/check', async (req, res) => {
-    const { phoneNumber, code } = req.body;
+    const { email, code } = req.body;
     
-    if (!phoneNumber || !code) {
+    if (!email || !code) {
       return res.status(400).json({ 
-        error: 'Phone number and verification code are required' 
+        error: 'Email and verification code are required' 
       });
     }
 
@@ -138,26 +194,30 @@ export default function verificationRoutes(userCollection) {
       let verificationStatus = 'pending';
       
       // Check if this is the demo account
-      if (phoneNumber === DEMO_PHONE_NUMBER) {
-        // Skip Twilio verification for demo account
-        console.log('Demo account detected, bypassing Twilio verification');
+      if (email === DEMO_EMAIL) {
+        // Skip verification for demo account
+        console.log('Demo account detected, bypassing verification');
         verificationStatus = 'approved';
       } else {
-        // Verify the code with Twilio for regular accounts
-        const verificationCheck = await client.verify.v2
-          .services(serviceSid)
-          .verificationChecks.create({
-            to: phoneNumber,
-            code: code
-          });
-        verificationStatus = verificationCheck.status;
+        // Verify the code
+        const storedVerification = verificationCodes.get(email);
+        
+        if (storedVerification && 
+            storedVerification.code === code && 
+            storedVerification.expires > Date.now()) {
+          verificationStatus = 'approved';
+          // Delete the used code
+          verificationCodes.delete(email);
+        } else {
+          verificationStatus = 'failed';
+        }
       }
 
-      // If verification is successful, hash the phone number and return user data
+      // If verification is successful, hash the email and return user data
       if (verificationStatus === 'approved') {
-        // Generate user ID from phone number
-        const userId = generateConsistentHash(phoneNumber);
-        console.log('Generated user ID from phone:', userId);
+        // Generate user ID from email
+        const userId = generateConsistentHash(email);
+        console.log('Generated user ID from email:', userId);
         
         // Check if this user already exists in the database
         let user = null;
@@ -171,11 +231,9 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
-              is_demo: phoneNumber === DEMO_PHONE_NUMBER,
-              // Add any other claims needed
             }, 
             JWT_SECRET, 
-            { expiresIn: phoneNumber === DEMO_PHONE_NUMBER ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
+            { expiresIn: email === DEMO_EMAIL ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           if (user) {
@@ -186,7 +244,8 @@ export default function verificationRoutes(userCollection) {
               { user_id: userId },
               { 
                 $set: { 
-                  last_login: new Date()
+                  last_login: new Date(),
+                  email: email // Store or update the email
                 }
               }
             );
@@ -197,6 +256,7 @@ export default function verificationRoutes(userCollection) {
             // Create the user response with token but don't store it in DB
             userResponse = {
               user_id: user.user_id,
+              email: user.email,
               token: token, // Send token to client
               last_login: user.last_login,
               created_at: user.created_at,
@@ -210,6 +270,7 @@ export default function verificationRoutes(userCollection) {
             // Don't store token in the database
             const newUser = {
               user_id: userId,
+              email: email,
               created_at: new Date(),
               last_login: new Date(),
               premium: false,
@@ -235,15 +296,17 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
-              is_demo: phoneNumber === DEMO_PHONE_NUMBER,
+              email: email,
+              is_demo: email === DEMO_EMAIL,
             }, 
             JWT_SECRET, 
-            { expiresIn: phoneNumber === DEMO_PHONE_NUMBER ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
+            { expiresIn: email === DEMO_EMAIL ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
           );
           
           // Create a minimal user response
           userResponse = {
             user_id: userId,
+            email: email,
             token: token,
             premium: false,
             created_at: new Date(),
@@ -254,9 +317,9 @@ export default function verificationRoutes(userCollection) {
         // Return just the user data instead of the verification check
         res.status(200).json(userResponse);
       } else {
-        // If verification failed, return the verification check object
+        // If verification failed
         res.status(400).json({ 
-          status: verificationCheck.status,
+          status: verificationStatus,
           error: 'Verification failed',
           message: 'The verification code is invalid or expired'
         });
@@ -436,10 +499,19 @@ async function verifyAppleReceipt(receipt) {
     // return data.status === 0;
     
     // For this implementation, we'll simulate success
-    return true;
+    return {
+      isValid: true,
+      purchaseData: { productId: 'com.zotik.premium', expiryDate: new Date(Date.now() + 31536000000).toISOString() },
+      receiptData: receipt
+    };
   } catch (error) {
     console.error('Error verifying Apple receipt:', error);
-    return false;
+    return {
+      isValid: false,
+      purchaseData: null,
+      receiptData: receipt,
+      error
+    };
   }
 }
 
@@ -516,4 +588,3 @@ async function verifyGoogleReceipt(receipt) {
     }
   }
 }
-
