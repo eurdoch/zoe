@@ -326,7 +326,6 @@ export default function verificationRoutes(userCollection) {
           error: 'Receipt and platform are required' 
         });
       }
-      console.log('DEBUG receipt: ', receipt);
 
       // Verify the receipt with the appropriate store
       let verificationResponse = {};
@@ -360,6 +359,7 @@ export default function verificationRoutes(userCollection) {
                 {
                   platform,
                   timestamp,
+                  purchaseData: verificationResponse.purchaseData,
                   validation_status: 'verified'
                 }
               ].sort((a, b) => b.timestamp - a.timestamp)
@@ -489,12 +489,6 @@ async function verifyGoogleReceipt(receipt) {
       auth: jwtClient
     });
 
-    console.log(
-      '====== Receipt info ======',
-      'packageName:', receiptData.packageName,
-      'productId:', receiptData.productId,
-      'token:', receiptData.purchaseToken
-    );
     const purchase = await androidPublisher.purchases.subscriptions.get({
       packageName: receiptData.packageName,
       subscriptionId: receiptData.productId,
@@ -503,8 +497,6 @@ async function verifyGoogleReceipt(receipt) {
     const isValid = purchase.data.paymentState === 1 && 
                 !purchase.data.cancelReason &&
                 new Date(parseInt(purchase.data.expiryTimeMillis)) > new Date();
-
-    console.log('DEBUG isValid: ', isValid);
 
     return {
       isValid,
