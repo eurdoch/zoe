@@ -45,6 +45,7 @@ async function connectToDatabase() {
     const weightCollection = database.collection('weight');
     const supplementCollection = database.collection('supplement');
     const userCollection = database.collection('users');
+    const verificationCollection = database.collection('verification');
 
     app.use(express.static(path.join(__dirname, '../web/dist')));
 
@@ -56,7 +57,7 @@ async function connectToDatabase() {
     app.use('/nutritionimg', nutritionParserRoutes());
     // Food image analyzer requires authentication and premium status
     app.use('/foodimageanalyzer', authenticateToken, verifyPremiumStatus(userCollection), foodImageAnalyzerRoutes());
-    app.use('/verify', verificationRoutes(userCollection));
+    app.use('/verify', verificationRoutes(userCollection, verificationCollection));
     
     // Protected routes (require JWT authentication)
     app.use('/food', authenticateToken, verifyPremiumStatus(userCollection), foodRoutes(foodCollection));

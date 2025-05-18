@@ -95,10 +95,7 @@ const generateVerificationCode = () => {
 
 const router = express.Router();
 
-export default function verificationRoutes(userCollection) {
-  // Get MongoDB collection for verification codes
-  const verificationCollection = userCollection.s.db.collection('verification_codes');
-  
+export default function verificationRoutes(userCollection, verificationCollection) {
   // Cleanup expired verification codes (can be called periodically)
   const cleanupExpiredCodes = async () => {
     try {
@@ -142,7 +139,7 @@ export default function verificationRoutes(userCollection) {
       // Generate a verification code
       const verificationCode = generateVerificationCode();
       
-      // Store the code in the database with expiry time
+      // Store the code in the database with expiry time (if verification collection is available)
       await verificationCollection.updateOne(
         { email: email.toLowerCase() },
         { 
