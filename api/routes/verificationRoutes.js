@@ -360,6 +360,7 @@ export default function verificationRoutes(userCollection) {
                   platform,
                   timestamp,
                   purchaseData: verificationResponse.purchaseData,
+                  receiptData: verificationResponse.receiptData,
                   validation_status: 'verified'
                 }
               ].sort((a, b) => b.timestamp - a.timestamp)
@@ -495,12 +496,13 @@ async function verifyGoogleReceipt(receipt) {
       token: receiptData.purchaseToken
     });
     const isValid = purchase.data.paymentState === 1 && 
-                !purchase.data.cancelReason &&
-                new Date(parseInt(purchase.data.expiryTimeMillis)) > new Date();
+      !purchase.data.cancelReason &&
+      new Date(parseInt(purchase.data.expiryTimeMillis)) > new Date();
 
     return {
       isValid,
       purchaseData: purchase.data,
+      receiptData,
       error: null
     }
   } catch (error) {
