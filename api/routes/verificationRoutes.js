@@ -212,7 +212,9 @@ export default function verificationRoutes(userCollection) {
               user_id: userId,
               created_at: new Date(),
               last_login: new Date(),
-              premium: false
+              premium: false,
+              premium_updated_at: '',
+              subscription_receipts: [],
             };
             
             // Insert the new user into the database
@@ -355,15 +357,15 @@ export default function verificationRoutes(userCollection) {
             $set: { 
               premium: true,
               premium_updated_at: new Date(),
-              subscription_receipts: [
-                {
-                  platform,
-                  timestamp,
-                  purchaseData: verificationResponse.purchaseData,
-                  receiptData: verificationResponse.receiptData,
-                  validation_status: 'verified'
-                }
-              ].sort((a, b) => b.timestamp - a.timestamp)
+            },
+            $push: {  
+              subscription_receipts: {
+                platform,
+                timestamp,
+                purchaseData: verificationResponse.purchaseData,
+                receiptData: verificationResponse.receiptData,
+                validation_status: 'verified'
+              }
             }
           }
         );
