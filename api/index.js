@@ -59,7 +59,7 @@ async function connectToDatabase() {
     app.use('/verify', verificationRoutes(userCollection));
     
     // Protected routes (require JWT authentication)
-    app.use('/food', authenticateToken, foodRoutes(foodCollection));
+    app.use('/food', authenticateToken, verifyPremiumStatus(userCollection), foodRoutes(foodCollection));
     app.use('/exercise', authenticateToken, exerciseRoutes(exerciseCollection));
     app.use('/workout', authenticateToken, workoutRoutes(workoutCollection));
     app.use('/weight', authenticateToken, weightRoutes(weightCollection));
