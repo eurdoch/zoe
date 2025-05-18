@@ -357,7 +357,6 @@ export default function verificationRoutes(userCollection) {
               premium: true,
               premium_updated_at: new Date(),
               subscription_receipts: [
-                ...(subscription_receipts || []),
                 {
                   platform,
                   timestamp,
@@ -504,6 +503,8 @@ async function verifyGoogleReceipt(receipt) {
     const isValid = purchase.data.paymentState === 1 && 
                 !purchase.data.cancelReason &&
                 new Date(parseInt(purchase.data.expiryTimeMillis)) > new Date();
+
+    console.log('DEBUG isValid: ', isValid);
 
     return {
       isValid,
