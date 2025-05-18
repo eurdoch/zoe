@@ -25,7 +25,7 @@ type LoginScreenProps = {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState("");
-  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [emailPending, setEmailPending] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,8 +51,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         const data = await response.json();
         console.log('Verification response:', data);
         
-        // Set the verification ID for later use
-        setVerificationId(data.sid);
+        // Check if verification is pending
+        if (data.status === 'pending') {
+          setEmailPending(true);
+        } else {
+          Alert.alert('Error', 'Failed to send verification code. Please try again.');
+        }
         
       } catch (error) {
         console.error('Error sending verification code:', error);
@@ -105,7 +109,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           }
           
           // Reset form values
-          setVerificationId(null);
+          setEmailPending(false);
           setVerificationCode('');
           
           // Navigate to the HomeScreen
@@ -148,7 +152,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <View style={styles.wrapper}>
             {isLoading ? (
               <ActivityIndicator size="large" color="#7CDB8A" />
-            ) : verificationId ? (
+            ) : emailPending ? (
               // Verification code input view
               <>
                 <Text style={styles.title}>Enter Verification Code</Text>
@@ -182,7 +186,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 <View style={styles.textButtonsContainer}>
                   <TouchableOpacity
                     style={styles.textButton}
-                    onPress={() => setVerificationId(null)}
+                    onPress={() => setEmailPending(false)}
                   >
                     <Text style={styles.textButtonText}>Change Email Address</Text>
                   </TouchableOpacity>
@@ -204,13 +208,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         const data = await response.json();
                         console.log('Resend verification response:', data);
                         
-                        // Update the verification ID
-                        setVerificationId(data.sid);
+                        // Check if verification is pending
+                        if (data.status === 'pending') {
+                          setEmailPending(true);
+                        } else {
+                          Alert.alert('Error', 'Failed to send verification code. Please try again.');
+                        }
                         
                         // Clear the verification code field
                         setVerificationCode("");
                         
-                        Alert.alert('Success', 'A new verification code has been sent to your phone.');
+                        Alert.alert('Success', 'A new verification code has been sent to your email.');
                       } catch (error) {
                         console.error('Error resending verification code:', error);
                         Alert.alert('Error', 'Failed to resend verification code. Please try again.');
