@@ -11,6 +11,7 @@ import foodImageAnalyzerRoutes from './routes/foodImageAnalyzer.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authenticateToken from './middleware/auth.js';
+import verifyPremiumStatus from './middleware/premiumAuth.js';
 import 'dotenv/config';
 
 import path from 'path';
@@ -53,7 +54,8 @@ async function connectToDatabase() {
 
     // Public routes (no authentication required)
     app.use('/nutritionimg', nutritionParserRoutes());
-    app.use('/foodimageanalyzer', foodImageAnalyzerRoutes());
+    // Food image analyzer requires authentication and premium status
+    app.use('/foodimageanalyzer', authenticateToken, verifyPremiumStatus(userCollection), foodImageAnalyzerRoutes());
     app.use('/verify', verificationRoutes(userCollection));
     
     // Protected routes (require JWT authentication)
