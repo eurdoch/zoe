@@ -20,7 +20,7 @@ const jwtClient = new google.auth.JWT(
 
 // Initialize AWS SES client
 const sesClient = new SESClient({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.AWS_REGION || "us-west-2", // US West (Oregon)
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
@@ -36,8 +36,7 @@ const JWT_EXPIRES_IN = '90d'; // 3 months
 const DEMO_JWT_EXPIRES_IN = '2h'; // 10 minutes for demo account
 const DEMO_EMAIL = process.env.DEMO_EMAIL;
 
-// Store verification codes temporarily
-const verificationCodes = new Map();
+// Verification code expiry
 const VERIFICATION_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
 
 // Email hash function - must match client-side implementation exactly
@@ -97,6 +96,26 @@ const generateVerificationCode = () => {
 const router = express.Router();
 
 export default function verificationRoutes(userCollection) {
+  // Get MongoDB collection for verification codes
+  const verificationCollection = userCollection.s.db.collection('verification_codes');
+  
+  // Cleanup expired verification codes (can be called periodically)
+  const cleanupExpiredCodes = async () => {
+    try {
+      await verificationCollection.deleteMany({
+        expires: { $lt: new Date() }
+      });
+      console.log('Cleaned up expired verification codes');
+    } catch (error) {
+      console.error('Error cleaning up expired verification codes:', error);
+    }
+  };
+  
+  // Run cleanup on startup
+  cleanupExpiredCodes();
+  
+  // Set up periodic cleanup (e.g., every hour)
+  setInterval(cleanupExpiredCodes, 60 * 60 * 1000);
 
   // Send verification email
   router.post('/send', async (req, res) => {
@@ -123,11 +142,19 @@ export default function verificationRoutes(userCollection) {
       // Generate a verification code
       const verificationCode = generateVerificationCode();
       
-      // Store the code with expiry time
-      verificationCodes.set(email, {
-        code: verificationCode,
-        expires: Date.now() + VERIFICATION_CODE_EXPIRY
-      });
+      // Store the code in the database with expiry time
+      await verificationCollection.updateOne(
+        { email: email.toLowerCase() },
+        { 
+          $set: { 
+            email: email.toLowerCase(),
+            code: verificationCode,
+            expires: new Date(Date.now() + VERIFICATION_CODE_EXPIRY),
+            created_at: new Date()
+          } 
+        },
+        { upsert: true }
+      );
       
       // Prepare the email
       const sendEmailCommand = new SendEmailCommand({
@@ -141,7 +168,7 @@ export default function verificationRoutes(userCollection) {
               Data: `
                 <html>
                   <body>
-                    <h1>Kaloos Verification Code</h1>
+                    <h1>Zotik Verification Code</h1>
                     <p>Your verification code is: <strong>${verificationCode}</strong></p>
                     <p>This code will expire in 10 minutes.</p>
                   </body>
@@ -150,12 +177,12 @@ export default function verificationRoutes(userCollection) {
             },
             Text: {
               Charset: "UTF-8",
-              Data: `Your Kaloos verification code is: ${verificationCode}. This code will expire in 10 minutes.`,
+              Data: `Your Zotik verification code is: ${verificationCode}. This code will expire in 10 minutes.`,
             },
           },
           Subject: {
             Charset: "UTF-8",
-            Data: "Kaloos Verification Code",
+            Data: "Zotik Verification Code",
           },
         },
         Source: SES_SENDER_EMAIL,
@@ -199,15 +226,17 @@ export default function verificationRoutes(userCollection) {
         console.log('Demo account detected, bypassing verification');
         verificationStatus = 'approved';
       } else {
-        // Verify the code
-        const storedVerification = verificationCodes.get(email);
+        // Find verification code in the database
+        const storedVerification = await verificationCollection.findOne({
+          email: email.toLowerCase(),
+          code: code,
+          expires: { $gt: new Date() }
+        });
         
-        if (storedVerification && 
-            storedVerification.code === code && 
-            storedVerification.expires > Date.now()) {
+        if (storedVerification) {
           verificationStatus = 'approved';
-          // Delete the used code
-          verificationCodes.delete(email);
+          // Delete the used code from the database
+          await verificationCollection.deleteOne({ _id: storedVerification._id });
         } else {
           verificationStatus = 'failed';
         }
@@ -231,6 +260,9 @@ export default function verificationRoutes(userCollection) {
           const token = jwt.sign(
             { 
               user_id: userId,
+              email: email,
+              is_demo: email === DEMO_EMAIL,
+              // Add any other claims needed
             }, 
             JWT_SECRET, 
             { expiresIn: email === DEMO_EMAIL ? DEMO_JWT_EXPIRES_IN : JWT_EXPIRES_IN }
