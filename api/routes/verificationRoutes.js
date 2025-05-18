@@ -165,7 +165,7 @@ export default function verificationRoutes(userCollection, verificationCollectio
               Data: `
                 <html>
                   <body>
-                    <h1>Zotik Verification Code</h1>
+                    <h1>Kaloos Verification Code</h1>
                     <p>Your verification code is: <strong>${verificationCode}</strong></p>
                     <p>This code will expire in 10 minutes.</p>
                   </body>
@@ -174,12 +174,12 @@ export default function verificationRoutes(userCollection, verificationCollectio
             },
             Text: {
               Charset: "UTF-8",
-              Data: `Your Zotik verification code is: ${verificationCode}. This code will expire in 10 minutes.`,
+              Data: `Your Kaloos verification code is: ${verificationCode}. This code will expire in 10 minutes.`,
             },
           },
           Subject: {
             Charset: "UTF-8",
-            Data: "Zotik Verification Code",
+            Data: "Kaloos Verification Code",
           },
         },
         Source: SES_SENDER_EMAIL,
