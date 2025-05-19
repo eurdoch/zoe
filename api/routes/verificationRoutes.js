@@ -401,6 +401,40 @@ export default function verificationRoutes(userCollection, verificationCollectio
       });
     }
   });
+  
+  // Premium status check endpoint
+  router.get('/premium', authenticateToken, async (req, res) => {
+    try {
+      // Extract user_id from the authenticated token
+      const { user_id } = req.user;
+      
+      if (!user_id) {
+        return res.status(400).json({ error: 'Invalid user token' });
+      }
+      
+      // Look up user in the database
+      if (userCollection) {
+        const user = await userCollection.findOne({ user_id });
+        
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Return only the premium status
+        res.status(200).json({
+          premium: user.premium || false
+        });
+      } else {
+        // If no database connection, return error
+        res.status(503).json({ error: 'Database service unavailable' });
+      }
+    } catch (error) {
+      console.error('Error checking premium status:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to check premium status'
+      });
+    }
+  });
 
   // Subscription verification endpoint
   router.post('/subscribe', authenticateToken, async (req, res) => {
