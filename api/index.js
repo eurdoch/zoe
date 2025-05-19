@@ -11,6 +11,7 @@ import foodImageAnalyzerRoutes from './routes/foodImageAnalyzer.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authenticateToken from './middleware/auth.js';
+import verifyPremiumStatus from './middleware/premiumAuth.js';
 import 'dotenv/config';
 
 import path from 'path';
@@ -44,6 +45,7 @@ async function connectToDatabase() {
     const weightCollection = database.collection('weight');
     const supplementCollection = database.collection('supplement');
     const userCollection = database.collection('users');
+    const verificationCollection = database.collection('verification');
 
     app.use(express.static(path.join(__dirname, '../web/dist')));
 
@@ -53,11 +55,12 @@ async function connectToDatabase() {
 
     // Public routes (no authentication required)
     app.use('/nutritionimg', nutritionParserRoutes());
-    app.use('/foodimageanalyzer', foodImageAnalyzerRoutes());
-    app.use('/verify', verificationRoutes(userCollection));
+    // Food image analyzer requires authentication and premium status
+    app.use('/foodimageanalyzer', authenticateToken, verifyPremiumStatus(userCollection), foodImageAnalyzerRoutes());
+    app.use('/verify', verificationRoutes(userCollection, verificationCollection));
     
     // Protected routes (require JWT authentication)
-    app.use('/food', authenticateToken, foodRoutes(foodCollection));
+    app.use('/food', authenticateToken, verifyPremiumStatus(userCollection), foodRoutes(foodCollection));
     app.use('/exercise', authenticateToken, exerciseRoutes(exerciseCollection));
     app.use('/workout', authenticateToken, workoutRoutes(workoutCollection));
     app.use('/weight', authenticateToken, weightRoutes(weightCollection));

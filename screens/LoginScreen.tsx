@@ -16,7 +16,6 @@ import {
   Keyboard,
 } from "react-native";
 import LinearGradient from 'react-native-linear-gradient';
-import PhoneInput from "react-native-phone-number-input";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 
@@ -25,19 +24,18 @@ type LoginScreenProps = {
 };
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
-  const [value, setValue] = useState("");
-  const [formattedValue, setFormattedValue] = useState("");
-  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [emailPending, setEmailPending] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const phoneInput = useRef<PhoneInput>(null);
 
   const handleVerify = async (e: any) => {
     e.preventDefault();
-    const checkValid = phoneInput.current?.isValidNumber(value);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const checkValid = emailRegex.test(email);
     
     if (checkValid) {
-      console.log('Valid number entered is: ', formattedValue);
+      console.log('Valid email entered is: ', email);
       setIsLoading(true);
       
       try {
@@ -47,14 +45,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ phoneNumber: formattedValue }),
+          body: JSON.stringify({ email: email }),
         });
         
         const data = await response.json();
         console.log('Verification response:', data);
         
-        // Set the verification ID for later use
-        setVerificationId(data.sid);
+        // Check if verification is pending
+        if (data.status === 'pending') {
+          setEmailPending(true);
+        } else {
+          Alert.alert('Error', 'Failed to send verification code. Please try again.');
+        }
         
       } catch (error) {
         console.error('Error sending verification code:', error);
@@ -63,8 +65,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         setIsLoading(false);
       }
     } else {
-      Alert.alert('Invalid Number', 'Please enter a valid phone number.');
-      console.log('Number is not valid.');
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      console.log('Email is not valid.');
     }
   };
 
@@ -84,7 +86,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          phoneNumber: formattedValue,
+          email: email,
           code: verificationCode 
         }),
       });
@@ -107,7 +109,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           }
           
           // Reset form values
-          setVerificationId(null);
+          setEmailPending(false);
           setVerificationCode('');
           
           // Navigate to the HomeScreen
@@ -150,12 +152,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           <View style={styles.wrapper}>
             {isLoading ? (
               <ActivityIndicator size="large" color="#7CDB8A" />
-            ) : verificationId ? (
+            ) : emailPending ? (
               // Verification code input view
               <>
                 <Text style={styles.title}>Enter Verification Code</Text>
                 <Text style={styles.subtitle}>
-                  We've sent a verification code to {formattedValue}
+                  We've sent a verification code to {email}
                 </Text>
                 <TextInput
                   style={styles.codeInput}
@@ -184,9 +186,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 <View style={styles.textButtonsContainer}>
                   <TouchableOpacity
                     style={styles.textButton}
-                    onPress={() => setVerificationId(null)}
+                    onPress={() => setEmailPending(false)}
                   >
-                    <Text style={styles.textButtonText}>Change Phone Number</Text>
+                    <Text style={styles.textButtonText}>Change Email Address</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity
@@ -200,19 +202,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                           headers: {
                             'Content-Type': 'application/json',
                           },
-                          body: JSON.stringify({ phoneNumber: formattedValue }),
+                          body: JSON.stringify({ email: email }),
                         });
                         
                         const data = await response.json();
                         console.log('Resend verification response:', data);
                         
-                        // Update the verification ID
-                        setVerificationId(data.sid);
+                        // Check if verification is pending
+                        if (data.status === 'pending') {
+                          setEmailPending(true);
+                        } else {
+                          Alert.alert('Error', 'Failed to send verification code. Please try again.');
+                        }
                         
                         // Clear the verification code field
                         setVerificationCode("");
                         
-                        Alert.alert('Success', 'A new verification code has been sent to your phone.');
+                        Alert.alert('Success', 'A new verification code has been sent to your email.');
                       } catch (error) {
                         console.error('Error resending verification code:', error);
                         Alert.alert('Error', 'Failed to resend verification code. Please try again.');
@@ -228,28 +234,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             ) : (
               // Phone number input view
               <>
-                <Text style={styles.title}>Enter Your Phone Number</Text>
-                <PhoneInput
-                  ref={phoneInput}
-                  defaultValue={value}
-                  defaultCode="US"
-                  layout="first"
-                  onChangeText={(text) => {
-                    setValue(text);
-                  }}
-                  onChangeFormattedText={(text) => {
-                    setFormattedValue(text);
-                  }}
-                  withDarkTheme
-                  withShadow
+                <Text style={styles.title}>Enter Your Email Address</Text>
+                <TextInput
+                  style={[styles.inputContainer, styles.emailInput]}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter your email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus
-                  containerStyle={styles.inputContainer}
-                  textInputProps={{
-                    returnKeyType: "done",
-                    onSubmitEditing: (e) => {
-                      Keyboard.dismiss();
-                      handleVerify(e);
-                    }
+                  returnKeyType="done"
+                  onSubmitEditing={(e) => {
+                    Keyboard.dismiss();
+                    handleVerify(e);
                   }}
                 />
                 <LinearGradient
@@ -328,6 +326,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     letterSpacing: 8,
+  },
+  emailInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#DDD',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 20,
   },
   button: {
     height: 60,

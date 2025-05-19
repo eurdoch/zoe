@@ -4,6 +4,20 @@ set -e
 # Script to build and deploy the API container and rotate AWS instances
 # Prerequisites: AWS CLI, Docker, and proper credentials configured
 
+# Parse command line arguments
+ASG_NAME=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --as-group)
+      ASG_NAME="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
 # Configuration - you may need to adjust these values
 GITHUB_PACKAGES_TOKEN=${GITHUB_PACKAGES_TOKEN}
 GITHUB_USERNAME="eurdoch"
@@ -43,32 +57,32 @@ for name in $AWS_OUTPUT; do
 done
 
 if [ ${#ASG_NAMES[@]} -eq 0 ]; then
-  echo "No Auto Scaling Groups found in region $AWS_REGION."
+  echo "No Auto Scaling Groups found."
   exit 1
 fi
 
-echo "Available Auto Scaling Groups:"
-for i in "${!ASG_NAMES[@]}"; do
-  echo "[$((i+1))] ${ASG_NAMES[$i]}"
-done
-
-# Allow user to select from list or pass as argument
-if [ -n "$1" ]; then
+# If ASG_NAME was provided with --as-group flag
+if [ -n "$ASG_NAME" ]; then
   # Check if the provided ASG name exists in the list
   ASG_FOUND=false
   for name in "${ASG_NAMES[@]}"; do
-    if [ "$name" == "$1" ]; then
-      ASG_NAME="$1"
+    if [ "$name" == "$ASG_NAME" ]; then
       ASG_FOUND=true
       break
     fi
   done
   
   if [ "$ASG_FOUND" == "false" ]; then
-    echo "Error: Auto Scaling Group '$1' not found in region $AWS_REGION."
+    echo "Error: Auto Scaling Group '$ASG_NAME' not found."
     exit 1
   fi
 else
+  # Display available groups
+  echo "Available Auto Scaling Groups:"
+  for i in "${!ASG_NAMES[@]}"; do
+    echo "[$((i+1))] ${ASG_NAMES[$i]}"
+  done
+
   # Prompt user to select a group
   echo -n "Enter the number of the Auto Scaling Group to update [1-${#ASG_NAMES[@]}]: "
   read -r selection
@@ -132,16 +146,28 @@ for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
   ATTEMPTS=0
   
   while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-    NEW_INSTANCE_COUNT=$(aws autoscaling describe-auto-scaling-groups \
+    echo "Checking for new instance status in AZ $AZ (Attempt $((ATTEMPTS+1))/$MAX_ATTEMPTS)..."
+    
+    # Get full response and save to variable
+    ASG_RESPONSE=$(aws autoscaling describe-auto-scaling-groups \
       --auto-scaling-group-name "$ASG_NAME" \
-      --query "length(AutoScalingGroups[0].Instances[?LifecycleState=='InService' && AvailabilityZone=='$AZ'])" \
-      --output text)
+      --output json)
+    
+    # Print the full response for debugging
+    echo "AWS Response:"
+    echo "$ASG_RESPONSE" | jq .
+    
+    # Extract instance count from the response
+    NEW_INSTANCE_COUNT=$(echo "$ASG_RESPONSE" | \
+      jq "[.AutoScalingGroups[0].Instances[] | select(.LifecycleState==\"InService\" and .AvailabilityZone==\"$AZ\")] | length")
+    
+    echo "InService instances in AZ $AZ: $NEW_INSTANCE_COUNT"
     
     if [ "$NEW_INSTANCE_COUNT" -ge "1" ]; then
       echo "New instance is now InService in AZ $AZ"
       break
     else
-      echo "Waiting for new instance in AZ $AZ to become InService... (Attempt $((ATTEMPTS+1))/$MAX_ATTEMPTS)"
+      echo "Waiting for new instance in AZ $AZ to become InService..."
       sleep 10
       ATTEMPTS=$((ATTEMPTS+1))
     fi
