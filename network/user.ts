@@ -3,6 +3,13 @@ import { AuthenticationError } from '../errors/NetworkError';
 import User from '../types/User';
 
 /**
+ * Premium status response from the /verify/premium endpoint
+ */
+export interface PremiumStatus {
+  premium: boolean;
+}
+
+/**
  * Fetches user information using the provided token
  * @param token JWT authentication token
  * @returns User object if successful
@@ -130,6 +137,44 @@ export async function updateUserInfo(
     return response.json();
   } catch (error) {
     console.error('Error updating user information:', error);
+    throw error;
+  }
+}
+
+/**
+ * Checks if the user has premium status
+ * @param token JWT authentication token
+ * @returns Object with premium boolean status
+ * @throws AuthenticationError if token is invalid (401/403 status)
+ */
+export async function checkPremiumStatus(token: string): Promise<PremiumStatus> {
+  try {
+    if (!token) {
+      throw new AuthenticationError('Authentication token not provided');
+    }
+    
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/verify/premium`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Failed to check premium status: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new Error(`Failed to check premium status: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error checking premium status:', error);
     throw error;
   }
 }

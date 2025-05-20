@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { NavigationProp } from '@react-navigation/native';
-import { StyleSheet, View, Text, Modal, Pressable, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Modal, Pressable, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Icon, OverflowMenu, MenuItem, TopNavigationAction } from '@ui-kitten/components';
 import Menu from '../components/Menu';
+import { checkPremiumStatus } from '../network/user';
 
 type HomeScreenProps = {
   navigation: NavigationProp<any>;
@@ -57,12 +58,66 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   };
   
+  // Handle menu item press
+  const handleMenuItemPress = async (item: { screenName: string; label: string; data?: any }) => {
+    // Check if the Diet option was pressed
+    if (item.screenName === 'Diet') {
+      try {
+        // Get token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          console.error('No authentication token found');
+          // Navigate to login if no token is available
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
+          return;
+        }
+        
+        // Check premium status
+        const premiumStatus = await checkPremiumStatus(token);
+        
+        if (!premiumStatus.premium) {
+          // User is not premium, show alert
+          Alert.alert(
+            'Premium Required',
+            'The Diet feature requires a premium subscription. Please upgrade to access this feature.',
+            [
+              { text: 'OK', style: 'default' }
+            ]
+          );
+          return;
+        }
+        
+        // If user is premium, proceed to Diet screen
+        navigation.navigate(item.screenName, { data: item.data });
+      } catch (error) {
+        console.error('Error checking premium status:', error);
+        
+        // Show generic error message
+        Alert.alert(
+          'Error',
+          'Unable to verify premium status. Please try again later.',
+          [
+            { text: 'OK', style: 'default' }
+          ]
+        );
+      }
+    } else {
+      // For other screens, navigate normally
+      navigation.navigate(item.screenName, { data: item.data });
+    }
+  };
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Menu 
           menuItems={menuItems}
           navigation={navigation}
+          onItemPress={handleMenuItemPress}
         />
       </View>
       
