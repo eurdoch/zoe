@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput } from 'react-native';
 import { Icon } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { mdiBarcodeScan } from '@mdi/js';
+import { Dropdown } from 'react-native-element-dropdown';
 import OldProductResponse, { ProductResponse } from '../types/ProductResponse';
 import Food from '../types/Food';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +18,15 @@ interface Props {
   data?: string;
 }
 
+const UNITS = [
+  { label: 'g', value: 'g' },
+  { label: 'oz', value: 'oz' },
+  { label: 'lb', value: 'lb' },
+  { label: 'kg', value: 'kg' },
+  { label: 'ml', value: 'ml' },
+  { label: 'l', value: 'l' },
+];
+
 const FoodEntryModalContent: React.FC<Props> = ({ 
   onActionSelected, 
   productResponse, 
@@ -25,6 +35,9 @@ const FoodEntryModalContent: React.FC<Props> = ({
   data = ''
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [foodName, setFoodName] = useState<string>('');
+  const [amount, setAmount] = useState<string>('100');
+  const [unit, setUnit] = useState<string>('g');
 
   const handleCameraPress = () => {
     closeModal();
@@ -45,7 +58,41 @@ const FoodEntryModalContent: React.FC<Props> = ({
     <View style={styles.container}>
       <Text style={styles.title}>Add Food Entry</Text>
       
-      {/* Content will go here */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          value={foodName}
+          onChangeText={setFoodName}
+          placeholder="Food name"
+          placeholderTextColor="#999"
+        />
+      </View>
+      
+      <View style={styles.servingContainer}>
+        <View style={styles.amountContainer}>
+          <TextInput
+            style={styles.textInput}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="decimal-pad"
+            placeholder="Amount"
+            placeholderTextColor="#999"
+          />
+        </View>
+        
+        <View style={styles.unitContainer}>
+          <Dropdown
+            style={styles.dropdown}
+            data={UNITS}
+            labelField="label"
+            valueField="value"
+            value={unit}
+            onChange={item => setUnit(item.value)}
+            placeholder="Unit"
+            placeholderStyle={{color: '#999'}}
+          />
+        </View>
+      </View>
       
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
@@ -104,6 +151,39 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 16,
+    width: '100%',
+    height: 42,
+  },
+  servingContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  amountContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  unitContainer: {
+    width: 80,
+  },
+  dropdown: {
+    height: 42,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 10,
   },
   buttonsContainer: {
     width: '100%',
