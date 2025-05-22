@@ -3,7 +3,7 @@
   "version": "0.0.16-beta",
   "private": true,
   "scripts": {
-    "android": "tsc --noEmit && react-native run-android --tasks installPlayDebug",
+    "android": "react-native run-android --tasks installPlayDebug",
     "ios": "tsc --noEmit && react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start --reset-cache --client-logs",

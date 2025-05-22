@@ -701,6 +701,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',

@@ -3,8 +3,6 @@ import { StyleSheet, Dimensions, TouchableOpacity, Alert, View } from 'react-nat
 import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
-import MacroCalculator from '../components/MacroCalculator';
-import MacroByLabelCalculator from '../components/MacroByLabelCalculator';
 import CustomModal from '../CustomModal';
 import NutritionInfo from '../types/NutritionInfo';
 import { AuthenticationError } from '../errors/NetworkError';
@@ -210,20 +208,6 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
             </Layout>
           ) : (
             <>
-              {modalContent === 'product' && (
-                <MacroCalculator
-                  setModalVisible={setModalVisible}
-                  productResponse={option}
-                  navigation={navigation}
-                />
-              )}
-              {modalContent === 'image' && (
-                <MacroByLabelCalculator 
-                  onFoodAdded={() => {}}
-                  nutritionInfo={nutritionInfo}
-                  navigation={navigation} 
-                />
-              )}
             </>
           )
         }
