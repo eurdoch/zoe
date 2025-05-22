@@ -13,11 +13,11 @@ type HomeScreenProps = {
 
 const menuItems = [
   {
-    label: "Exercise",
+    label: "Lifts",
     screenName: "Exercise",
   },
   {
-    label: "Diet",
+    label: "Macros",
     screenName: "Diet",
   },
   {

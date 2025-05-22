@@ -232,7 +232,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 </View>
               </>
             ) : (
-              // Phone number input view
               <>
                 <Text style={styles.title}>Enter Your Email Address</Text>
                 <TextInput
