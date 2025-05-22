@@ -166,7 +166,7 @@ const App = () => {
                 name="Exercise"
                 component={ExerciseScreen}
                 options={{
-                  title: "Exercise",
+                  title: "Lifts",
                   headerTitleAlign: "center",
                 }}
               />
