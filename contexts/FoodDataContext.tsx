@@ -1,8 +1,25 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+export interface ScannedProductData {
+  code: string;
+  product: {
+    brands: string;
+    image_url: string;
+    nutrient_levels: Record<string, any>;
+    nutriments: Record<string, any>;
+    product_name: string;
+    serving_quantity: number;
+    serving_size: string;
+  };
+  status: number;
+  status_verbose: string;
+}
+
 interface FoodDataContextType {
   foodData: string;
   setFoodData: (data: string) => void;
+  scannedProductData: ScannedProductData | null;
+  setScannedProductData: (data: ScannedProductData | null) => void;
   clearFoodData: () => void;
 }
 
@@ -22,14 +39,18 @@ interface FoodDataProviderProps {
 
 export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) => {
   const [foodData, setFoodData] = useState<string>('');
+  const [scannedProductData, setScannedProductData] = useState<ScannedProductData | null>(null);
 
   const clearFoodData = () => {
     setFoodData('');
+    setScannedProductData(null);
   };
 
   const value = {
     foodData,
     setFoodData,
+    scannedProductData,
+    setScannedProductData,
     clearFoodData,
   };
 
