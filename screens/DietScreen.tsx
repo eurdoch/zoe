@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking, Dimensions, TextInput } from 'react-native';
+import { Camera } from 'react-native-vision-camera';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
@@ -439,53 +440,30 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
 
   const requestCameraPermission = async () => {
     try {
-      const permission = Platform.OS === 'ios' 
-        ? PERMISSIONS.IOS.CAMERA 
-        : PERMISSIONS.ANDROID.CAMERA;
-        
-      // First check the current permission status
-      const result = await check(permission);
-      console.log('permission result check: ', result == RESULTS.DENIED);
+      // Use react-native-vision-camera's permission system
+      const cameraPermission = await Camera.getCameraPermissionStatus();
+      console.log('Camera permission status:', cameraPermission);
       
-      switch (result) {
-        case RESULTS.GRANTED:
-          return true;
-          
-        case RESULTS.DENIED:
-          console.log('CASE DENIED');
-          // Permission hasn't been requested yet, so request it
-          const requestResult = await request(permission);
-          console.log('requestResult: ', requestResult);
-          if (requestResult === RESULTS.GRANTED) {
-            return true;
-          } else if (requestResult === RESULTS.BLOCKED) {
-            Alert.alert(
-              "Camera Permission Required",
-              "Camera access is required to use this feature. Please enable camera permissions in your device settings.",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Open Settings", onPress: () => Linking.openSettings() }
-              ]
-            );
-            return false;
-          }
-          return false;
-          
-        case RESULTS.BLOCKED:
-          // Permission is denied and not requestable anymore
-          Alert.alert(
-            "Camera Permission Required",
-            "Camera access is required to use this feature. Please enable camera permissions in your device settings.",
-            [
-              { text: "Cancel", style: "cancel" },
-              { text: "Open Settings", onPress: () => Linking.openSettings() }
-            ]
-          );
-          return false;
-          
-        default:
-          return false;
+      if (cameraPermission === 'granted') {
+        return true;
       }
+      
+      if (cameraPermission === 'not-determined') {
+        const newPermission = await Camera.requestCameraPermission();
+        console.log('Requested camera permission result:', newPermission);
+        return newPermission === 'granted';
+      }
+      
+      // If denied or restricted, show settings alert
+      Alert.alert(
+        "Camera Permission Required",
+        "Camera access is required to use this feature. Please enable camera permissions in your device settings.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Open Settings", onPress: () => Linking.openSettings() }
+        ]
+      );
+      return false;
     } catch (error) {
       console.error('Error checking camera permission:', error);
       return false;

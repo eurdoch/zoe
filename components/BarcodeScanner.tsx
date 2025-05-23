@@ -50,9 +50,19 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     }
   });
 
-  // Permission is now handled in DietScreen before navigating here
+  // Check camera permission when component loads
   useEffect(() => {
-    setHasPermission(true);
+    const checkPermission = async () => {
+      try {
+        const status = await Camera.getCameraPermissionStatus();
+        console.log('BarcodeScanner - Camera permission status:', status);
+        setHasPermission(status === 'granted');
+      } catch (error) {
+        console.error('BarcodeScanner - Error checking permission:', error);
+        setHasPermission(false);
+      }
+    };
+    checkPermission();
   }, []);
 
   if (!hasPermission) {

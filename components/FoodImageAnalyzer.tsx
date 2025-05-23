@@ -19,9 +19,25 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<FoodImageAnalysisResult | null>(null);
   const [description, setDescription] = useState<string>('');
+  const [hasPermission, setHasPermission] = useState(false);
   
   // Use the food data context
   const { setFoodImageAnalysis } = useFoodData();
+
+  // Check camera permission when component loads
+  useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        const status = await Camera.getCameraPermissionStatus();
+        console.log('FoodImageAnalyzer - Camera permission status:', status);
+        setHasPermission(status === 'granted');
+      } catch (error) {
+        console.error('FoodImageAnalyzer - Error checking permission:', error);
+        setHasPermission(false);
+      }
+    };
+    checkPermission();
+  }, []);
 
   useEffect(() => {
     if (!cameraActive && !isProcessing) {
@@ -82,6 +98,14 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
     }
   };
 
+
+  if (!hasPermission) {
+    return (
+      <View style={[styles.container, styles.textContainer]}>
+        <Text style={styles.text}>No camera permission</Text>
+      </View>
+    );
+  }
 
   if (!device) {
     return (
