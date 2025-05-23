@@ -455,8 +455,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           console.log('CASE DENIED');
           // Permission hasn't been requested yet, so request it
           const requestResult = await request(permission);
-          console.log('requestResult case: ', requestResult == RESULTS.BLOCKED);
-          if (requestResult === RESULTS.BLOCKED) {
+          console.log('requestResult: ', requestResult);
+          if (requestResult === RESULTS.GRANTED) {
+            return true;
+          } else if (requestResult === RESULTS.BLOCKED) {
             Alert.alert(
               "Camera Permission Required",
               "Camera access is required to use this feature. Please enable camera permissions in your device settings.",
@@ -467,7 +469,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             );
             return false;
           }
-          return requestResult === RESULTS.GRANTED;
+          return false;
           
         case RESULTS.BLOCKED:
           // Permission is denied and not requestable anymore
