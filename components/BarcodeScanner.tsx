@@ -36,13 +36,13 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
           setScannedProductData(productResponse);
           
           // Navigate back to the Diet screen
-          navigation.goBack();
+          navigation.popTo('Diet');
         } catch(err: any) {
           if (err instanceof NetworkError) {
             showToastError("Product could not be found.");
             setCameraActive(false);
             // Navigate back to previous screen (DietScreen) on error
-            navigation.goBack();
+            navigation.popTo('Diet');
           }
         }
       }
@@ -82,7 +82,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
 
   const closeCamera = () => {
     setCameraActive(true);
-    navigation.goBack();
+    navigation.popTo('Diet');
   }
 
   return (

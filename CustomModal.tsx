@@ -6,8 +6,9 @@ interface CustomModalProps {
   visible: boolean;
   animationType?: 'none' | 'slide' | 'fade';
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  onOverlayPress?: () => void;
 }
-const CustomModal = ({ children, visible, setVisible, animationType = 'fade' }: CustomModalProps) => {
+const CustomModal = ({ children, visible, setVisible, animationType = 'fade', onOverlayPress }: CustomModalProps) => {
   const screenWidth = Dimensions.get('window').width;
   return (
     <Modal
@@ -19,7 +20,10 @@ const CustomModal = ({ children, visible, setVisible, animationType = 'fade' }: 
     >
       <TouchableOpacity 
         style={styles.modalOverlay} 
-        onPress={() => setVisible(false)}
+        onPress={() => {
+          setVisible(false);
+          onOverlayPress?.();
+        }}
         activeOpacity={1}
       >
         <TouchableOpacity 

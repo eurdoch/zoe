@@ -678,6 +678,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         setVisible={() => {
           setOptionsModalVisible(false);
         }}
+        onOverlayPress={clearFoodData}
         animationType="slide"
       >
         <FoodEntryModalContent 
