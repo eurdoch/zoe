@@ -65,105 +65,19 @@ const FoodEntryModalContent: React.FC<Props> = ({
   };
 
   const handleAddPress = async () => {
-    // Check if we have description and/or images to make macro request
-    if ((description && description.trim() !== '') || (images && images.length > 0)) {
-      try {
-        // Make request to /macro endpoint
-        const baseUrl = await getApiBaseUrl();
-        const token = await AsyncStorage.getItem('token');
-        
-        if (!token) {
-          showToastError('Authentication required. Please log in again.');
-          return;
-        }
-        
-        const requestBody = {
-          images: images || [],
-          data: {
-            description: description || '',
-            foodName: foodName.trim(),
-            amount: amount ? `${amount}${unit}` : ''
-          }
-        };
-        
-        const response = await fetch(`${baseUrl}/macro`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401 || response.status === 403) {
-            showToastError('Authentication failed. Please log in again.');
-            return;
-          }
-          throw new Error(`Macro request failed: ${response.status}`);
-        }
-        
-        const macroResponse = await response.json();
-        console.log('Macro response:', macroResponse);
-        
-        // Use macro response to create food entry
-        if (macroResponse && macroResponse.calories !== undefined) {
-          // Get user ID from storage
-          const userJson = await AsyncStorage.getItem('user');
-          if (!userJson) {
-            throw new Error('User not found');
-          }
-          const user = JSON.parse(userJson);
-          
-          // Create food entry object using macro response
-          const foodEntry = {
-            name: foodName.trim() || 'AI Analyzed Food',
-            brand: '', // No brand for AI analyzed foods
-            categories: [], // Empty categories for now
-            macros: {
-              calories: macroResponse.calories || 0,
-              carbs: macroResponse.carbs || 0,
-              fat: macroResponse.fat || 0,
-              fiber: macroResponse.fiber || 0,
-              protein: macroResponse.protein || 0
-            },
-            createdAt: Math.floor(Date.now() / 1000), // Unix timestamp
-            user_id: user.id
-          };
-          
-          // Save food entry to database
-          await postFood(foodEntry);
-          
-          showToastInfo('Food entry added successfully');
-          
-          // Clear food data context
-          clearFoodData();
-          
-          // Call onFoodAdded if provided to refresh the food list
-          if (onFoodAdded) {
-            onFoodAdded();
-          }
-          
-          closeModal();
-          return;
-        } else {
-          showToastError('Invalid macro analysis response');
-          return;
-        }
-        
-      } catch (error) {
-        console.error('Error making macro request:', error);
-        showToastError('Failed to analyze macro content. Please try again.');
-        return;
-      }
+    // Check if we have any data to work with
+    const hasImages = images && images.length > 0;
+    const hasDescription = description && description.trim() !== '';
+    const hasScannedData = scannedProductData;
+    
+    // If no data at all, show error
+    if (!hasImages && !hasDescription && !hasScannedData) {
+      showToastError('Please add an image, description, or scan a barcode to continue');
+      return;
     }
-
-    // Check if description and images are null/empty, and we have scanned product data
-    if ((!description || description.trim() === '') &&
-        (!images || images.length === 0) &&
-        scannedProductData &&
-        amount &&
-        foodName.trim()) {
+    
+    // If we have only scanned data and no images/description, use scanned data directly
+    if (!hasImages && !hasDescription && hasScannedData && amount && foodName.trim()) {
       // Validate amount is a number
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
@@ -215,6 +129,9 @@ const FoodEntryModalContent: React.FC<Props> = ({
           onFoodAdded();
         }
         
+        closeModal();
+        return;
+        
       } catch (error) {
         console.error('Error saving food entry:', error);
         if (error instanceof AuthenticationError) {
@@ -222,14 +139,110 @@ const FoodEntryModalContent: React.FC<Props> = ({
         } else {
           showToastError('Failed to save food entry. Please try again.');
         }
-        return; // Don't close modal on error
+        return;
       }
-    } else if (!scannedProductData) {
-      showToastError('Please enter a food name and amount');
-      return;
     }
     
-    closeModal();
+    // If we have images, description, or need AI analysis, make request to /macro
+    if (hasImages || hasDescription || hasScannedData) {
+      try {
+        // Make request to /macro endpoint
+        const baseUrl = await getApiBaseUrl();
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          showToastError('Authentication required. Please log in again.');
+          return;
+        }
+        
+        // Build comprehensive data object
+        const requestData = {
+          description: description || '',
+          foodName: foodName.trim(),
+          amount: amount ? `${amount}${unit}` : ''
+        };
+        
+        // Add scanned product data if available
+        if (hasScannedData) {
+          requestData.scannedProductData = scannedProductData;
+        }
+        
+        const requestBody = {
+          images: images || [],
+          data: requestData
+        };
+        
+        const response = await fetch(`${baseUrl}/macro`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            showToastError('Authentication failed. Please log in again.');
+            return;
+          }
+          throw new Error(`Macro request failed: ${response.status}`);
+        }
+        
+        const macroResponse = await response.json();
+        console.log('Macro response:', macroResponse);
+        
+        // Use macro response to create food entry
+        if (macroResponse && macroResponse.calories !== undefined) {
+          // Get user ID from storage
+          const userJson = await AsyncStorage.getItem('user');
+          if (!userJson) {
+            throw new Error('User not found');
+          }
+          const user = JSON.parse(userJson);
+          
+          // Create food entry object using macro response
+          const foodEntry = {
+            name: foodName.trim() || 'AI Analyzed Food',
+            brand: hasScannedData ? (scannedProductData.product.brands || '') : '',
+            categories: [], // Empty categories for now
+            macros: {
+              calories: macroResponse.calories || 0,
+              carbs: macroResponse.carbs || 0,
+              fat: macroResponse.fat || 0,
+              fiber: macroResponse.fiber || 0,
+              protein: macroResponse.protein || 0
+            },
+            createdAt: Math.floor(Date.now() / 1000), // Unix timestamp
+            user_id: user.id
+          };
+          
+          // Save food entry to database
+          await postFood(foodEntry);
+          
+          showToastInfo('Food entry added successfully');
+          
+          // Clear food data context
+          clearFoodData();
+          
+          // Call onFoodAdded if provided to refresh the food list
+          if (onFoodAdded) {
+            onFoodAdded();
+          }
+          
+          closeModal();
+          return;
+        } else {
+          showToastError('Invalid macro analysis response');
+          return;
+        }
+        
+      } catch (error) {
+        console.error('Error making macro request:', error);
+        showToastError('Failed to analyze macro content. Please try again.');
+        return;
+      }
+    }
   };
 
   return (
