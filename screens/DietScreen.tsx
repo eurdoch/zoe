@@ -6,7 +6,6 @@ import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
 import { Icon, Datepicker, Button as KittenButton, Text as KittenText } from '@ui-kitten/components';
-import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 import { useFoodData } from '../contexts/FoodDataContext';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -166,10 +165,15 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   
   // Use the food data context instead of local state
   const { 
-    foodData,
-    setFoodData,
-    clearFoodData
+    scannedProductData,
+    images,
+    clearFoodData,
   } = useFoodData();
+
+  useEffect(() => {
+    console.log('DEBUg images: ', images);
+    console.log('DEBUG scannedProductData: ', scannedProductData);
+  }, [scannedProductData, images]);
   
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -196,11 +200,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     // Close both modals
     setModalVisible(false);
     setOptionsModalVisible(false);
-    
-    // Clear all food-related context data
-    clearFoodData();
-    
-    // Clear consolidated food data
+
     clearFoodData();
     
     // Reload the food entries list
