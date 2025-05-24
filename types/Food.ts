@@ -1,5 +1,5 @@
 export default interface Food {
-  brand: string;
+  brand?: string;
   categories: string[];
   id: string;
   name: string;
@@ -11,5 +11,5 @@ export default interface Food {
     protein: number;
   };
   createdAt: number;
-  user_id?: string; // Optional for backward compatibility, but will be required in DB
+  user_id: string;
 }
