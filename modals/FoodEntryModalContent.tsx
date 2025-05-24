@@ -50,6 +50,10 @@ const FoodEntryModalContent: React.FC<Props> = ({
   }, [scannedProductData]);
 
   const handleCameraPress = () => {
+    if (images && images.length >= 2) {
+      showToastError('No more than 2 images can be added per entry');
+      return;
+    }
     closeModal();
     navigation.navigate('FoodImageAnalyzer');
   };
