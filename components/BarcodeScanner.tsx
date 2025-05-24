@@ -17,6 +17,7 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
   const [hasPermission, setHasPermission] = useState(false);
   const devices = useCameraDevices();
   const device = Object.values(devices).find(d => d.position === 'back');
+  const { setScannedProductData } = useFoodData();
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr', 'ean-13'],
@@ -30,6 +31,9 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
           
           // Log the product data to console
           console.log('Scanned product data:', productResponse);
+          
+          // Set the scanned product data in context
+          setScannedProductData(productResponse);
           
           // Navigate back to the Diet screen
           navigation.popTo('Diet');

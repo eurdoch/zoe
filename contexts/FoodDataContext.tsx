@@ -16,8 +16,6 @@ export interface ScannedProductData {
 }
 
 interface FoodDataContextType {
-  foodData: string;
-  setFoodData: (data: string) => void;
   scannedProductData: ScannedProductData | null;
   setScannedProductData: (data: ScannedProductData | null) => void;
   clearFoodData: () => void;
@@ -38,17 +36,13 @@ interface FoodDataProviderProps {
 }
 
 export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) => {
-  const [foodData, setFoodData] = useState<string>('');
   const [scannedProductData, setScannedProductData] = useState<ScannedProductData | null>(null);
 
   const clearFoodData = () => {
-    setFoodData('');
     setScannedProductData(null);
   };
 
   const value = {
-    foodData,
-    setFoodData,
     scannedProductData,
     setScannedProductData,
     clearFoodData,
