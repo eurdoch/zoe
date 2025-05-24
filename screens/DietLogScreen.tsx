@@ -146,8 +146,24 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
       // Get detailed product info using the ID
       const productData = await getFoodItemByUpc(option.id);
       
+      // Create ScannedProductData object conforming to the interface
+      const scannedProductData = {
+        code: productData.code || option.id,
+        product: {
+          brands: productData.brands || '',
+          image_url: productData.image_url || '',
+          nutrient_levels: {},
+          nutriments: productData.nutriments || {},
+          product_name: productData.product_name || '',
+          serving_quantity: 0,
+          serving_size: productData.quantity || ''
+        },
+        status: 1,
+        status_verbose: "success"
+      };
+      
       // Set the detailed product data in context
-      setScannedProductData(productData);
+      setScannedProductData(scannedProductData);
       
       // Navigate back to DietScreen
       navigation.popTo('Diet');
