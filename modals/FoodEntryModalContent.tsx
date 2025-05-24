@@ -20,11 +20,6 @@ interface Props {
 
 const UNITS = [
   { label: 'g', value: 'g' },
-  { label: 'oz', value: 'oz' },
-  { label: 'lb', value: 'lb' },
-  { label: 'kg', value: 'kg' },
-  { label: 'ml', value: 'ml' },
-  { label: 'l', value: 'l' },
 ];
 
 const FoodEntryModalContent: React.FC<Props> = ({ 
