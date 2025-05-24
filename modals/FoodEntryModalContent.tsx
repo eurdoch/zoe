@@ -309,7 +309,6 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     width: '100%',
-    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 20,
