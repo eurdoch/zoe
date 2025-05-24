@@ -193,7 +193,7 @@ const FoodEntryModalContent: React.FC<Props> = ({
         console.log('Macro response:', macroResponse);
         
         // Use macro response to create food entry
-        if (macroResponse && macroResponse.calories !== undefined) {
+        if (macroResponse && macroResponse.macros && macroResponse.macros.calories !== undefined) {
           // Get user ID from storage
           const userJson = await AsyncStorage.getItem('user');
           if (!userJson) {
@@ -207,11 +207,11 @@ const FoodEntryModalContent: React.FC<Props> = ({
             brand: hasScannedData ? (scannedProductData.product.brands || '') : '',
             categories: [], // Empty categories for now
             macros: {
-              calories: macroResponse.calories || 0,
-              carbs: macroResponse.carbs || 0,
-              fat: macroResponse.fat || 0,
-              fiber: macroResponse.fiber || 0,
-              protein: macroResponse.protein || 0
+              calories: macroResponse.macros.calories || 0,
+              carbs: macroResponse.macros.carbs || 0,
+              fat: macroResponse.macros.fat || 0,
+              fiber: macroResponse.macros.fiber || 0,
+              protein: macroResponse.macros.protein || 0
             },
             createdAt: Math.floor(Date.now() / 1000), // Unix timestamp
             user_id: user.id
