@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+// TODO specify rest of type structure
 export interface ScannedProductData {
   code: string;
   product: {
@@ -20,6 +21,8 @@ interface FoodDataContextType {
   setScannedProductData: (data: ScannedProductData | null) => void;
   images: string[];
   setImages: (images: string[]) => void;
+  description: string;
+  setDescription: (description: string) => void;
   clearFoodData: () => void;
 }
 
@@ -40,10 +43,12 @@ interface FoodDataProviderProps {
 export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) => {
   const [scannedProductData, setScannedProductData] = useState<ScannedProductData | null>(null);
   const [images, setImages] = useState<string[]>([]);
+  const [description, setDescription] = useState<string>('');
 
   const clearFoodData = () => {
     setScannedProductData(null);
     setImages([]);
+    setDescription('');
   };
 
   const value = {
@@ -51,6 +56,8 @@ export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) 
     setScannedProductData,
     images,
     setImages,
+    description,
+    setDescription,
     clearFoodData,
   };
 
