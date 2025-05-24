@@ -175,12 +175,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     clearFoodData,
   } = useFoodData();
 
-  useEffect(() => {
-    //console.log('DEBUg images: ', images);
-    console.log('DEBUG scannedProductData: ', scannedProductData);
-    console.log('DEBUG optionsModalVisible: ', optionsModalVisible);
-  }, [scannedProductData, images, optionsModalVisible]);
-
   // Reopen modal when returning from camera screens with new data
   useEffect(() => {
     if ((scannedProductData || images.length > 0) && !optionsModalVisible) {
@@ -341,7 +335,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       const userJson = await AsyncStorage.getItem('user');
       if (userJson) {
         const userData = JSON.parse(userJson) as User;
-        console.log('DEBUG: ', userData);
         setUser(userData);
         
         // Set calorie goal from user data or use default
