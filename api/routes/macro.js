@@ -1,5 +1,5 @@
 import express from 'express';
-import {extractNutritionInfo, getNutritionInfo} from '../bedrock.js';
+import {getMacros} from '../bedrock.js';
 const router = express.Router();
 
 export default function macroRoutes() {
@@ -34,7 +34,7 @@ export default function macroRoutes() {
       `;
       
       logger.info('POST /macro');
-      const result = await extractNutritionInfo(images, prompt);
+      const result = await getMacros(images, prompt);
       console.log(result);
       const resultJson = JSON.parse(result);
       res.status(201).json(resultJson);

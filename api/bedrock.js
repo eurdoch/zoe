@@ -56,7 +56,7 @@ class BedrockService {
     }
   }
 
-  async processImageAndPrompt(
+  async processImagesAndPrompt(
     imageBase64Array,
     prompt,
   ) {
@@ -113,30 +113,16 @@ class BedrockService {
 
 const bedrockService = new BedrockService();
 
-// TODO deprecated, marked for deletion
-export async function extractNutritionInfo(imageBase64String, prompt) {
+export async function getMacros(imageBase64Array, prompt) {
   try {
-    const result = await bedrockService.processImageAndPrompt(
-      imageBase64String,
+    const result = await bedrockService.processImagesAndPrompt(
+      imageBase64Array,
       prompt,
     );
 
     return result;
   } catch (error) {
-    console.error("Error analyzing image:", error);
-    throw error;
-  }
-}
-
-export async function getNutritionInfo(prompt) {
-  try {
-    const result = await bedrockService.processPrompt(
-      prompt,
-    );
-
-    return result;
-  } catch (error) {
-    console.error("Error analyzing image:", error);
+    console.error("Error analyzing macro content:", error);
     throw error;
   }
 }
