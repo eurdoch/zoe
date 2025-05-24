@@ -6,7 +6,6 @@ import foodRoutes from './routes/foodRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
-import nutritionParserRoutes from './routes/nutritionLabelParser.js';
 import macroRoutes from './routes/macro.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -54,13 +53,13 @@ async function connectToDatabase() {
     });
 
     // Public routes (no authentication required)
-    app.use('/nutritionimg', nutritionParserRoutes());
-    // Macro analyzer requires authentication and premium status
-    app.use('/macro', authenticateToken, verifyPremiumStatus(userCollection), macroRoutes());
     app.use('/verify', verificationRoutes(userCollection, verificationCollection));
-    
-    // Protected routes (require JWT authentication)
+
+    // Requires premium 
+    app.use('/macro', authenticateToken, verifyPremiumStatus(userCollection), macroRoutes());
     app.use('/food', authenticateToken, verifyPremiumStatus(userCollection), foodRoutes(foodCollection));
+
+    // Protected routes (require JWT authentication)
     app.use('/exercise', authenticateToken, exerciseRoutes(exerciseCollection));
     app.use('/workout', authenticateToken, workoutRoutes(workoutCollection));
     app.use('/weight', authenticateToken, weightRoutes(weightCollection));
