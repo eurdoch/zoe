@@ -2,8 +2,9 @@ import FoodEntry from "../types/FoodEntry";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
+import Food from "../types/Food";
 
-export async function postFood(food: any): Promise<any> {
+export async function postFood(food: Food): Promise<any> {
   try {
     // Get JWT token from AsyncStorage
     const token = await AsyncStorage.getItem('token');

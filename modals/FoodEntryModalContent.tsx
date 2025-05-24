@@ -106,8 +106,50 @@ const FoodEntryModalContent: React.FC<Props> = ({
         const macroResponse = await response.json();
         console.log('Macro response:', macroResponse);
         
-        // For now, just log the response and show success message
-        showToastInfo('Macro analysis completed - check logs');
+        // Use macro response to create food entry
+        if (macroResponse && macroResponse.calories !== undefined) {
+          // Get user ID from storage
+          const userJson = await AsyncStorage.getItem('user');
+          if (!userJson) {
+            throw new Error('User not found');
+          }
+          const user = JSON.parse(userJson);
+          
+          // Create food entry object using macro response
+          const foodEntry = {
+            name: foodName.trim() || 'AI Analyzed Food',
+            brand: '', // No brand for AI analyzed foods
+            categories: [], // Empty categories for now
+            macros: {
+              calories: macroResponse.calories || 0,
+              carbs: macroResponse.carbs || 0,
+              fat: macroResponse.fat || 0,
+              fiber: macroResponse.fiber || 0,
+              protein: macroResponse.protein || 0
+            },
+            createdAt: Math.floor(Date.now() / 1000), // Unix timestamp
+            user_id: user.id
+          };
+          
+          // Save food entry to database
+          await postFood(foodEntry);
+          
+          showToastInfo('Food entry added successfully');
+          
+          // Clear food data context
+          clearFoodData();
+          
+          // Call onFoodAdded if provided to refresh the food list
+          if (onFoodAdded) {
+            onFoodAdded();
+          }
+          
+          closeModal();
+          return;
+        } else {
+          showToastError('Invalid macro analysis response');
+          return;
+        }
         
       } catch (error) {
         console.error('Error making macro request:', error);
@@ -115,14 +157,13 @@ const FoodEntryModalContent: React.FC<Props> = ({
         return;
       }
     }
-    
+
     // Check if description and images are null/empty, and we have scanned product data
-    if ((!description || description.trim() === '') && 
-        (!images || images.length === 0) && 
-        scannedProductData && 
-        amount && 
+    if ((!description || description.trim() === '') &&
+        (!images || images.length === 0) &&
+        scannedProductData &&
+        amount &&
         foodName.trim()) {
-      
       // Validate amount is a number
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
@@ -153,7 +194,6 @@ const FoodEntryModalContent: React.FC<Props> = ({
         
         // Create food entry object
         const foodEntry = {
-          id: `food_${Date.now()}`, // Generate unique ID
           name: foodName.trim(),
           brand: scannedProductData.product.brands || '',
           categories: [], // Empty categories for now

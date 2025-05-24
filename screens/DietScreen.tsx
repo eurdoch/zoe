@@ -671,7 +671,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         animationType="slide"
       >
         <FoodEntryModalContent 
-          onActionSelected={handleFoodOptionSelected} 
           onFoodAdded={onFoodAdded}
           closeModal={() => {
             setOptionsModalVisible(false);
