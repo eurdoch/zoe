@@ -57,10 +57,30 @@ class BedrockService {
   }
 
   async processImageAndPrompt(
-    imageBase64,
+    imageBase64Array,
     prompt,
   ) {
     try {
+      const content = [];
+      
+      // Add all images to content array
+      imageBase64Array.forEach(imageBase64 => {
+        content.push({
+          "type": "image",
+          "source": {
+            "type": "base64",
+            "media_type": "image/jpeg",
+            "data": imageBase64,
+          }
+        });
+      });
+      
+      // Add text prompt
+      content.push({
+        "type": "text",
+        "text": prompt,
+      });
+
       const command = new InvokeModelCommand({
         modelId: config.MODEL_ID,
         contentType: "application/json",
@@ -71,20 +91,7 @@ class BedrockService {
           "messages": [
             {
               "role": "user",
-              "content": [
-                {
-                  "type": "image",
-                  "source": {
-                    "type": "base64",
-                    "media_type": "image/jpeg",
-                    "data": imageBase64,
-                  }
-                },
-                {
-                  "type": "text",
-                  "text": prompt,
-                }
-              ]
+              "content": content
             }
           ]
         }),
