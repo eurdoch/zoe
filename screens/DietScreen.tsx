@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Button, Animated, Alert, Platform, Linking, Dimensions, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
@@ -10,7 +10,7 @@ import { useFoodData } from '../contexts/FoodDataContext';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
-import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
+import Svg, { Path, Circle, Text as SvgText } from 'react-native-svg';
 import User from '../types/User';
 import { updateUserInfo } from '../network/user';
 import FoodEntryModalContent from '../modals/FoodEntryModalContent';

@@ -65,6 +65,11 @@ const FoodEntryModalContent: React.FC<Props> = ({
     navigation.navigate('DietLog');
   };
 
+  const handleAddPress = () => {
+    // TODO: Add food entry logic here
+    closeModal();
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add Food Entry</Text>
@@ -146,6 +151,18 @@ const FoodEntryModalContent: React.FC<Props> = ({
           </LinearGradient>
         </TouchableOpacity>
       </View>
+      
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={handleAddPress}
+      >
+        <LinearGradient
+          colors={['#444444', '#222222']}
+          style={styles.addButtonGradient}
+        >
+          <Text style={styles.addButtonText}>Add</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -221,6 +238,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addButton: {
+    width: '100%',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 15,
+  },
+  addButtonGradient: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

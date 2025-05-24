@@ -17,7 +17,6 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   const device = Object.values(devices).find(d => d.position === 'back');
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [description, setDescription] = useState<string>('');
   const [hasPermission, setHasPermission] = useState(false);
   
   // Use the food data context
@@ -124,16 +123,6 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
         </View>
       )}
       
-      <View style={styles.descriptionContainer}>
-        <TextInput
-          style={styles.descriptionInput}
-          placeholder="Enter food description"
-          placeholderTextColor="rgba(255, 255, 255, 0.7)"
-          value={description}
-          onChangeText={setDescription}
-          multiline={false}
-        />
-      </View>
       
       <View style={styles.controls}>
         <TouchableOpacity
@@ -172,23 +161,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     textAlign: 'center',
-  },
-  descriptionContainer: {
-    position: 'absolute',
-    bottom: 100, // Position above the Capture button
-    left: 20,
-    right: 20,
-    zIndex: 2,
-  },
-  descriptionInput: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 10,
-    color: 'white',
-    padding: 12,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   controls: {
     position: 'absolute',
