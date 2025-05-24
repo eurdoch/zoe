@@ -2,22 +2,25 @@ import express from 'express';
 import {extractNutritionInfo, getNutritionInfo} from '../bedrock.js';
 const router = express.Router();
 
-export default function foodImageAnalyzerRoutes() {
+export default function macroRoutes() {
   const logger = console;
 
   router.post('/', async (req, res) => {
     try {
-      const { base64ImageString } = req.body;
+      const { images, data } = req.body;
       const prompt = `
-        Using the data determine the macronutrient content.
+        Using the provided images and data, determine the macronutrient content.
 
-        Data: {req.data}
+        Data: ${JSON.stringify(data)}
         
         Return a JSON object with exactly these keys and structure:
         {
-          "protein_grams": number,  // Estimated protein in grams
-          "carb_grams": number,  // Estimated carbohydrates in grams
-          "fat_grams": number,  // Estimated fat in grams
+          "macros": {
+            "calories": number,  // Estimated calories
+            "carbs": number,  // Estimated carbohydrates in grams
+            "fat": number,  // Estimated fat in grams
+            "protein": number,  // Estimated protein in grams
+          },
           "confidence": string  // Your confidence level: "low", "medium", or "high"
         }
         
@@ -30,14 +33,14 @@ export default function foodImageAnalyzerRoutes() {
         Only return valid JSON with no explanation or other text.
       `;
       
-      logger.info('POST /foodimageanalyzer');
-      const result = await getNutritionInfo(base64ImageString, prompt);
+      logger.info('POST /macro');
+      const result = await extractNutritionInfo(images, prompt);
       console.log(result);
       const resultJson = JSON.parse(result);
       res.status(201).json(resultJson);
     } catch (err) {
-      logger.error('POST /foodimageanalyzer error:', err);
-      res.status(500).json({ error: 'Failed to analyze food image.' });
+      logger.error('POST /macro error:', err);
+      res.status(500).json({ error: 'Failed to analyze macro content.' });
     }
   });
 

@@ -7,7 +7,7 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import weightRoutes from './routes/weightRoute.js';
 import supplementRoutes from './routes/supplementRoute.js';
 import nutritionParserRoutes from './routes/nutritionLabelParser.js';
-import foodImageAnalyzerRoutes from './routes/foodImageAnalyzer.js';
+import macroRoutes from './routes/macro.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authenticateToken from './middleware/auth.js';
@@ -55,8 +55,8 @@ async function connectToDatabase() {
 
     // Public routes (no authentication required)
     app.use('/nutritionimg', nutritionParserRoutes());
-    // Food image analyzer requires authentication and premium status
-    app.use('/foodimageanalyzer', authenticateToken, verifyPremiumStatus(userCollection), foodImageAnalyzerRoutes());
+    // Macro analyzer requires authentication and premium status
+    app.use('/macro', authenticateToken, verifyPremiumStatus(userCollection), macroRoutes());
     app.use('/verify', verificationRoutes(userCollection, verificationCollection));
     
     // Protected routes (require JWT authentication)

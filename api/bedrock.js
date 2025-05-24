@@ -4,7 +4,7 @@ const config = {
   AWS_REGION: process.env.AWS_REGION || "us-east-1",
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-  MODEL_ID: "anthropic.claude-3-7-sonnet-20250219-v1:0",
+  MODEL_ID: "anthropic.claude-3-7-sonnet-20250219-v1:0", // TODO change model?
 };
 
 class BedrockService {

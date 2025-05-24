@@ -15,11 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
 
 interface Props {
-  onActionSelected: (action: string, description?: string) => void;
-  productResponse?: ProductResponse | OldProductResponse;
   onFoodAdded?: () => void;
   closeModal: () => void;
-  data?: string;
 }
 
 const UNITS = [
@@ -27,11 +24,8 @@ const UNITS = [
 ];
 
 const FoodEntryModalContent: React.FC<Props> = ({ 
-  onActionSelected, 
-  productResponse, 
   onFoodAdded,
   closeModal,
-  data = ''
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { scannedProductData, description, images, clearFoodData, setDescription } = useFoodData();
