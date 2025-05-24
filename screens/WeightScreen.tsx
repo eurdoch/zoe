@@ -308,7 +308,7 @@ const WeightScreen = () => {
         <List
           data={weightEntries.sort((a, b) => b.createdAt - a.createdAt)}
           renderItem={renderItem}
-          keyExtractor={(item) => item.createdAt.toString()}
+          keyExtractor={(item) => item._id || item.createdAt.toString()}
         />
       </Card>
       
