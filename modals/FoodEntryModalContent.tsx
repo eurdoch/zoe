@@ -13,6 +13,7 @@ import { postFood } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthenticationError } from '../errors/NetworkError';
+import { getApiBaseUrl } from '../config';
 
 interface Props {
   onFoodAdded?: () => void;
@@ -64,6 +65,57 @@ const FoodEntryModalContent: React.FC<Props> = ({
   };
 
   const handleAddPress = async () => {
+    // Check if we have description and/or images to make macro request
+    if ((description && description.trim() !== '') || (images && images.length > 0)) {
+      try {
+        // Make request to /macro endpoint
+        const baseUrl = await getApiBaseUrl();
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          showToastError('Authentication required. Please log in again.');
+          return;
+        }
+        
+        const requestBody = {
+          images: images || [],
+          data: {
+            description: description || '',
+            foodName: foodName.trim(),
+            amount: amount ? `${amount}${unit}` : ''
+          }
+        };
+        
+        const response = await fetch(`${baseUrl}/macro`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            showToastError('Authentication failed. Please log in again.');
+            return;
+          }
+          throw new Error(`Macro request failed: ${response.status}`);
+        }
+        
+        const macroResponse = await response.json();
+        console.log('Macro response:', macroResponse);
+        
+        // For now, just log the response and show success message
+        showToastInfo('Macro analysis completed - check logs');
+        
+      } catch (error) {
+        console.error('Error making macro request:', error);
+        showToastError('Failed to analyze macro content. Please try again.');
+        return;
+      }
+    }
+    
     // Check if description and images are null/empty, and we have scanned product data
     if ((!description || description.trim() === '') && 
         (!images || images.length === 0) && 
@@ -132,7 +184,7 @@ const FoodEntryModalContent: React.FC<Props> = ({
         }
         return; // Don't close modal on error
       }
-    } else {
+    } else if (!scannedProductData) {
       showToastError('Please enter a food name and amount');
       return;
     }
