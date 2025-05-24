@@ -22,19 +22,28 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   // Use the food data context
   const { images, setImages } = useFoodData();
 
-  // Check camera permission when component loads
+  // Check and request camera permission when component loads
   useEffect(() => {
-    const checkPermission = async () => {
+    const checkAndRequestPermission = async () => {
       try {
         const status = await Camera.getCameraPermissionStatus();
         console.log('FoodImageAnalyzer - Camera permission status:', status);
-        setHasPermission(status === 'granted');
+        
+        if (status === 'granted') {
+          setHasPermission(true);
+        } else if (status === 'not-determined') {
+          const newPermission = await Camera.requestCameraPermission();
+          console.log('FoodImageAnalyzer - Requested camera permission result:', newPermission);
+          setHasPermission(newPermission === 'granted');
+        } else {
+          setHasPermission(false);
+        }
       } catch (error) {
         console.error('FoodImageAnalyzer - Error checking permission:', error);
         setHasPermission(false);
       }
     };
-    checkPermission();
+    checkAndRequestPermission();
   }, []);
 
   useEffect(() => {
