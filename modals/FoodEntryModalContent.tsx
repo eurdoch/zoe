@@ -34,7 +34,7 @@ const FoodEntryModalContent: React.FC<Props> = ({
   data = ''
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { scannedProductData, description, images, clearFoodData } = useFoodData();
+  const { scannedProductData, description, images, clearFoodData, setDescription } = useFoodData();
   const [foodName, setFoodName] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [unit, setUnit] = useState<string>('g');
@@ -186,6 +186,18 @@ const FoodEntryModalContent: React.FC<Props> = ({
             placeholderStyle={{color: '#999'}}
           />
         </View>
+      </View>
+      
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.textInput, styles.multilineInput]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Description (optional)"
+          placeholderTextColor="#999"
+          multiline={true}
+          textAlignVertical="top"
+        />
       </View>
       
       <View style={styles.buttonsContainer}>
