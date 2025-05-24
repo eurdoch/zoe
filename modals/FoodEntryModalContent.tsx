@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput, Image } from 'react-native';
 import { Icon } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
@@ -354,6 +354,19 @@ const FoodEntryModalContent: React.FC<Props> = ({
           <Text style={styles.addButtonText}>Add</Text>
         </LinearGradient>
       </TouchableOpacity>
+      
+      {images && images.length > 0 && (
+        <View style={styles.thumbnailContainer}>
+          {images.map((imageBase64, index) => (
+            <Image
+              key={index}
+              source={{ uri: `data:image/jpeg;base64,${imageBase64}` }}
+              style={styles.thumbnail}
+              resizeMode="cover"
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
@@ -448,6 +461,20 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  thumbnailContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 15,
+  },
+  thumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
   }
 });
 
