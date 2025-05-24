@@ -145,6 +145,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState<boolean>(false);
+  
+  // Debug modal state changes
+  useEffect(() => {
+    console.log('optionsModalVisible changed to:', optionsModalVisible);
+  }, [optionsModalVisible]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState<boolean>(false);
   const [macroData, setMacroData] = useState<MacroData>({
@@ -171,8 +176,17 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   } = useFoodData();
 
   useEffect(() => {
-    console.log('DEBUg images: ', images);
+    //console.log('DEBUg images: ', images);
     console.log('DEBUG scannedProductData: ', scannedProductData);
+    console.log('DEBUG optionsModalVisible: ', optionsModalVisible);
+  }, [scannedProductData, images, optionsModalVisible]);
+
+  // Reopen modal when returning from camera screens with new data
+  useEffect(() => {
+    if ((scannedProductData || images.length > 0) && !optionsModalVisible) {
+      console.log('Reopening modal due to new data');
+      setOptionsModalVisible(true);
+    }
   }, [scannedProductData, images]);
   
   // Authentication error handler
@@ -200,8 +214,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     // Close both modals
     setModalVisible(false);
     setOptionsModalVisible(false);
-
-    clearFoodData();
     
     // Reload the food entries list
     loadData();
@@ -489,7 +501,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         return;
     }
     
-    setOptionsModalVisible(false);
+    // Only close modal for non-camera screens
+    if (screenName !== 'BarcodeScanner' && screenName !== 'FoodImageAnalyzer') {
+      setOptionsModalVisible(false);
+    }
     
     if (screenName === 'BarcodeScanner' || screenName === 'FoodImageAnalyzer') {
       const hasPermission = await requestCameraPermission();
@@ -634,8 +649,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         visible={modalVisible}
         setVisible={() => {
           setModalVisible(false);
-          // Clear context when modal is closed
-          clearFoodData();
         }}
       >
         { 
@@ -664,8 +677,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         visible={optionsModalVisible}
         setVisible={() => {
           setOptionsModalVisible(false);
-          // Clear context when modal is closed if user cancels
-          clearFoodData();
         }}
         animationType="slide"
       >
@@ -674,7 +685,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
           onFoodAdded={onFoodAdded}
           closeModal={() => {
             setOptionsModalVisible(false);
-            clearFoodData();
           }}
         />
       </CustomModal>

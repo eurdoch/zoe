@@ -17,10 +17,18 @@ const CustomModal = ({ children, visible, setVisible, animationType = 'fade' }: 
       onRequestClose={() => setVisible(false)}
       onDismiss={() => setVisible(false)}
     >
-      <TouchableOpacity style={styles.modalOverlay} onPress={() => setVisible(false)}>
-        <View style={[styles.modalView, { maxWidth: screenWidth * 0.8 }]}>
+      <TouchableOpacity 
+        style={styles.modalOverlay} 
+        onPress={() => setVisible(false)}
+        activeOpacity={1}
+      >
+        <TouchableOpacity 
+          style={[styles.modalView, { maxWidth: screenWidth * 0.8 }]}
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
           {children}
-        </View>
+        </TouchableOpacity>
       </TouchableOpacity>
     </Modal>
   );

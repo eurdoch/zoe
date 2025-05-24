@@ -6,7 +6,6 @@ import Svg, { Path } from 'react-native-svg';
 import { mdiBarcodeScan } from '@mdi/js';
 import { Dropdown } from 'react-native-element-dropdown';
 import OldProductResponse, { ProductResponse } from '../types/ProductResponse';
-import Food from '../types/Food';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
