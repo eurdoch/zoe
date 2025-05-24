@@ -4,7 +4,7 @@ import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getFoodImageAnalysis } from "../network/nutrition";
 import { showToastError, showToastInfo } from "../utils";
-import { useFoodData, FoodImageAnalysisResult } from "../contexts/FoodDataContext";
+import { useFoodData } from "../contexts/FoodDataContext";
 
 interface NavigationProps {
   navigation: NativeStackNavigationProp<any, any>;
@@ -17,12 +17,11 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
   const device = Object.values(devices).find(d => d.position === 'back');
   const [captureDisabled, setCaptureDisabled] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [analysisResult, setAnalysisResult] = useState<FoodImageAnalysisResult | null>(null);
   const [description, setDescription] = useState<string>('');
   const [hasPermission, setHasPermission] = useState(false);
   
   // Use the food data context
-  const { setFoodImageAnalysis } = useFoodData();
+  const { images, setImages } = useFoodData();
 
   // Check camera permission when component loads
   useEffect(() => {
@@ -72,19 +71,9 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
       // Extract the raw base64 data (remove data:image/jpeg;base64, prefix)
       const rawImageString = base64Data.slice(base64Data.indexOf(',') + 1);
       
-      // Process with API
-      const result = await getFoodImageAnalysis(rawImageString, description);
-      
-      // Log results to console
-      console.log("===== Food Image Analysis Results =====");
-      console.log(JSON.stringify(result, null, 2));
-      
-      setAnalysisResult(result);
-      
-      // Store the analysis result in the context
-      setFoodImageAnalysis(result);
-      
-      showToastInfo(`Analysis complete (${result.confidence} confidence)`);
+      // Add image to images array in context
+      const updatedImages = [...images, rawImageString];
+      setImages(updatedImages);
       
       // Navigate back to Diet screen
       setCameraActive(false);
