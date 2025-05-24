@@ -22,7 +22,6 @@ import SupplementScreen from './screens/SupplementsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 import BarcodeScanner from './components/BarcodeScanner';
-import NutritionLabelParser from './components/NutritionLabelParser.tsx';
 import FoodImageAnalyzer from './components/FoodImageAnalyzer.tsx';
 import 'react-native-get-random-values';
 import * as eva from '@eva-design/eva';
@@ -45,7 +44,6 @@ type RootStackParamList = {
   Profile: undefined;
   PrivacyPolicy: undefined;
   BarcodeScanner: undefined;
-  NutritionLabelParser: undefined;
   FoodImageAnalyzer: undefined;
 };
 
@@ -212,13 +210,6 @@ const App = () => {
               <Stack.Screen
                 name="BarcodeScanner"
                 component={BarcodeScanner}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="NutritionLabelParser"
-                component={NutritionLabelParser}
                 options={{
                   headerShown: false,
                 }}

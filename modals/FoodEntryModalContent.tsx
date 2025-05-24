@@ -5,7 +5,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { mdiBarcodeScan } from '@mdi/js';
 import { Dropdown } from 'react-native-element-dropdown';
-import OldProductResponse, { ProductResponse } from '../types/ProductResponse';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFoodData } from '../contexts/FoodDataContext';
@@ -160,7 +159,12 @@ const FoodEntryModalContent: React.FC<Props> = ({
         }
         
         // Build comprehensive data object
-        const requestData = {
+        const requestData: {
+          description: string;
+          foodName: string;
+          amount: string;
+          scannedProductData?: any; // TODO use correct type
+        } = {
           description: description || '',
           foodName: foodName.trim(),
           amount: amount ? `${amount}${unit}` : ''
