@@ -147,9 +147,6 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </TouchableOpacity>
       
-      <View style={styles.instructionContainer}>
-        <Text style={styles.instructionText}>Take a clear photo of your food</Text>
-      </View>
     </KeyboardAvoidingView>
   )
 }
