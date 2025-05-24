@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Dimensions, TouchableOpacity, Alert, View } from 'react-native';
-import { getNutritionLabelImgInfo, searchFoodItemByText } from '../network/nutrition';
+import { getNutritionLabelImgInfo, searchFoodItemByText, getFoodItemByUpc } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
 import CustomModal from '../CustomModal';
@@ -8,6 +8,7 @@ import NutritionInfo from '../types/NutritionInfo';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
+import { useFoodData } from '../contexts/FoodDataContext';
 import { 
   Layout, 
   Text, 
@@ -33,6 +34,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   const [modalContent, setModalContent] = useState<string>('product');
   const [option, setOption] = useState<any>({});
   const [isModalLoading, setIsModalLoading] = useState(false);
+  const { setScannedProductData } = useFoodData();
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -140,9 +142,23 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   }
 
   const handleFoodOptionPress = async (option: any) => {
-    setModalContent('product');
-    setOption(option);
-    setModalVisible(true);
+    try {
+      // Get detailed product info using the ID
+      const productData = await getFoodItemByUpc(option.id);
+      
+      // Set the detailed product data in context
+      setScannedProductData(productData);
+      
+      // Navigate back to DietScreen
+      navigation.popTo('Diet');
+      
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        handleAuthError(error);
+      } else {
+        showToastError('Failed to load product details. Please try again.');
+      }
+    }
   }
 
   const renderItem = ({ item, index }: { item: any; index: number }) => (
