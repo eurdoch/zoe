@@ -146,10 +146,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState<boolean>(false);
   
-  // Debug modal state changes
-  useEffect(() => {
-    console.log('optionsModalVisible changed to:', optionsModalVisible);
-  }, [optionsModalVisible]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState<boolean>(false);
   const [macroData, setMacroData] = useState<MacroData>({

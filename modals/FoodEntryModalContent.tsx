@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, TextInput } from 'react-native';
 import { Icon } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
@@ -8,6 +8,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import OldProductResponse, { ProductResponse } from '../types/ProductResponse';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFoodData } from '../contexts/FoodDataContext';
 
 interface Props {
   onActionSelected: (action: string, description?: string) => void;
@@ -34,9 +35,25 @@ const FoodEntryModalContent: React.FC<Props> = ({
   data = ''
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { scannedProductData } = useFoodData();
   const [foodName, setFoodName] = useState<string>('');
-  const [amount, setAmount] = useState<string>('100');
+  const [amount, setAmount] = useState<string>('');
   const [unit, setUnit] = useState<string>('g');
+
+  // Set food name from scannedProductData when available
+  useEffect(() => {
+    if (scannedProductData?.product?.product_name) {
+      const productName = scannedProductData.product.product_name;
+      const brandName = scannedProductData.product.brands;
+      
+      // Concatenate brand name and product name if both exist
+      if (brandName && brandName.trim()) {
+        setFoodName(`${brandName} ${productName}`);
+      } else {
+        setFoodName(productName);
+      }
+    }
+  }, [scannedProductData]);
 
   const handleCameraPress = () => {
     closeModal();
@@ -59,11 +76,13 @@ const FoodEntryModalContent: React.FC<Props> = ({
       
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, styles.multilineInput]}
           value={foodName}
           onChangeText={setFoodName}
           placeholder="Food name"
           placeholderTextColor="#999"
+          multiline={true}
+          textAlignVertical="top"
         />
       </View>
       
@@ -163,6 +182,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     width: '100%',
     height: 42,
+  },
+  multilineInput: {
+    height: 60,
+    paddingTop: 10,
   },
   servingContainer: {
     width: '100%',
