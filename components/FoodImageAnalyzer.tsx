@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform} from "react-native";
+import {StyleSheet, Text, View, TouchableOpacity, Dimensions, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert, Linking} from "react-native";
 import {Camera, useCameraDevices} from "react-native-vision-camera";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getFoodImageAnalysis } from "../network/nutrition";
@@ -35,12 +35,30 @@ const FoodImageAnalyzer = ({ navigation }: NavigationProps) => {
           const newPermission = await Camera.requestCameraPermission();
           console.log('FoodImageAnalyzer - Requested camera permission result:', newPermission);
           setHasPermission(newPermission === 'granted');
+          
+          if (newPermission !== 'granted') {
+            // If permission still not granted, go back
+            navigation.popTo('Diet');
+          }
         } else {
+          // Permission denied or restricted - show alert and go back
+          Alert.alert(
+            "Camera Permission Required",
+            "Camera access is required to analyze food images. Please enable camera permissions in your device settings.",
+            [
+              { text: "Cancel", onPress: () => navigation.popTo('Diet'), style: "cancel" },
+              { text: "Open Settings", onPress: () => {
+                Linking.openSettings();
+                navigation.popTo('Diet');
+              }}
+            ]
+          );
           setHasPermission(false);
         }
       } catch (error) {
         console.error('FoodImageAnalyzer - Error checking permission:', error);
         setHasPermission(false);
+        navigation.popTo('Diet');
       }
     };
     checkAndRequestPermission();

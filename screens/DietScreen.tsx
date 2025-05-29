@@ -443,7 +443,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     try {
       // Use react-native-vision-camera's permission system
       const cameraPermission = await Camera.getCameraPermissionStatus();
-      console.log('Camera permission status:', cameraPermission);
+      console.log('DietScreen - Camera permission status:', cameraPermission);
       
       if (cameraPermission === 'granted') {
         return true;
@@ -451,7 +451,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       
       if (cameraPermission === 'not-determined') {
         const newPermission = await Camera.requestCameraPermission();
-        console.log('Requested camera permission result:', newPermission);
+        console.log('DietScreen - Requested camera permission result:', newPermission);
         return newPermission === 'granted';
       }
       
@@ -466,7 +466,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       );
       return false;
     } catch (error) {
-      console.error('Error checking camera permission:', error);
+      console.error('DietScreen - Error checking camera permission:', error);
       return false;
     }
   };

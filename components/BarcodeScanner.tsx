@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, useCameraDevices, useCodeScanner } from "react-native-vision-camera";
 import { getFoodItemByUpc } from "../network/nutrition";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Linking } from "react-native";
 import { transformToProductResponse } from "../transform";
 import NetworkError from "../errors/NetworkError";
 import { showToastError } from "../utils";
@@ -49,19 +49,46 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
     }
   });
 
-  // Check camera permission when component loads
+  // Check and request camera permission when component loads
   useEffect(() => {
-    const checkPermission = async () => {
+    const checkAndRequestPermission = async () => {
       try {
         const status = await Camera.getCameraPermissionStatus();
         console.log('BarcodeScanner - Camera permission status:', status);
-        setHasPermission(status === 'granted');
+        
+        if (status === 'granted') {
+          setHasPermission(true);
+        } else if (status === 'not-determined') {
+          const newPermission = await Camera.requestCameraPermission();
+          console.log('BarcodeScanner - Requested camera permission result:', newPermission);
+          setHasPermission(newPermission === 'granted');
+          
+          if (newPermission !== 'granted') {
+            // If permission still not granted, go back
+            navigation.popTo('Diet');
+          }
+        } else {
+          // Permission denied or restricted - show alert and go back
+          Alert.alert(
+            "Camera Permission Required",
+            "Camera access is required to scan barcodes. Please enable camera permissions in your device settings.",
+            [
+              { text: "Cancel", onPress: () => navigation.popTo('Diet'), style: "cancel" },
+              { text: "Open Settings", onPress: () => {
+                Linking.openSettings();
+                navigation.popTo('Diet');
+              }}
+            ]
+          );
+          setHasPermission(false);
+        }
       } catch (error) {
         console.error('BarcodeScanner - Error checking permission:', error);
         setHasPermission(false);
+        navigation.popTo('Diet');
       }
     };
-    checkPermission();
+    checkAndRequestPermission();
   }, []);
 
   if (!hasPermission) {
