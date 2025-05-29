@@ -3,16 +3,16 @@ import MacroInfo from "../types/MacroInfo";
 import MacrosByServing from "../types/MacrosByServing";
 import { ProductResponse } from "../types/ProductResponse";
 
+const OFF_SERVER_BASE_URL = "http://ec2-52-25-119-48.us-west-2.compute.amazonaws.com:3006";
 const VITALE_BOX_URL = "https://directto.link";
 
 export const getFoodItemByUpc = async (upc: string): Promise<any> => {
-  const response = await fetch(
-    `https://world.openfoodfacts.org/api/v2/product/${upc}?fields=brands,categories_tags,code,image_url,product_name,nutriments,quantity`
-  );
+  const response = await fetch(OFF_SERVER_BASE_URL + `/product/${upc}`);
   if (!response.ok) {
     throw new NetworkError("Network error", response.status);
   }
   const data = await response.json();
+  console.log('DEBUG data: ', data);
   return data.product;
 };
 

@@ -26,8 +26,15 @@ const BarcodeScanner = ({ navigation }: BarcodeScannerProps) => {
       if (upc) {
         setCameraActive(false);
         try {
-          const item = await getFoodItemByUpc(upc);
-          const productResponse = transformToProductResponse(item);
+          const productData = await getFoodItemByUpc(upc);
+          
+          // Create the structure expected by transformToProductResponse
+          const apiResponse = {
+            code: productData.barcode || productData.code || upc,
+            product: productData
+          };
+          
+          const productResponse = transformToProductResponse(apiResponse);
           
           // Log the product data to console
           console.log('Scanned product data:', productResponse);
