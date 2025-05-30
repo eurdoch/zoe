@@ -1,19 +1,48 @@
-import NetworkError from "../errors/NetworkError";
+import NetworkError, { AuthenticationError } from "../errors/NetworkError";
 import MacroInfo from "../types/MacroInfo";
 import MacrosByServing from "../types/MacrosByServing";
 import { ProductResponse } from "../types/ProductResponse";
 import { getApiBaseUrl } from "../config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const VITALE_BOX_URL = "https://directto.link";
 
 export const getFoodItemByUpc = async (upc: string): Promise<any> => {
-  const apiBaseUrl = await getApiBaseUrl();
-  const response = await fetch(`${apiBaseUrl}/macro/upc/${upc}`);
-  if (!response.ok) {
-    throw new NetworkError("Network error", response.status);
+  try {
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    const apiBaseUrl = await getApiBaseUrl();
+    const response = await fetch(`${apiBaseUrl}/macro/upc/${upc}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    console.log('DEBUG response: ', response);
+    
+    if (!response.ok) {
+      console.warn(`Failed to get food item by UPC ${upc}: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new NetworkError("Network error", response.status);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting food item by UPC:', error);
+    throw error;
   }
-  const data = await response.json();
-  return data;
 };
 
 /**
