@@ -47,10 +47,9 @@ export default function macroRoutes() {
   router.get('/upc/:upc', async (req, res) => {
     try {
       const { upc } = req.params;
-      const OFF_SERVER_BASE_URL = process.env.OFF_SERVER_BASE_URL;
-      
+
       logger.info(`GET /macro/upc/${upc}`);
-      const response = await fetch(`${OFF_SERVER_BASE_URL}/product/${upc}`);
+      const response = await fetch(`${process.env.OFF_SERVER_BASE_URL}/product/${upc}`);
       
       if (!response.ok) {
         return res.status(response.status).json({ error: 'Product not found' });
