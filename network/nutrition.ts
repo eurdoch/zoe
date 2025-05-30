@@ -12,7 +12,6 @@ export const getFoodItemByUpc = async (upc: string): Promise<any> => {
     throw new NetworkError("Network error", response.status);
   }
   const data = await response.json();
-  console.log('DEBUG data: ', data);
   return data.product;
 };
 
