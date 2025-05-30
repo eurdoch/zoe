@@ -2,17 +2,18 @@ import NetworkError from "../errors/NetworkError";
 import MacroInfo from "../types/MacroInfo";
 import MacrosByServing from "../types/MacrosByServing";
 import { ProductResponse } from "../types/ProductResponse";
+import { getApiBaseUrl } from "../config";
 
-const OFF_SERVER_BASE_URL = "http://ec2-52-25-119-48.us-west-2.compute.amazonaws.com:3006";
 const VITALE_BOX_URL = "https://directto.link";
 
 export const getFoodItemByUpc = async (upc: string): Promise<any> => {
-  const response = await fetch(OFF_SERVER_BASE_URL + `/product/${upc}`);
+  const apiBaseUrl = await getApiBaseUrl();
+  const response = await fetch(`${apiBaseUrl}/macro/upc/${upc}`);
   if (!response.ok) {
     throw new NetworkError("Network error", response.status);
   }
   const data = await response.json();
-  return data.product;
+  return data;
 };
 
 /**

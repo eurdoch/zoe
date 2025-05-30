@@ -44,5 +44,25 @@ export default function macroRoutes() {
     }
   });
 
+  router.get('/upc/:upc', async (req, res) => {
+    try {
+      const { upc } = req.params;
+      const OFF_SERVER_BASE_URL = process.env.OFF_SERVER_BASE_URL;
+      
+      logger.info(`GET /macro/upc/${upc}`);
+      const response = await fetch(`${OFF_SERVER_BASE_URL}/product/${upc}`);
+      
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Product not found' });
+      }
+      
+      const data = await response.json();
+      res.json(data.product);
+    } catch (err) {
+      logger.error('GET /macro/upc error:', err);
+      res.status(500).json({ error: 'Failed to fetch product information' });
+    }
+  });
+
   return router;
 }
