@@ -87,8 +87,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         missingDimensionStrategy "store", "play"
-        versionCode 23
-        versionName "0.0.21-beta"
+        versionCode 24
+        versionName "0.0.22-beta"
     }
     signingConfigs {
         debug {
