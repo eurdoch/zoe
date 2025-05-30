@@ -379,21 +379,21 @@ const FoodEntryModalContent: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    gap: 15,
+    gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    padding: 10,
-    paddingTop: 15,
+    padding: 5,
+    paddingTop: 5,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   inputContainer: {
     width: '100%',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   textInput: {
     borderWidth: 1,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   amountContainer: {
     flex: 1,
@@ -459,10 +459,10 @@ const styles = StyleSheet.create({
   },
   addButtonGradient: {
     width: '100%',
-    marginVertical: 8,
+    marginVertical: 4,
     borderRadius: 10,
     overflow: 'hidden',
-    marginBottom: 15,
+    marginBottom: 5,
   },
   addButtonText: {
     color: 'white',
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 10,
-    marginTop: 15,
+    marginTop: 5,
   },
   thumbnail: {
     width: 80,
