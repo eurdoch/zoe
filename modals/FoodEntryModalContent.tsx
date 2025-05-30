@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, TextInput, Image } from 'react-native';
-import { Icon } from '@ui-kitten/components';
+import { Icon, Button } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { mdiBarcodeScan } from '@mdi/js';
@@ -346,17 +346,19 @@ const FoodEntryModalContent: React.FC<Props> = ({
         </TouchableOpacity>
       </View>
       
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddPress}
+      <LinearGradient
+        colors={['#444444', '#222222']}
+        style={styles.addButtonGradient}
       >
-        <LinearGradient
-          colors={['#444444', '#222222']}
-          style={styles.addButtonGradient}
+        <Button 
+          style={styles.addButton}
+          onPress={handleAddPress}
+          appearance="filled"
+          size="large"
         >
           <Text style={styles.addButtonText}>Add</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+        </Button>
+      </LinearGradient>
       
       {images && images.length > 0 && (
         <View style={styles.thumbnailContainer}>
@@ -449,16 +451,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   addButton: {
+    marginTop: 0,
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
+  addButtonGradient: {
     width: '100%',
+    marginVertical: 8,
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 15,
-  },
-  addButtonGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   addButtonText: {
     color: 'white',
