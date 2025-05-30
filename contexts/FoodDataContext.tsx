@@ -23,6 +23,8 @@ interface FoodDataContextType {
   setImages: (images: string[]) => void;
   description: string;
   setDescription: (description: string) => void;
+  amount: string;
+  setAmount: (amount: string) => void;
   clearFoodData: () => void;
 }
 
@@ -44,11 +46,13 @@ export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) 
   const [scannedProductData, setScannedProductData] = useState<ScannedProductData | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [description, setDescription] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
 
   const clearFoodData = () => {
     setScannedProductData(null);
     setImages([]);
     setDescription('');
+    setAmount('');
   };
 
   const value = {
@@ -58,6 +62,8 @@ export const FoodDataProvider: React.FC<FoodDataProviderProps> = ({ children }) 
     setImages,
     description,
     setDescription,
+    amount,
+    setAmount,
     clearFoodData,
   };
 

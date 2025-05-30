@@ -28,9 +28,8 @@ const FoodEntryModalContent: React.FC<Props> = ({
   closeModal,
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { scannedProductData, description, images, clearFoodData, setDescription } = useFoodData();
+  const { scannedProductData, description, images, amount, clearFoodData, setDescription, setAmount } = useFoodData();
   const [foodName, setFoodName] = useState<string>('');
-  const [amount, setAmount] = useState<string>('');
   const [unit, setUnit] = useState<string>('g');
 
   // Set food name from scannedProductData when available
