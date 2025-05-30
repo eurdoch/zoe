@@ -24,7 +24,6 @@ export const getFoodItemByUpc = async (upc: string): Promise<any> => {
         'Authorization': `Bearer ${token}`
       }
     });
-    console.log('DEBUG response: ', response);
     
     if (!response.ok) {
       console.warn(`Failed to get food item by UPC ${upc}: ${response.status} ${response.statusText}`);
