@@ -171,13 +171,16 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     clearFoodData,
   } = useFoodData();
 
-  // Reopen modal when returning from camera screens with new data
+  // Reopen modal when returning from camera screens with data
   useEffect(() => {
-    if ((scannedProductData || images.length > 0) && !optionsModalVisible) {
-      console.log('Reopening modal due to new data');
-      setOptionsModalVisible(true);
-    }
-  }, [scannedProductData, images]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      if ((scannedProductData || images.length > 0) && !optionsModalVisible) {
+        console.log('Reopening modal due to existing data on focus');
+        setOptionsModalVisible(true);
+      }
+    });
+    return unsubscribe;
+  }, [navigation, scannedProductData, images, optionsModalVisible]);
   
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
