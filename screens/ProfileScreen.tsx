@@ -1,25 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Card, Layout, Button, Text as KittenText } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 import { AuthenticationError } from '../errors/NetworkError';
 import { showToastError } from '../utils';
-import { updatePremiumStatus } from '../network/user';
-import CustomModal from '../CustomModal';
-import {
-  initConnection,
-  getSubscriptions,
-  getProducts,
-  requestSubscription,
-  getAvailablePurchases,
-  finishTransaction,
-  purchaseUpdatedListener,
-  purchaseErrorListener,
-  SubscriptionPurchase,
-  Subscription,
-} from 'react-native-iap';
+import SubscriptionModal from '../components/SubscriptionModal';
 
 // Type for the UI-Kitten props parameter
 type KittenProps = {
@@ -30,183 +17,14 @@ type KittenProps = {
 // Import the User type instead of defining it locally
 import UserType from '../types/User';
 
-const SUBSCRIPTION_ID = 'kallos_premium';
 
 const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [purchaseLoading, setPurchaseLoading] = useState(false);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    initConnection().then(() => {
-      getSubscriptions({ skus: [SUBSCRIPTION_ID] })
-        .then((products) => { 
-          console.log(products);
-          setSubscriptions(products);
-        })
-        .catch(err => {
-          console.error("Could not get subscriptions: ", err);
-        });
-    })
-    .catch(err => {
-      console.error("Could not connect to store: ", err);
-    });
-  }, []);
 
-  // Set up purchase listeners
-  useEffect(() => {
-    // Purchase listener
-    const purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase) => {
-      console.log('Purchase updated:', purchase);
-      
-      // Process the purchase (validate receipt with backend, etc)
-      // For this example, we're just finishing the transaction
-      if (purchase.productId === SUBSCRIPTION_ID) {
-        try {
-          const receipt = purchase.transactionReceipt ? purchase.transactionReceipt : '';
-          
-          if (receipt) {
-            // Send the receipt to the backend for validation and status update
-            console.log('Transaction receipt:', receipt);
-            
-            try {
-              // Get the auth token
-              const token = await AsyncStorage.getItem('token');
-              
-              if (!token) {
-                throw new Error('Authentication token not found');
-              }
-              
-              // Send receipt to backend and update premium status
-              const currentPlatform = Platform.OS as 'ios' | 'android';
-              const updatedUser = await updatePremiumStatus(token, receipt, currentPlatform);
-              
-              // Update local user object with response from backend
-              if (updatedUser) {
-                setUser(updatedUser);
-                await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-                console.log('Premium status updated on backend:', updatedUser.premium);
-              }
-              
-              // Acknowledge the purchase
-              await finishTransaction({ purchase, isConsumable: false });
-              console.log('Transaction finished');
-              
-              // Show success message
-              Alert.alert(
-                'Subscription Activated',
-                'Thank you for subscribing to Kallos Premium!',
-                [{ text: 'OK' }]
-              );
-            } catch (error) {
-              console.error('Error updating premium status on backend:', error);
-              
-              // If backend validation fails, still update locally but show warning
-              const updatedUser: UserType | null = user ? { ...user, premium: true } : null;
-              if (updatedUser) {
-                setUser(updatedUser);
-                await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-              }
-              
-              // Acknowledge the purchase even if backend update fails
-              await finishTransaction({ purchase, isConsumable: false });
-              
-              // Show warning that backend sync failed
-              Alert.alert(
-                'Subscription Activated',
-                'Your subscription has been activated, but there was an issue syncing with our servers. Your premium features will work, but you may need to restart the app.',
-                [{ text: 'OK' }]
-              );
-            }
-          }
-        } catch (error) {
-          console.error('Error processing purchase:', error);
-          showToastError('Failed to process subscription. Please contact support.');
-        }
-      }
-    });
 
-    // Error listener
-    const purchaseErrorSubscription = purchaseErrorListener((error) => {
-      console.error('Purchase error:', error);
-      
-      // Handle specific error cases
-      if (error.code === 'E_USER_CANCELLED') {
-        console.log('User cancelled the purchase');
-      } else {
-        showToastError('Subscription error. Please try again later.');
-      }
-      
-      setPurchaseLoading(false);
-    });
-
-    // Clean up listeners when component unmounts
-    return () => {
-      purchaseUpdateSubscription.remove();
-      purchaseErrorSubscription.remove();
-    };
-  }, [user]);
-
-  const handleSubscriptionSelect = async (subscription: Subscription) => {
-    console.log('Selected subscription:', subscription);
-    setModalVisible(false);
-    setPurchaseLoading(true);
-    
-    try {
-      const productId = subscription.productId;
-      const offerToken = Platform.OS === 'android' && 'subscriptionOfferDetails' in subscription
-        ? subscription.subscriptionOfferDetails?.[0]?.offerToken 
-        : '';
-      
-      console.log(`Requesting subscription for product ID: ${productId}`);
-      
-      // Normal production flow
-      // For Android, we need to pass the offerToken
-      if (Platform.OS === 'android' && offerToken) {
-        await requestSubscription({
-          sku: productId,
-          andDangerouslyFinishTransactionAutomaticallyIOS: false,
-          subscriptionOffers: [{ sku: productId, offerToken }]
-        });
-      } else {
-        // For iOS - handle Apple ID login requirement
-        try {
-          await requestSubscription({
-            sku: productId,
-            andDangerouslyFinishTransactionAutomaticallyIOS: false
-          });
-        } catch (iosError: any) {
-          // Check if error is related to authentication
-          if (iosError.message && 
-             (iosError.message.includes('login') || 
-              iosError.message.includes('authentication') || 
-              iosError.message.includes('sign in'))) {
-            console.log('User needs to log in to Apple ID');
-            Alert.alert(
-              'Apple ID Required',
-              'Please sign in with your Apple ID to complete this purchase.',
-              [{ text: 'OK' }]
-            );
-          } else {
-            // Re-throw other errors to be caught by the outer catch block
-            throw iosError;
-          }
-        }
-      }
-      
-      // Subscription request initiated successfully
-      console.log('Subscription requested successfully');
-      // The actual purchase completion is handled in the purchaseUpdatedListener
-      
-    } catch (error) {
-      console.error('Error purchasing subscription:', error);
-      showToastError('Failed to purchase subscription. Please try again.');
-    } finally {
-      setPurchaseLoading(false);
-    }
-  };
 
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -369,13 +187,11 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
                   appearance="filled"
                   size="large"
                   onPress={() => setModalVisible(true)}
-                  disabled={purchaseLoading}
                   style={[styles.menuButton, { backgroundColor: 'transparent' }]}
-                  accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
                 >
                   {(evaProps: KittenProps) => (
                     <KittenText {...evaProps} style={styles.buttonText}>
-                      {purchaseLoading ? 'Processing...' : 'Upgrade to Premium'}
+                      Upgrade to Premium
                     </KittenText>
                   )}
                 </Button>
@@ -385,70 +201,13 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
         </Card>
       </Layout>
 
-      <CustomModal visible={modalVisible} setVisible={setModalVisible}>
-        <View>
-          <Text style={styles.modalTitle}>Choose a Subscription</Text>
-          {subscriptions.length === 0 ? (
-            <Text>No subscription options available</Text>
-          ) : (
-            <FlatList
-              data={subscriptions}
-              keyExtractor={(item) => item.productId}
-              renderItem={({ item }) => (
-                <View style={styles.modalButtonContainer}>
-                  <LinearGradient
-                    colors={['#3366FF', '#1144CC']}
-                    style={styles.gradientContainer}
-                  >
-                    <Button
-                      appearance="filled"
-                      size="large"
-                      onPress={() => handleSubscriptionSelect(item)}
-                      style={[styles.menuButton, { backgroundColor: 'transparent' }]}
-                    >
-                      {(evaProps: KittenProps) => (
-                        <View style={{ alignItems: 'center', width: '100%' }}>
-                          <KittenText {...evaProps} style={styles.buttonText}>
-                            {Platform.OS === 'ios' 
-                              ? ('title' in item ? item.title : 'Kallos Premium') 
-                              : ('name' in item ? item.name : 'Kallos Premium')}
-                          </KittenText>
-                          
-                          {Platform.OS === 'ios' ? (
-                            <>
-                              <Text style={styles.subscriptionPrice}>
-                                {'localizedPrice' in item ? item.localizedPrice : '$4.99/month'}
-                              </Text>
-                              {'introductoryPrice' in item && item.introductoryPrice === "$0.00" && (
-                                <Text style={styles.trialText}>
-                                  {`${'introductoryPriceNumberOfPeriodsIOS' in item ? item.introductoryPriceNumberOfPeriodsIOS : '14'}-day free trial`}
-                                </Text>
-                              )}
-                              <Text style={styles.subscriptionDescription}>
-                                {'description' in item ? item.description : 'Premium subscription to Kallos'}
-                              </Text>
-                            </>
-                          ) : (
-                            <>
-                              <Text style={[styles.androidSubscriptionText, { color: 'white' }]}>
-                                {'subscriptionOfferDetails' in item && item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
-                                  ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice || '$4.99'}/month`
-                                  : `${('subscriptionOfferDetails' in item ? 
-                                      item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice : 
-                                      '$4.99')}/month`}
-                              </Text>
-                            </>
-                          )}
-                        </View>
-                      )}
-                    </Button>
-                  </LinearGradient>
-                </View>
-              )}
-            />
-          )}
-        </View>
-      </CustomModal>
+      <SubscriptionModal
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        user={user}
+        setUser={setUser}
+        onAuthError={handleAuthError}
+      />
     </ScrollView>
   );
 };
