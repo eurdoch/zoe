@@ -758,7 +758,10 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             <View>
               <View style={styles.slideUpHeader}>
                 <KittenText category="h6">Add Food Entry</KittenText>
-                <TouchableOpacity onPress={hideFoodOptionsModal} style={styles.closeButton}>
+                <TouchableOpacity onPress={() => {
+                  clearFoodData();
+                  hideFoodOptionsModal();
+                }} style={styles.closeButton}>
                   <Icon name="close-outline" width={24} height={24} fill="#666" />
                 </TouchableOpacity>
               </View>

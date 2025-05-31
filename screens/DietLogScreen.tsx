@@ -57,6 +57,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
     }
   }, [navigation]);
 
+  // TODO is this necessary, old dead code?
   useEffect(() => {
       const unsubscribe = navigation.addListener('focus', () => {
         console.log(route);
@@ -118,6 +119,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
       setIsLoading(true);
       try {
         const result = await searchFoodItemByText(searchText);
+        console.log('DEBUG result: ', result);
         setFoodOptions(result.products);
       } catch (error: any) {
         console.error('Error searching for food:', error);
@@ -143,20 +145,22 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
 
   const handleFoodOptionPress = async (option: any) => {
     try {
-      // Get detailed product info using the ID
+      // Get detailed product info using the ID (barcode)
       const productData = await getFoodItemByUpc(option.id);
+      console.log('DEBUG productData: ', productData);
       
       // Create ScannedProductData object conforming to the interface
+      // The API returns the product data directly (not wrapped in a product object)
       const scannedProductData = {
         code: productData.code || option.id,
         product: {
-          brands: productData.brands || '',
-          image_url: productData.image_url || '',
-          nutrient_levels: {},
+          brands: productData.brands || option.brand || '',
+          image_url: productData.image_url || option.image || '',
+          nutrient_levels: productData.nutrient_levels || {},
           nutriments: productData.nutriments || {},
-          product_name: productData.product_name || '',
-          serving_quantity: 0,
-          serving_size: productData.quantity || ''
+          product_name: productData.product_name || (option.name && option.name.trim() ? option.name : 'Product'),
+          serving_quantity: productData.serving_quantity || 0,
+          serving_size: productData.serving_size || productData.quantity || ''
         },
         status: 1,
         status_verbose: "success"
@@ -172,6 +176,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
       if (error instanceof AuthenticationError) {
         handleAuthError(error);
       } else {
+        console.error('Error loading product details:', error);
         showToastError('Failed to load product details. Please try again.');
       }
     }

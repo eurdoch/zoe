@@ -103,7 +103,7 @@ export const searchFoodItemByText = async (searchQuery: string, options: SearchO
       count: data.count,
       products: data.products.map((product: any) => ({
         id: product.barcode,
-        name: product.name || 'Unknown Product',
+        name: product.name || '',
         brand: product.brands || null,
         image: product.image_url || null,
         categories: product.categories ? product.categories.split(',') : [],

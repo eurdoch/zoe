@@ -38,11 +38,15 @@ const FoodEntryModalContent: React.FC<Props> = ({
       const productName = scannedProductData.product.product_name;
       const brandName = scannedProductData.product.brands;
       
-      // Concatenate brand name and product name if both exist
-      if (brandName && brandName.trim()) {
-        setFoodName(`${brandName} ${productName}`);
+      // Never include 'Unknown' in any form
+      const cleanProductName = productName?.replace(/unknown/gi, '').trim();
+      const cleanBrandName = brandName?.replace(/unknown/gi, '').trim();
+      
+      // Include brand name with colon separator if it exists and is not empty after cleaning
+      if (cleanBrandName && cleanBrandName.length > 0) {
+        setFoodName(`${cleanBrandName}: ${cleanProductName}`);
       } else {
-        setFoodName(productName);
+        setFoodName(cleanProductName);
       }
     }
   }, [scannedProductData]);
