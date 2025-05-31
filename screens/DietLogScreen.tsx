@@ -122,7 +122,6 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
       setIsLoading(true);
       try {
         const result = await searchFoodItemByText(searchText);
-        console.log('DEBUG result: ', result);
         setFoodOptions(result.products);
       } catch (error: any) {
         console.error('Error searching for food:', error);
@@ -150,7 +149,7 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
     try {
       // Get detailed product info using the ID (barcode)
       const productData = await getFoodItemByUpc(option.id);
-      console.log('DEBUG productData: ', productData);
+      console.log('DEBUG productData: ', JSON.stringify(productData, null, 2));
       
       // Create ScannedProductData object conforming to the interface
       // The API returns the product data directly (not wrapped in a product object)
@@ -159,11 +158,11 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
         product: {
           brands: productData.brands || option.brand || '',
           image_url: productData.image_url || option.image || '',
-          nutrient_levels: productData.nutrient_levels || {},
-          nutriments: productData.nutriments || {},
-          product_name: productData.product_name || (option.name && option.name.trim() ? option.name : 'Product'),
-          serving_quantity: productData.serving_quantity || 0,
-          serving_size: productData.serving_size || productData.quantity || ''
+          nutrient_levels: productData.raw_data?.nutrient_levels || {},
+          nutriments: productData.raw_data?.nutriments || {},
+          product_name: productData.name || option.name || 'Product',
+          serving_quantity: productData.raw_data?.serving_quantity || 0,
+          serving_size: productData.raw_data?.serving_size || productData.quantity || ''
         },
         status: 1,
         status_verbose: "success"

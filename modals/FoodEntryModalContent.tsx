@@ -34,6 +34,7 @@ const FoodEntryModalContent: React.FC<Props> = ({
 
   // Set food name from scannedProductData when available
   useEffect(() => {
+    console.log('DEBUG scannedProductData: ', scannedProductData);
     if (scannedProductData?.product?.product_name) {
       const productName = scannedProductData.product.product_name;
       const brandName = scannedProductData.product.brands;
