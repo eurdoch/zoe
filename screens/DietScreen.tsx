@@ -174,25 +174,30 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
 
   const showFoodOptionsModal = useCallback(() => {
     setOptionsModalVisible(true);
-    requestAnimationFrame(() => {
-      Animated.timing(optionsModalAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    });
+    // Use setTimeout to ensure the animation happens after the render cycle
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        Animated.timing(optionsModalAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      });
+    }, 0);
   }, [optionsModalAnim]);
   
   const hideFoodOptionsModal = useCallback(() => {
-    requestAnimationFrame(() => {
-      Animated.timing(optionsModalAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setOptionsModalVisible(false);
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        Animated.timing(optionsModalAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setOptionsModalVisible(false);
+        });
       });
-    });
+    }, 0);
   }, [optionsModalAnim]);
 
   // Pan responder for swipe down to close
@@ -216,11 +221,13 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
             hideFoodOptionsModal();
           } else {
             // Snap back to original position
-            Animated.timing(optionsModalAnim, {
-              toValue: 1,
-              duration: 200,
-              useNativeDriver: true,
-            }).start();
+            setTimeout(() => {
+              Animated.timing(optionsModalAnim, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+              }).start();
+            }, 0);
           }
         },
       }),
