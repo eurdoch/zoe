@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput, Animated, Pressable } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
 import { showToastError, showToastInfo } from '../utils';
 import CustomModal from '../CustomModal';
-import { Icon, Datepicker, Button as KittenButton, Text as KittenText } from '@ui-kitten/components';
+import { Icon, Datepicker, Button as KittenButton, Text as KittenText, Divider } from '@ui-kitten/components';
 import { useFoodData } from '../contexts/FoodDataContext';
 import { AuthenticationError } from '../errors/NetworkError';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -145,6 +145,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
   const [deleteEntry, setDeleteEntry] = useState<FoodEntry | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState<boolean>(false);
+  const [optionsModalAnim] = useState(new Animated.Value(0));
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState<boolean>(false);
@@ -176,11 +177,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     const unsubscribe = navigation.addListener('focus', () => {
       if ((scannedProductData || images.length > 0) && !optionsModalVisible) {
         console.log('Reopening modal due to existing data on focus');
-        setOptionsModalVisible(true);
+        showFoodOptionsModal();
       }
     });
     return unsubscribe;
-  }, [navigation, scannedProductData, images, optionsModalVisible]);
+  }, [navigation, scannedProductData, images, optionsModalVisible, showFoodOptionsModal]);
   
   // Authentication error handler
   const handleAuthError = useCallback(async (error: AuthenticationError) => {
@@ -203,10 +204,22 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     }
   }, [navigation]);
 
+  // Calculate slide up transform for options modal
+  const optionsModalTransform = React.useMemo(() => ({
+    transform: [
+      {
+        translateY: optionsModalAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [500, 0],
+        }),
+      },
+    ],
+  }), [optionsModalAnim]);
+
   const onFoodAdded = () => {
     // Close both modals
     setModalVisible(false);
-    setOptionsModalVisible(false);
+    hideFoodOptionsModal();
     
     // Reload the food entries list
     loadData();
@@ -438,9 +451,28 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setModalVisible(true);
   }
 
-  const toggleFoodOptionsModal = () => {
+  const showFoodOptionsModal = useCallback(() => {
     setOptionsModalVisible(true);
-  };
+    requestAnimationFrame(() => {
+      Animated.timing(optionsModalAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [optionsModalAnim]);
+  
+  const hideFoodOptionsModal = useCallback(() => {
+    requestAnimationFrame(() => {
+      Animated.timing(optionsModalAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setOptionsModalVisible(false);
+      });
+    });
+  }, [optionsModalAnim]);
 
   const requestCameraPermission = async () => {
     try {
@@ -495,7 +527,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     
     // Only close modal for non-camera screens
     if (screenName !== 'BarcodeScanner' && screenName !== 'FoodImageAnalyzer') {
-      setOptionsModalVisible(false);
+      hideFoodOptionsModal();
     }
     
     if (screenName === 'BarcodeScanner' || screenName === 'FoodImageAnalyzer') {
@@ -627,7 +659,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       {/* Main FAB button */}
       <TouchableOpacity 
         style={styles.mainFabPositionReset} 
-        onPress={toggleFoodOptionsModal}
+        onPress={showFoodOptionsModal}
       >
         <LinearGradient
           colors={['#444444', '#222222']}
@@ -664,22 +696,41 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
         }
       </CustomModal>
       
-      {/* Consolidated Food Entry Modal that handles both options and results */}
-      <CustomModal
-        visible={optionsModalVisible}
-        setVisible={() => {
-          setOptionsModalVisible(false);
-        }}
-        onOverlayPress={clearFoodData}
-        animationType="slide"
-      >
-        <FoodEntryModalContent 
-          onFoodAdded={onFoodAdded}
-          closeModal={() => {
-            setOptionsModalVisible(false);
-          }}
-        />
-      </CustomModal>
+      {/* Add Food Entry Slide-up Panel */}
+      {optionsModalVisible && (
+        <View style={styles.slideUpOverlay}>
+          <Pressable 
+            style={[styles.closeOverlayArea]} 
+            onPress={() => {
+              clearFoodData();
+              hideFoodOptionsModal();
+            }}
+          />
+          <Animated.View 
+            style={[
+              styles.slideUpPanel,
+              optionsModalTransform,
+              { 
+                backgroundColor: 'white', 
+                borderTopLeftRadius: 15, 
+                borderTopRightRadius: 15,
+                zIndex: 1001
+              }
+            ]}
+          >
+            <View>
+              <View style={styles.slideUpHeader}>
+                <KittenText category="h6">Add Food Entry</KittenText>
+              </View>
+              <Divider />
+              <FoodEntryModalContent 
+                onFoodAdded={onFoodAdded}
+                closeModal={hideFoodOptionsModal}
+              />
+            </View>
+          </Animated.View>
+        </View>
+      )}
     </View>
   );
 };
@@ -958,6 +1009,41 @@ const styles = StyleSheet.create({
   fabMenuIcon: {
     width: 30,
     height: 30,
-  }
+  },
+  // Slide-up panel styles
+  slideUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  closeOverlayArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  slideUpPanel: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
+  },
+  slideUpHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
 });
 export default DietScreen;
