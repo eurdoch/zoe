@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, Modal, TouchableOpacity, Pressable } from 'react-native';
 import { Card, Layout, Button, Text as KittenText } from '@ui-kitten/components';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,6 +22,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
 
 
@@ -46,6 +47,31 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       showToastError('Error logging out. Please restart the app.');
     }
   }, [navigation]);
+  
+  // Handle logout modal cancel
+  const handleCancelLogout = () => {
+    setLogoutModalVisible(false);
+  };
+  
+  // Perform the actual logout
+  const handleLogout = async () => {
+    console.log('Performing logout...');
+    try {
+      // Clear user data from AsyncStorage
+      await AsyncStorage.multiRemove(['user', 'token']);
+      console.log('User logged out successfully');
+      
+      // Navigate to Login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as never }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setLogoutModalVisible(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -177,6 +203,22 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
             </LinearGradient>
           </View>
           
+          <View style={styles.buttonContainer}>
+            <LinearGradient
+              colors={['#ff6b6b', '#ff5252']}
+              style={styles.gradientContainer}
+            >
+              <Button
+                appearance="filled"
+                size="large"
+                onPress={() => setLogoutModalVisible(true)}
+                style={[styles.menuButton, { backgroundColor: 'transparent' }]}
+              >
+                {(evaProps: KittenProps) => <KittenText {...evaProps} style={styles.buttonText}>Logout</KittenText>}
+              </Button>
+            </LinearGradient>
+          </View>
+          
           {!user.premium && (
             <View style={styles.buttonContainer}>
               <LinearGradient
@@ -208,6 +250,47 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
         setUser={setUser}
         onAuthError={handleAuthError}
       />
+      
+      {/* Logout confirmation modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={logoutModalVisible}
+        onRequestClose={handleCancelLogout}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={handleCancelLogout}
+        >
+          <View 
+            style={styles.modalContent}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.modalTitle}>Logout</Text>
+            <Text style={styles.modalText}>Are you sure you want to logout?</Text>
+            
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.button, styles.buttonCancel]}
+                onPress={handleCancelLogout}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </Pressable>
+              
+              <Pressable
+                style={[styles.button, styles.buttonLogout]}
+                onPress={handleLogout}
+              >
+                <Text style={[styles.buttonText, styles.buttonLogoutText]}>
+                  Logout
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 };
@@ -323,6 +406,62 @@ const styles = StyleSheet.create({
   },
   modalButtonContainer: {
     marginBottom: 10,
+  },
+  // Logout modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 25,
+    width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 25,
+    textAlign: 'center',
+    color: '#555',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  button: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  buttonCancel: {
+    backgroundColor: '#f0f0f0',
+  },
+  buttonLogout: {
+    backgroundColor: '#ff6b6b',
+  },
+  buttonLogoutText: {
+    color: 'white',
   },
 });
 

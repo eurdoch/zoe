@@ -5,7 +5,8 @@ import { StyleSheet, View, Text } from 'react-native';
 import HeaderLogo from './components/HeaderLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ExerciseLogScreen from './screens/ExerciseLogScreen';
-import HomeScreen, { handleLogout, HomeScreenHeaderRight } from './screens/HomeScreen';
+import HomeScreen from './screens/HomeScreen';
+import SettingsHeaderRight from './components/SettingsHeaderRight';
 import LoginScreen from './screens/LoginScreen';
 import ExerciseScreen from './screens/ExerciseScreen';
 import DietScreen from './screens/DietScreen';
@@ -134,7 +135,7 @@ const App = () => {
                   headerTitle: () => <HeaderLogo />,
                   headerTitleAlign: "center",
                   headerRight: () => (
-                    <HomeScreenHeaderRight navigation={navigation} />
+                    <SettingsHeaderRight navigation={navigation} />
                   ),
                 })}
               />
