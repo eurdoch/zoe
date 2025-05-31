@@ -172,6 +172,29 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     clearFoodData,
   } = useFoodData();
 
+  const showFoodOptionsModal = useCallback(() => {
+    setOptionsModalVisible(true);
+    requestAnimationFrame(() => {
+      Animated.timing(optionsModalAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [optionsModalAnim]);
+  
+  const hideFoodOptionsModal = useCallback(() => {
+    requestAnimationFrame(() => {
+      Animated.timing(optionsModalAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setOptionsModalVisible(false);
+      });
+    });
+  }, [optionsModalAnim]);
+
   // Reopen modal when returning from camera screens with data
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -450,29 +473,6 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
     setDeleteEntry(entry);
     setModalVisible(true);
   }
-
-  const showFoodOptionsModal = useCallback(() => {
-    setOptionsModalVisible(true);
-    requestAnimationFrame(() => {
-      Animated.timing(optionsModalAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    });
-  }, [optionsModalAnim]);
-  
-  const hideFoodOptionsModal = useCallback(() => {
-    requestAnimationFrame(() => {
-      Animated.timing(optionsModalAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setOptionsModalVisible(false);
-      });
-    });
-  }, [optionsModalAnim]);
 
   const requestCameraPermission = async () => {
     try {
