@@ -227,41 +227,47 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     accessoryLeft={purchaseLoading ? (props) => <ActivityIndicator size="small" color="#FFFFFF" /> : undefined}
                   >
                     {(evaProps: KittenProps) => (
-                      <View style={{ alignItems: 'center', width: '100%' }}>
-                        <KittenText {...evaProps} style={styles.buttonText}>
-                          {purchaseLoading ? 'Processing...' : (
-                            Platform.OS === 'ios' 
-                              ? ('title' in item ? item.title : 'Kallos Premium') 
-                              : ('name' in item ? item.name : 'Kallos Premium')
-                          )}
-                        </KittenText>
-                        
-                        {!purchaseLoading && (
-                          Platform.OS === 'ios' ? (
-                            <>
+                      <View style={styles.buttonContent}>
+                        {!purchaseLoading ? (
+                          <>
+                            <View style={styles.subscriptionHeader}>
+                              <Text style={styles.subscriptionTitle}>
+                                {Platform.OS === 'ios' 
+                                  ? ('title' in item ? item.title : 'Kallos Premium') 
+                                  : ('name' in item ? item.name : 'Kallos Premium')}
+                              </Text>
                               <Text style={styles.subscriptionPrice}>
-                                {'localizedPrice' in item ? item.localizedPrice : '$4.99/month'}
+                                {Platform.OS === 'ios' 
+                                  ? ('localizedPrice' in item ? item.localizedPrice : '$4.99/month')
+                                  : ('subscriptionOfferDetails' in item ? 
+                                      item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice || '$4.99/month'
+                                      : '$4.99/month')}
                               </Text>
-                              {'introductoryPrice' in item && item.introductoryPrice === "$0.00" && (
-                                <Text style={styles.trialText}>
-                                  {`${'introductoryPriceNumberOfPeriodsIOS' in item ? item.introductoryPriceNumberOfPeriodsIOS : '14'}-day free trial`}
-                                </Text>
-                              )}
-                              <Text style={styles.subscriptionDescription}>
-                                {'description' in item ? item.description : 'Premium subscription to Kallos'}
+                            </View>
+                            
+                            {Platform.OS === 'ios' && 'introductoryPrice' in item && item.introductoryPrice === "$0.00" && (
+                              <Text style={styles.trialText}>
+                                {`${'introductoryPriceNumberOfPeriodsIOS' in item ? item.introductoryPriceNumberOfPeriodsIOS : '14'}-day free trial`}
                               </Text>
-                            </>
-                          ) : (
-                            <>
-                              <Text style={[styles.androidSubscriptionText, { color: 'white' }]}>
-                                {'subscriptionOfferDetails' in item && item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free'
-                                  ? `2-week free trial, then ${item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[1]?.formattedPrice || '$4.99'}/month`
-                                  : `${('subscriptionOfferDetails' in item ? 
-                                      item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice : 
-                                      '$4.99')}/month`}
+                            )}
+                            
+                            {Platform.OS === 'android' && 'subscriptionOfferDetails' in item && 
+                             item.subscriptionOfferDetails?.[0]?.pricingPhases?.pricingPhaseList?.[0]?.formattedPrice === 'Free' && (
+                              <Text style={styles.trialText}>
+                                2-week free trial
                               </Text>
-                            </>
-                          )
+                            )}
+                            
+                            <Text style={styles.subscriptionDescription}>
+                              {Platform.OS === 'ios' 
+                                ? ('description' in item ? item.description : 'Premium features for fitness tracking')
+                                : 'Premium features for fitness tracking'}
+                            </Text>
+                          </>
+                        ) : (
+                          <View style={styles.processingContainer}>
+                            <Text style={styles.processingText}>Processing...</Text>
+                          </View>
                         )}
                       </View>
                     )}
@@ -298,19 +304,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subscriptionPrice: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '600',
     color: 'white',
-    marginBottom: 4,
+    textAlign: 'right',
   },
   subscriptionDescription: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
+    marginTop: 4,
+    lineHeight: 16,
   },
   trialText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#00FF7F',
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 2,
   },
   androidSubscriptionText: {
     fontSize: 14,
@@ -323,13 +334,39 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   menuButton: {
-    height: 60,
+    minHeight: 80,
     borderRadius: 15,
     borderWidth: 0,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
-  buttonText: {
+  buttonContent: {
+    alignItems: 'center',
+    width: '100%',
+    paddingVertical: 4,
+  },
+  subscriptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 6,
+  },
+  subscriptionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: 'white',
+    flex: 1,
+    textAlign: 'left',
+  },
+  processingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  processingText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: 'white',
   },
   modalButtonContainer: {
