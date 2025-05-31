@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Dimensions, TouchableOpacity, Alert, View } from 'react-native';
+import { StyleSheet, Dimensions, TouchableOpacity, Alert, View, Keyboard } from 'react-native';
 import { getNutritionLabelImgInfo, searchFoodItemByText, getFoodItemByUpc } from '../network/nutrition';
 import FoodOptionComponent from '../components/FoodOptionComponent';
 import { showToastError } from '../utils';
@@ -115,6 +115,9 @@ const DietLogScreen = ({ navigation, route }: DietLogScreenProps) => {
   }, [navigation]);
 
   const handleSearchByText = async () => {
+    // Hide keyboard when search is pressed
+    Keyboard.dismiss();
+    
     if (searchText) {
       setIsLoading(true);
       try {
