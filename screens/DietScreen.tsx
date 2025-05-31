@@ -700,7 +700,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       {optionsModalVisible && (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 150 : 50}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 120}
           style={styles.slideUpOverlay}
         >
           <Pressable 
