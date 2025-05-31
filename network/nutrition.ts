@@ -61,59 +61,58 @@ interface SearchOptions {
 
 export const searchFoodItemByText = async (searchQuery: string, options: SearchOptions = {}) => {
   const {
-    page = 1,
-    pageSize = 10,
-    locale = 'world'
+    pageSize = 10
   } = options;
 
-  // Encode the search query for URL
-  const encodedQuery = encodeURIComponent(searchQuery);
-  
-  // Construct the search URL
-  const url = `https://${locale}.openfoodfacts.org/cgi/search.pl?` + 
-    `search_terms=${encodedQuery}&` +
-    `search_simple=1&` +
-    `action=process&` +
-    `json=true&` +
-    `page=${page}&` +
-    `page_size=${pageSize}`;
-
   try {
-    const response = await fetch(url);
+    // Get JWT token from AsyncStorage
+    const token = await AsyncStorage.getItem('token');
+    
+    if (!token) {
+      console.warn('No authentication token found');
+      throw new AuthenticationError('Authentication token not found. Please log in again.');
+    }
+    
+    const apiBaseUrl = await getApiBaseUrl();
+    const url = new URL(`${apiBaseUrl}/macro/search`);
+    url.searchParams.append('q', searchQuery);
+    url.searchParams.append('limit', pageSize.toString());
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
     if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
+      console.warn(`Failed to search food items: ${response.status} ${response.statusText}`);
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        throw new AuthenticationError(`Authentication failed with status code ${response.status}`);
+      }
+      
+      throw new NetworkError("Network error", response.status);
     }
 
     const data = await response.json();
 
-    // Transform the response into a more friendly format
+    // Transform the response to match expected format
     return {
       count: data.count,
-      page: data.page,
-      pageSize: data.page_size,
-      totalPages: Math.ceil(data.count / data.page_size),
       products: data.products.map((product: any) => ({
-        id: product._id,
-        name: product.product_name || 'Unknown Product',
+        id: product.barcode,
+        name: product.name || 'Unknown Product',
         brand: product.brands || null,
         image: product.image_url || null,
-        quantity: product.quantity || null,
-        categories: product.categories_tags || [],
-        nutriments: {
-          calories: product.nutriments['energy-kcal_100g'] || 0,
-          protein: product.nutriments.proteins_100g || 0,
-          carbs: product.nutriments.carbohydrates_100g || 0,
-          fat: product.nutriments.fat_100g || 0,
-          fiber: product.nutriments.fiber_100g || 0
-        }
+        categories: product.categories ? product.categories.split(',') : [],
+        nutrition_grade: product.nutrition_grade || null
       }))
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(
-      `Failed to search products: ${errorMessage}`
-    );
+    console.error('Error searching food items:', error);
+    throw error;
   }
 }
 
