@@ -1,6 +1,14 @@
-
 import React, { useEffect, useState } from 'react';
-import { Modal, TouchableOpacity, View, StyleSheet, Dimensions, Animated, Keyboard, Platform } from 'react-native';
+import { 
+  Modal, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Dimensions,
+  Animated, 
+  Keyboard, 
+  Platform 
+} from 'react-native';
+
 interface CustomModalProps {
   children: React.ReactNode;
   visible: boolean;
@@ -8,6 +16,7 @@ interface CustomModalProps {
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
   onOverlayPress?: () => void;
 }
+
 const CustomModal = ({ children, visible, setVisible, animationType = 'fade', onOverlayPress }: CustomModalProps) => {
   const screenWidth = Dimensions.get('window').width;
   const [modalPosition] = useState(new Animated.Value(0));
