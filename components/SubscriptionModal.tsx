@@ -44,6 +44,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 }) => {
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [isProcessingPurchase, setIsProcessingPurchase] = useState(false);
 
   useEffect(() => {
     initConnection().then(() => {
@@ -65,7 +66,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     const purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase) => {
       console.log('Purchase updated:', purchase);
       
-      if (purchase.productId === SUBSCRIPTION_ID) {
+      // Only process purchases that we initiated
+      if (purchase.productId === SUBSCRIPTION_ID && isProcessingPurchase) {
         try {
           const receipt = purchase.transactionReceipt ? purchase.transactionReceipt : '';
           
@@ -104,17 +106,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 return;
               }
               
-              const updatedUser: UserType | null = user ? { ...user, premium: true } : null;
-              if (updatedUser) {
-                setUser(updatedUser);
-                await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-              }
-              
+              // DO NOT grant premium access if backend validation fails
+              // This could be exploited - always require successful backend validation
               await finishTransaction({ purchase, isConsumable: false });
               
               Alert.alert(
-                'Subscription Activated',
-                'Your subscription has been activated, but there was an issue syncing with our servers. Your premium features will work, but you may need to restart the app.',
+                'Subscription Error',
+                'There was an issue processing your subscription. Please contact support if you were charged.',
                 [{ text: 'OK' }]
               );
             }
@@ -142,12 +140,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       purchaseUpdateSubscription.remove();
       purchaseErrorSubscription.remove();
     };
-  }, [user, setUser, onAuthError]);
+  }, [user, setUser, onAuthError, isProcessingPurchase]);
 
   const handleSubscriptionSelect = async (subscription: Subscription) => {
     console.log('Selected subscription:', subscription);
-    setVisible(false);
     setPurchaseLoading(true);
+    setIsProcessingPurchase(true);
     
     try {
       const productId = subscription.productId;
@@ -187,12 +185,16 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       }
       
       console.log('Subscription requested successfully');
+      // Close modal only after successful purchase initiation
+      setVisible(false);
       
     } catch (error) {
       console.error('Error purchasing subscription:', error);
       showToastError('Failed to purchase subscription. Please try again.');
+      setVisible(true); // Reopen modal on error
     } finally {
       setPurchaseLoading(false);
+      setIsProcessingPurchase(false);
     }
   };
 
