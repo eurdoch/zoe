@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput, Animated, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput, Animated, Pressable, KeyboardAvoidingView, Platform, PanResponder } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
@@ -194,6 +194,38 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       });
     });
   }, [optionsModalAnim]);
+
+  // Pan responder for swipe down to close
+  const panResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+          // Only respond to vertical swipes (dy > dx) and downward motion (dy > 0)
+          return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 10;
+        },
+        onPanResponderMove: (evt, gestureState) => {
+          // Only allow downward movement
+          if (gestureState.dy > 0) {
+            const progress = Math.min(gestureState.dy / 200, 1); // Normalize to 0-1 over 200px
+            optionsModalAnim.setValue(1 - progress * 0.3); // Reduce opacity/scale slightly while dragging
+          }
+        },
+        onPanResponderRelease: (evt, gestureState) => {
+          // If swiped down more than 100px or with sufficient velocity, close the modal
+          if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+            hideFoodOptionsModal();
+          } else {
+            // Snap back to original position
+            Animated.timing(optionsModalAnim, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }).start();
+          }
+        },
+      }),
+    [optionsModalAnim, hideFoodOptionsModal]
+  );
 
   // Reopen modal when returning from camera screens with data
   useEffect(() => {
@@ -721,6 +753,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
                 zIndex: 1001
               }
             ]}
+            {...panResponder.panHandlers}
           >
             <View>
               <View style={styles.slideUpHeader}>
