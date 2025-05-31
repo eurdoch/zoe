@@ -63,5 +63,29 @@ export default function macroRoutes() {
     }
   });
 
+  router.get('/search', async (req, res) => {
+    try {
+      const { q, limit } = req.query;
+
+      logger.info(`GET /macro/search?q=${q}&limit=${limit}`);
+      
+      const url = new URL(`${process.env.OFF_SERVER_BASE_URL}/search`);
+      if (q) url.searchParams.append('q', q);
+      if (limit) url.searchParams.append('limit', limit);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Search failed' });
+      }
+      
+      const data = await response.json();
+      res.json(data);
+    } catch (err) {
+      logger.error('GET /macro/search error:', err);
+      res.status(500).json({ error: 'Failed to search products' });
+    }
+  });
+
   return router;
 }
