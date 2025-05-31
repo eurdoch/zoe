@@ -268,7 +268,7 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
             onStartShouldSetResponder={() => true}
             onTouchEnd={(e) => e.stopPropagation()}
           >
-            <Text style={styles.modalTitle}>Logout</Text>
+            <Text style={styles.logoutModalTitle}>Logout</Text>
             <Text style={styles.modalText}>Are you sure you want to logout?</Text>
             
             <View style={styles.modalButtons}>
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  modalTitle: {
+  logoutModalTitle: {
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 15,

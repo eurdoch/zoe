@@ -25,7 +25,7 @@ type KittenProps = {
 
 interface SubscriptionModalProps {
   visible: boolean;
-  setVisible: (visible: boolean) => void;
+  setVisible: React.Dispatch<React.SetStateAction<boolean>>;
   user: UserType | null;
   setUser: (user: UserType | null) => void;
   onAuthError?: (error: AuthenticationError) => void;
