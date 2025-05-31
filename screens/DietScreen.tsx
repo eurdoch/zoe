@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput, Animated, Pressable } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, TextInput, Animated, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 import FoodEntry from '../types/FoodEntry';
 import { deleteFood, getFoodByUnixTime } from '../network/food';
@@ -698,7 +698,11 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
       
       {/* Add Food Entry Slide-up Panel */}
       {optionsModalVisible && (
-        <View style={styles.slideUpOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 150 : 50}
+          style={styles.slideUpOverlay}
+        >
           <Pressable 
             style={[styles.closeOverlayArea]} 
             onPress={() => {
@@ -729,7 +733,7 @@ const DietScreen = ({ navigation, route }: DietScreenProps) => {
               />
             </View>
           </Animated.View>
-        </View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );
